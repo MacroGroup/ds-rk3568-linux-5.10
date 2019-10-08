@@ -89,6 +89,8 @@ static int max_devices;
 /* TODO: Replace these with struct ida */
 static DECLARE_BITMAP(dev_use, MAX_DEVICES);
 
+#if 0
+/* move to  drivers/mmc/card/queue.h*/
 /*
  * There is one mmc_blk_data per slot.
  */
@@ -122,6 +124,7 @@ struct mmc_blk_data {
 	struct device_attribute power_ro_lock;
 	int	area_type;
 };
+#endif
 
 static DEFINE_MUTEX(open_lock);
 
@@ -134,7 +137,7 @@ enum {
 module_param(perdev_minors, int, 0444);
 MODULE_PARM_DESC(perdev_minors, "Minors numbers to allocate per device");
 
-static inline int mmc_blk_part_switch(struct mmc_card *card,
+int mmc_blk_part_switch(struct mmc_card *card,
 				      struct mmc_blk_data *md);
 static int get_card_status(struct mmc_card *card, u32 *status, int retries);
 
@@ -151,7 +154,7 @@ static inline void mmc_blk_clear_packed(struct mmc_queue_req *mqrq)
 	packed->blocks = 0;
 }
 
-static struct mmc_blk_data *mmc_blk_get(struct gendisk *disk)
+struct mmc_blk_data *mmc_blk_get(struct gendisk *disk)
 {
 	struct mmc_blk_data *md;
 
@@ -172,7 +175,7 @@ static inline int mmc_get_devidx(struct gendisk *disk)
 	return devidx;
 }
 
-static void mmc_blk_put(struct mmc_blk_data *md)
+void mmc_blk_put(struct mmc_blk_data *md)
 {
 	mutex_lock(&open_lock);
 	md->usage--;
@@ -641,7 +644,7 @@ static int mmc_blk_ioctl_copy_to_user(struct mmc_ioc_cmd __user *ic_ptr,
 	return 0;
 }
 
-static int ioctl_rpmb_card_status_poll(struct mmc_card *card, u32 *status,
+int ioctl_rpmb_card_status_poll(struct mmc_card *card, u32 *status,
 				       u32 retries_max)
 {
 	int err;
@@ -979,7 +982,7 @@ static const struct block_device_operations mmc_bdops = {
 #endif
 };
 
-static inline int mmc_blk_part_switch(struct mmc_card *card,
+int mmc_blk_part_switch(struct mmc_card *card,
 				      struct mmc_blk_data *md)
 {
 	int ret;
@@ -1340,7 +1343,7 @@ static int mmc_blk_cmd_recovery(struct mmc_card *card, struct request *req,
 	return ERR_CONTINUE;
 }
 
-static int mmc_blk_reset(struct mmc_blk_data *md, struct mmc_host *host,
+int mmc_blk_reset(struct mmc_blk_data *md, struct mmc_host *host,
 			 int type)
 {
 	int err;
@@ -1369,7 +1372,7 @@ static int mmc_blk_reset(struct mmc_blk_data *md, struct mmc_host *host,
 	return err;
 }
 
-static inline void mmc_blk_reset_success(struct mmc_blk_data *md, int type)
+void mmc_blk_reset_success(struct mmc_blk_data *md, int type)
 {
 	md->reset_done &= ~type;
 }
@@ -2887,6 +2890,9 @@ static int mmc_blk_probe(struct mmc_card *card)
 			goto out;
 	}
 
+    if (card->host->restrict_caps & RESTRICT_CARD_TYPE_EMMC)
+      mmc_blk_emmc_add(card, sizeof(struct mmc_blk_data));
+
 	pm_runtime_set_autosuspend_delay(&card->dev, 3000);
 	pm_runtime_use_autosuspend(&card->dev);
 
@@ -2916,6 +2922,8 @@ static void mmc_blk_remove(struct mmc_card *card)
 		this_card = NULL;
 #endif
 
+    if (card->host->restrict_caps & RESTRICT_CARD_TYPE_EMMC)
+      mmc_blk_emmc_remove(card);
 	mmc_blk_remove_parts(card, md);
 	pm_runtime_get_sync(&card->dev);
 	mmc_claim_host(card->host);
@@ -2944,6 +2952,8 @@ static int _mmc_blk_suspend(struct mmc_card *card)
 
 static void mmc_blk_shutdown(struct mmc_card *card)
 {
+    if (card->host->restrict_caps & RESTRICT_CARD_TYPE_EMMC)
+      mmc_blk_emmc_remove(card);
 	_mmc_blk_suspend(card);
 }
 
