@@ -1873,6 +1873,13 @@ static int stmmac_open(struct net_device *dev)
 	napi_enable(&priv->napi);
 	netif_start_queue(dev);
 
+#ifdef CONFIG_DWMAC_RK_AUTO_DELAYLINE
+	if (!priv->delayline_scanned) {
+		priv->delayline_scanned = true;
+		schedule_delayed_work(&priv->scan_dwork, msecs_to_jiffies(6000));
+	}
+#endif
+
 	return 0;
 
 lpiirq_error:
@@ -2856,6 +2863,16 @@ static int phy_rtl8211f_led_fixup(struct phy_device *phydev)
         return 0;
 }
 
+#ifdef CONFIG_DWMAC_RK_AUTO_DELAYLINE
+static void stmmac_scan_delayline_dwork(struct work_struct *work)
+{
+	struct stmmac_priv *priv = container_of(work, struct stmmac_priv,
+						scan_dwork.work);
+
+	dwmac_rk_search_rgmii_delayline(priv);
+};
+#endif
+
 /**
  * stmmac_dvr_probe
  * @device: device pointer
@@ -3026,6 +3043,10 @@ int stmmac_dvr_probe(struct device *device,
 		unregister_netdev(ndev);
 		goto error_netdev_register;
 	}
+
+#ifdef CONFIG_DWMAC_RK_AUTO_DELAYLINE
+	INIT_DELAYED_WORK(&priv->scan_dwork, stmmac_scan_delayline_dwork);
+#endif
 
 	return ret;
 
