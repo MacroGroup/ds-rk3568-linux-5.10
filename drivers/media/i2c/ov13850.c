@@ -555,7 +555,7 @@ static const struct regval ov13850_global_regs_r2a[] = {
  * max_framerate 30fps
  * mipi_datarate per lane 600Mbps
  */
-static const struct regval ov13850_2112x1568_regs[] = {
+static const struct regval ov13850_1920x1080_regs[] = {
 	{0x3612, 0x27},
 	{0x370a, 0x26},
 	{0x372a, 0x00},
@@ -563,10 +563,10 @@ static const struct regval ov13850_2112x1568_regs[] = {
 	{0x3801, 0x08},
 	{0x3805, 0x97},
 	{0x3807, 0x4b},
-	{0x3808, 0x08},
-	{0x3809, 0x40},
-	{0x380a, 0x06},
-	{0x380b, 0x20},
+	{0x3808, 0x07},
+	{0x3809, 0x80},
+	{0x380a, 0x04},
+	{0x380b, 0x38},
 	{0x380c, 0x12},
 	{0x380d, 0xc0},
 	{0x380e, 0x06},
@@ -638,8 +638,8 @@ static const struct regval ov13850_4224x3136_regs[] = {
 
 static const struct ov13850_mode supported_modes[] = {
 	{
-		.width = 2112,
-		.height = 1568,
+		.width = 1920,
+		.height = 1080,
 		.max_fps = {
 			.numerator = 10000,
 			.denominator = 300000,
@@ -647,7 +647,7 @@ static const struct ov13850_mode supported_modes[] = {
 		.exp_def = 0x0600,
 		.hts_def = 0x12c0,
 		.vts_def = 0x0680,
-		.reg_list = ov13850_2112x1568_regs,
+		.reg_list = ov13850_1920x1080_regs,
 	},{
 		.width = 4224,
 		.height = 3136,
