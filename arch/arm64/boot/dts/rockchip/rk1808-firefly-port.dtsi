@@ -848,6 +848,11 @@
 	status = "okay";
 };
 
+&sdmmc0_detn {
+	rockchip,pins =
+		<0 RK_PA3 1 &pcfg_pull_up>;
+};
+
 &pinctrl {
 	pmic {
 		pmic_int: pmic_int {
