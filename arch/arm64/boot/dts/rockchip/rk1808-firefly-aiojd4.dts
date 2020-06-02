@@ -13,7 +13,7 @@
 	compatible = "rockchip,rk1808-firefly", "rockchip,rk1808";
 
 	chosen {
-		bootargs = "earlycon=uart8250,mmio32,0xff540000 console=ttyFIQ0 rw root=PARTUUID=614e0000-0000 rootfstype=ext4 rootwait swiotlb=1 kpti=0 snd_aloop.index=7";
+		bootargs = "earlycon=uart8250,mmio32,0xff540000 console=ttyFIQ0 ro root=PARTLABEL=rootfs rootfstype=ext4 rootwait overlayroot=device:dev=PARTLABEL=userdata,fstype=ext4,mkfs=1 swiotlb=1 kpti=0 snd_aloop.index=7 systemd.gpt_auto=0 cgroup_enable=memory swapaccount=1";
 	};
 
 	vad-sound {
