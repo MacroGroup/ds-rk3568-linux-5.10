@@ -3,6 +3,7 @@
 snd-soc-rockchip-audio-pwm-objs := rockchip_audio_pwm.o
 snd-soc-rockchip-i2s-objs := rockchip_i2s.o
 snd-soc-rockchip-i2s-tdm-objs := rockchip_i2s_tdm.o
+snd-soc-rockchip-multi-dais-objs := rockchip_multi_dais.o rockchip_multi_dais_pcm.o
 snd-soc-rockchip-pcm-objs := rockchip_pcm.o
 snd-soc-rockchip-pdm-objs := rockchip_pdm.o
 snd-soc-rockchip-spdif-objs := rockchip_spdif.o
@@ -10,6 +11,7 @@ snd-soc-rockchip-spdif-objs := rockchip_spdif.o
 obj-$(CONFIG_SND_SOC_ROCKCHIP_AUDIO_PWM) += snd-soc-rockchip-audio-pwm.o
 obj-$(CONFIG_SND_SOC_ROCKCHIP_I2S) += snd-soc-rockchip-i2s.o snd-soc-rockchip-pcm.o
 obj-$(CONFIG_SND_SOC_ROCKCHIP_I2S_TDM) += snd-soc-rockchip-i2s-tdm.o
+obj-$(CONFIG_SND_SOC_ROCKCHIP_MULTI_DAIS) += snd-soc-rockchip-multi-dais.o
 obj-$(CONFIG_SND_SOC_ROCKCHIP_PDM) += snd-soc-rockchip-pdm.o
 obj-$(CONFIG_SND_SOC_ROCKCHIP_SPDIF) += snd-soc-rockchip-spdif.o
 

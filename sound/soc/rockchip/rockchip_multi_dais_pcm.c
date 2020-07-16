@@ -18,12 +18,13 @@
 #include "rockchip_multi_dais.h"
 
 #define MAX_FIFO_SIZE	32 /* max fifo size in frames */
+#define SND_DMAENGINE_MPCM_DRV_NAME "snd_dmaengine_mpcm"
 
 struct dmaengine_mpcm {
 	struct rk_mdais_dev *mdais;
 	struct dma_chan *tx_chans[MAX_DAIS];
 	struct dma_chan *rx_chans[MAX_DAIS];
-	struct snd_soc_platform platform;
+	struct snd_soc_component component;
 };
 
 struct dmaengine_mpcm_runtime_data {
@@ -46,9 +47,9 @@ static inline struct dmaengine_mpcm_runtime_data *substream_to_prtd(
 	return substream->runtime->private_data;
 }
 
-static struct dmaengine_mpcm *soc_platform_to_pcm(struct snd_soc_platform *p)
+static struct dmaengine_mpcm *soc_component_to_mpcm(struct snd_soc_component *p)
 {
-	return container_of(p, struct dmaengine_mpcm, platform);
+	return container_of(p, struct dmaengine_mpcm, component);
 }
 
 static struct dma_chan *to_chan(struct dmaengine_mpcm *pcm,
@@ -366,7 +367,9 @@ static int dmaengine_mpcm_hw_params(struct snd_pcm_substream *substream,
 				    struct snd_pcm_hw_params *params)
 {
 	struct snd_soc_pcm_runtime *rtd = substream->private_data;
-	struct dmaengine_mpcm *pcm = soc_platform_to_pcm(rtd->platform);
+	struct snd_soc_component *component =
+		snd_soc_rtdcom_lookup(rtd, SND_DMAENGINE_MPCM_DRV_NAME);
+	struct dmaengine_mpcm *pcm = soc_component_to_mpcm(component);
 	struct dma_chan *chan;
 	struct snd_dmaengine_dai_dma_data *dma_data;
 	struct dma_slave_config slave_config;
@@ -429,7 +432,9 @@ static int dmaengine_mpcm_hw_params(struct snd_pcm_substream *substream,
 static int dmaengine_mpcm_set_runtime_hwparams(struct snd_pcm_substream *substream)
 {
 	struct snd_soc_pcm_runtime *rtd = substream->private_data;
-	struct dmaengine_mpcm *pcm = soc_platform_to_pcm(rtd->platform);
+	struct snd_soc_component *component =
+		snd_soc_rtdcom_lookup(rtd, SND_DMAENGINE_MPCM_DRV_NAME);
+	struct dmaengine_mpcm *pcm = soc_component_to_mpcm(component);
 	struct device *dma_dev = dmaengine_dma_dev(pcm, substream);
 	struct dma_chan *chan;
 	struct dma_slave_caps dma_caps;
@@ -437,7 +442,8 @@ static int dmaengine_mpcm_set_runtime_hwparams(struct snd_pcm_substream *substre
 	u32 addr_widths = BIT(DMA_SLAVE_BUSWIDTH_1_BYTE) |
 			  BIT(DMA_SLAVE_BUSWIDTH_2_BYTES) |
 			  BIT(DMA_SLAVE_BUSWIDTH_4_BYTES);
-	int i, ret;
+	snd_pcm_format_t i;
+	int ret;
 
 	chan = to_chan(pcm, substream);
 	if (!chan)
@@ -454,7 +460,7 @@ static int dmaengine_mpcm_set_runtime_hwparams(struct snd_pcm_substream *substre
 
 	ret = dma_get_slave_caps(chan, &dma_caps);
 	if (ret == 0) {
-		if (dma_caps.cmd_pause)
+		if (dma_caps.cmd_pause && dma_caps.cmd_resume)
 			hw.info |= SNDRV_PCM_INFO_PAUSE | SNDRV_PCM_INFO_RESUME;
 		if (dma_caps.residue_granularity <= DMA_RESIDUE_GRANULARITY_SEGMENT)
 			hw.info |= SNDRV_PCM_INFO_BATCH;
@@ -484,7 +490,7 @@ static int dmaengine_mpcm_set_runtime_hwparams(struct snd_pcm_substream *substre
 		case 32:
 		case 64:
 			if (addr_widths & (1 << (bits / 8)))
-				hw.formats |= (1LL << i);
+				hw.formats |= pcm_format_to_bits(i);
 			break;
 		default:
 			/* Unsupported types */
@@ -498,7 +504,9 @@ static int dmaengine_mpcm_set_runtime_hwparams(struct snd_pcm_substream *substre
 static int dmaengine_mpcm_open(struct snd_pcm_substream *substream)
 {
 	struct snd_soc_pcm_runtime *rtd = substream->private_data;
-	struct dmaengine_mpcm *pcm = soc_platform_to_pcm(rtd->platform);
+	struct snd_soc_component *component =
+		snd_soc_rtdcom_lookup(rtd, SND_DMAENGINE_MPCM_DRV_NAME);
+	struct dmaengine_mpcm *pcm = soc_component_to_mpcm(component);
 	struct dmaengine_mpcm_runtime_data *prtd;
 	int ret, i;
 
@@ -534,7 +542,9 @@ static int dmaengine_mpcm_open(struct snd_pcm_substream *substream)
 
 static int dmaengine_mpcm_new(struct snd_soc_pcm_runtime *rtd)
 {
-	struct dmaengine_mpcm *pcm = soc_platform_to_pcm(rtd->platform);
+	struct snd_soc_component *component =
+		snd_soc_rtdcom_lookup(rtd, SND_DMAENGINE_MPCM_DRV_NAME);
+	struct dmaengine_mpcm *pcm = soc_component_to_mpcm(component);
 	struct snd_pcm_substream *substream;
 	size_t prealloc_buffer_size;
 	size_t max_buffer_size;
@@ -615,10 +625,9 @@ static const struct snd_pcm_ops dmaengine_mpcm_ops = {
 	.pointer	= dmaengine_mpcm_pointer,
 };
 
-static const struct snd_soc_platform_driver dmaengine_mpcm_platform = {
-	.component_driver = {
-		.probe_order = SND_SOC_COMP_ORDER_LATE,
-	},
+static const struct snd_soc_component_driver dmaengine_mpcm_platform = {
+	.name		= SND_DMAENGINE_MPCM_DRV_NAME,
+	.probe_order	= SND_SOC_COMP_ORDER_LATE,
 	.ops		= &dmaengine_mpcm_ops,
 	.pcm_new	= dmaengine_mpcm_new,
 };
@@ -670,8 +679,8 @@ int snd_dmaengine_mpcm_register(struct rk_mdais_dev *mdais)
 		}
 	}
 
-	ret = snd_soc_add_platform(dev, &pcm->platform,
-				   &dmaengine_mpcm_platform);
+	ret = snd_soc_add_component(dev, &pcm->component,
+				    &dmaengine_mpcm_platform, NULL, 0);
 	if (ret)
 		goto err_free_dma;
 
@@ -686,16 +695,16 @@ EXPORT_SYMBOL_GPL(snd_dmaengine_mpcm_register);
 
 void snd_dmaengine_mpcm_unregister(struct device *dev)
 {
-	struct snd_soc_platform *platform;
+	struct snd_soc_component *component;
 	struct dmaengine_mpcm *pcm;
 
-	platform = snd_soc_lookup_platform(dev);
-	if (!platform)
+	component = snd_soc_lookup_component(dev, SND_DMAENGINE_MPCM_DRV_NAME);
+	if (!component)
 		return;
 
-	pcm = soc_platform_to_pcm(platform);
+	pcm = soc_component_to_mpcm(component);
 
-	snd_soc_remove_platform(platform);
+	snd_soc_unregister_component(dev);
 	dmaengine_mpcm_release_chan(pcm);
 	kfree(pcm);
 }
