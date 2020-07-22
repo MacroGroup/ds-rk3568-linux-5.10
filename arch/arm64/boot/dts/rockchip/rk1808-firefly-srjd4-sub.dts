@@ -1,0 +1,181 @@
+// SPDX-License-Identifier: (GPL-2.0+ OR MIT)
+/*
+ * Copyright (c) 2018 Fuzhou Rockchip Electronics Co., Ltd
+ */
+
+/dts-v1/;
+#include "rk1808-firefly-port.dtsi"
+
+/ {
+	model = "RK1808-SR-JD4-SUB Board";
+	compatible = "rockchip,rk1808-firefly", "rockchip,rk1808";
+	
+	/delete-node/ wireless-bluetooth;
+	/delete-node/ wireless-wlan;
+
+	chosen {
+		bootargs = "earlycon=uart8250,mmio32,0xff540000 console=ttyFIQ0 rw root=PARTUUID=614e0000-0000 rootfstype=ext4 rootwait swiotlb=1 kpti=0 snd_aloop.index=7";
+	};
+
+    fiq-debugger {
+        compatible = "rockchip,fiq-debugger";
+        rockchip,serial-id = <1>;
+        rockchip,wake-irq = <0>;
+        /* If enable uart uses irq instead of fiq */
+        rockchip,irq-mode-enable = <1>;
+        rockchip,baudrate = <1500000>;  /* Only 115200 and 1500000 */
+        pinctrl-names = "default";
+        pinctrl-0 = <&uart1m1_xfer>;
+        interrupts = <GIC_SPI 242 IRQ_TYPE_LEVEL_HIGH>;
+        status = "okay";
+    };
+
+	leds {
+		user {
+			default-state = "on";
+		};
+	};
+
+	vcc3v3_vbus: vcc3v3-vbus {
+		compatible = "regulator-fixed";
+		regulator-name = "vcc3v3_vbus"; 
+		regulator-always-on;
+		regulator-boot-on;
+	};
+
+    ion {
+        compatible = "rockchip,ion";
+        #address-cells = <1>;
+        #size-cells = <0>;
+
+        cma-heap {
+            reg = <0x00000000 0x02000000>;
+        };
+
+        system-heap {
+        };
+	};
+
+};
+
+/delete-node/ &rk809_sound;
+
+&rk809 {
+	/delete-node/ codec;
+};
+
+&vcc_4g {
+	status = "disabled";
+};
+&sdio_pwrseq {
+	status = "disabled";
+};
+
+&vcc_mipi {
+	status = "disabled";
+};
+
+&dvdd_1v2 {
+	status = "disabled";
+};
+
+&vcc5v0_usb2_host {
+	status = "disabled";
+};
+
+&vcc_otg_vbus {
+	status = "disabled";
+};
+
+&pwm0 {
+    status = "disabled";
+};
+
+&ov13850 {
+	status = "disabled";
+};
+
+&mipi_dphy_rx {
+	status = "disabled";
+};
+
+&rk_rga {
+	status =  "okay";
+};
+
+&rng {
+	status = "okay";
+};
+
+&rockchip_suspend {
+	status = "okay";
+	rockchip,sleep-debug-en = <1>;
+};
+
+&tsadc {
+	rockchip,hw-tshut-mode = <1>; /* tshut mode 0:CRU 1:GPIO */
+	rockchip,hw-tshut-polarity = <0>; /* tshut polarity 0:LOW 1:HIGH */
+	pinctrl-names = "gpio", "otpout";
+	pinctrl-0 = <&tsadc_otp_gpio>;
+	pinctrl-1 = <&tsadc_otp_out>;
+	status = "okay";
+};
+
+&vpu_mmu {
+	status = "okay";
+};
+
+&vpu_service {
+	status = "okay";
+};
+
+&gmac {
+	status = "okay";
+};
+
+&i2s0 {
+	status = "disabled";
+};
+
+&mipi_dphy_rx {
+	status = "disabled";
+};
+
+&isp_mmu {
+	status = "disabled";
+};
+
+&sdio {
+	status = "disabled";
+};
+
+&uart4 {
+	status = "disbaled";
+};
+
+&spi1 {
+	status = "disabled";
+};
+
+&rkisp1 {
+	status = "disabled";
+};
+
+&i2c3 {
+	status = "okay";
+
+    sensor@3c {
+         status = "okay";
+         compatible = "firefly,pc9202";
+         reg = <0x3c>;
+    };
+};
+
+&u2phy_otg {
+	status = "okay";
+	vbus-supply = <&vcc3v3_vbus>;
+};
+
+&u2phy_host {
+	status = "disabled";
+};
