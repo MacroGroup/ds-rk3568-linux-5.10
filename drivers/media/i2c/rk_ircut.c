@@ -68,11 +68,33 @@ struct ircut_dev {
 
 static int ap1511a_parse_dt(struct ircut_dev *ircut, struct device_node *node)
 {
+	int ret;
+	dev_dbg(ircut->dev, "ircut_gpio_parse_dt");
+	ret = of_property_read_u32(node,
+		"rockchip,pulse-width",
+		&ircut->pulse_width);
+	if (ret != 0) {
+		ircut->pulse_width = 100;
+		dev_err(ircut->dev,
+			"failed get pulse-width,use dafult value 100\n");
+	}
+	if (ircut->pulse_width > 2000) {
+		ircut->pulse_width = 300;
+		dev_info(ircut->dev,
+			"pulse width to long,use default dafult 300");
+	}
+	dev_dbg(ircut->dev, "pulse-width value from dts %d\n",
+		ircut->pulse_width);
 	ircut->open_gpio = devm_gpiod_get(ircut->dev, "ircut-open", GPIOD_OUT_HIGH);
 	if (IS_ERR(ircut->open_gpio)) {
 		dev_err(ircut->dev, "Failed to get ircut-open-gpios\n");
 		return PTR_ERR(ircut->open_gpio);
 	}
+
+	ircut->close_gpio = devm_gpiod_get(ircut->dev,
+				"ircut-close", GPIOD_OUT_LOW);
+	if (IS_ERR(ircut->close_gpio))
+		dev_err(ircut->dev, "Failed to get ircut-close-gpios\n");
 
 	ircut->led_gpio = devm_gpiod_get_optional(ircut->dev, "led", GPIOD_OUT_LOW);
 	if (IS_ERR(ircut->led_gpio))
@@ -84,13 +106,25 @@ static int ap1511a_parse_dt(struct ircut_dev *ircut, struct device_node *node)
 static void ap1511a_ctrl(struct ircut_dev *ircut, int cmd)
 {
 	if (cmd > 0) {
-		gpiod_set_value_cansleep(ircut->open_gpio, 1);
+		if (!IS_ERR(ircut->close_gpio))
+			gpiod_set_value_cansleep(ircut->close_gpio, 0);
+		if (!IS_ERR(ircut->open_gpio))
+			gpiod_set_value_cansleep(ircut->open_gpio, 1);
 		if (!IS_ERR(ircut->led_gpio))
 			gpiod_set_value_cansleep(ircut->led_gpio, 0);
+		msleep(ircut->pulse_width);
+		if (!IS_ERR(ircut->close_gpio))
+			gpiod_set_value_cansleep(ircut->close_gpio, 1);
 	} else {
-		gpiod_set_value_cansleep(ircut->open_gpio, 0);
+		if (!IS_ERR(ircut->close_gpio))
+			gpiod_set_value_cansleep(ircut->close_gpio, 0);
+		if (!IS_ERR(ircut->open_gpio))
+			gpiod_set_value_cansleep(ircut->open_gpio, 0);
 		if (!IS_ERR(ircut->led_gpio))
-			gpiod_set_value_cansleep(ircut->led_gpio, 1);
+			gpiod_set_value_cansleep(ircut->led_gpio, 0);
+		msleep(ircut->pulse_width);
+		if (!IS_ERR(ircut->close_gpio))
+			gpiod_set_value_cansleep(ircut->close_gpio, 1);
 	}
 }
 
