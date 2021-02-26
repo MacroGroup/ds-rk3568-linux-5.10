@@ -234,6 +234,14 @@
                 pinctrl-0 = <&fan_pins>;
                 regulator-name = "gpio_fan";
         };
+	cam_ircut0: cam_ircut {
+		status = "okay";
+		compatible = "ap1511a,ircut";
+		ircut-open-gpios  = <&gpio4 RK_PA1 GPIO_ACTIVE_HIGH>;
+		ircut-close-gpios  = <&gpio3 RK_PA5 GPIO_ACTIVE_HIGH>;
+		rockchip,camera-module-index = <1>;
+		rockchip,camera-module-facing = "front";
+	};
 };
 
 &cpu0 {
@@ -944,6 +952,7 @@
                 rockchip,camera-module-facing = "front";
                 rockchip,camera-module-name = "CMK-OT1607-FV1";
                 rockchip,camera-module-lens-name = "M12-40IRC-4MP-F16";
+				ir-cut = <&cam_ircut0>;
 
                 port {
                         ucam_out0: endpoint {
