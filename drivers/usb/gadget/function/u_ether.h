@@ -108,7 +108,7 @@ static inline struct eth_dev *gether_setup(struct usb_gadget *g,
 		const char *dev_addr, const char *host_addr,
 		u8 ethaddr[ETH_ALEN], unsigned qmult)
 {
-	return gether_setup_name(g, dev_addr, host_addr, ethaddr, qmult, "usb");
+	return gether_setup_name(g, dev_addr, host_addr, ethaddr, qmult, "eth");
 }
 
 /*
@@ -137,7 +137,7 @@ int gether_register_netdev(struct net_device *net);
  */
 static inline struct net_device *gether_setup_default(void)
 {
-	return gether_setup_name_default("usb");
+	return gether_setup_name_default("eth");
 }
 
 /**

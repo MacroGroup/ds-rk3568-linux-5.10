@@ -849,6 +849,7 @@ dtb-$(CONFIG_ARCH_ROCKCHIP) += \
 	rv1109-evb-ddr3-v12-facial-gate.dtb \
 	rv1109-evb-ddr3-v13-facial-gate.dtb \
 	rv1109-fpga.dtb \
+	rv1109-firefly-ai-cam.dtb \
 	rv1126-38x38-v10-emmc.dtb \
 	rv1126-38x38-v10-spi-nor.dtb \
 	rv1126-ai-cam-ddr3-v1.dtb \

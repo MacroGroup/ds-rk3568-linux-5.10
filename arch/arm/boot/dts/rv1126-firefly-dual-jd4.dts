@@ -1,0 +1,104 @@
+// SPDX-License-Identifier: (GPL-2.0+ OR MIT)
+/*
+ * Copyright (c) 2020 Rockchip Electronics Co., Ltd.
+ */
+/dts-v1/;
+#include "rv1126.dtsi"
+#include "rv1126-firefly-jd4.dtsi"
+#include "rv1109-firefly-dual-cam-isp.dtsi"
+
+/ {
+	model = "Firefly Core-RV1126-JD4 Facial Gate Board";
+	compatible = "rockchip,rv1126-evb-ddr3-v12", "rockchip,rv1126";
+
+	chosen {
+		bootargs = "earlycon=uart8250,mmio32,0xff570000 console=ttyFIQ0 root=PARTUUID=614e0000-0000 rootfstype=ext4 rootwait snd_aloop.index=7";
+	};
+
+	vcc1v3_dvdd: vcc1v3-dvdd {
+		compatible = "regulator-fixed";
+		gpio = <&gpio0 RK_PC3 GPIO_ACTIVE_HIGH>;
+		pinctrl-0 = <&vcc1v3_dvdd_ctl>;
+		pinctrl-names = "default";
+		regulator-name = "vcc1v3_dvdd";
+		vin-supply = <&vcc3v3_sys>;
+		enable-active-high;
+                regulator-always-on;
+	};
+
+};
+
+
+&i2c1 {
+	status = "okay";
+
+	/delete-node/ os04a10@36;
+
+        gc2093: gc2093@7e {
+
+		compatible = "galaxycore,gc2093";
+                reg = <0x7e>;
+                clocks = <&cru CLK_MIPICSI_OUT>;
+                clock-names = "xvclk";
+                power-domains = <&power RV1126_PD_VI>;
+                pinctrl-names = "default";
+                pinctrl-0 = <&mipicsi_clk1>;
+                avdd-supply = <&vcc3v3_sys>;
+		dovdd-supply = <&vcc_dovdd>;
+		dvdd-supply = <&vcc1v3_dvdd>;
+
+		pwdn-gpios = <&gpio3 RK_PA5 GPIO_ACTIVE_HIGH>;
+		reset-gpios = <&gpio4 RK_PA1 GPIO_ACTIVE_LOW>;
+
+		rockchip,camera-module-index = <1>;
+                rockchip,camera-module-facing = "front";
+                rockchip,camera-module-name = "YT-RV1109-2-V1";
+                rockchip,camera-module-lens-name = "40IR-2MP-F20";
+                port {
+                        ucam_out1: endpoint {
+                                remote-endpoint = <&csi_dphy1_input>;
+                                data-lanes = <1 2>;
+                        };
+                };
+        };
+
+	gc2053: gc2053@37 {
+		compatible = "galaxycore,gc2053";
+		reg = <0x37>;
+
+		clocks = <&cru CLK_MIPICSI_OUT>;
+		clock-names = "xvclk";
+
+		power-domains = <&power RV1126_PD_VI>;
+		pinctrl-names = "rockchip,camera_default";
+		pinctrl-0 = <&mipicsi_clk0>;
+		//power-gpios = <&gpio3 RK_PA6 GPIO_ACTIVE_HIGH>;
+		pwdn-gpios = <&gpio1 RK_PD4 GPIO_ACTIVE_LOW>;
+		reset-gpios = <&gpio4 RK_PA0 GPIO_ACTIVE_LOW>;
+
+		avdd-supply = <&vcc_avdd>;
+		dovdd-supply = <&vcc_dovdd>;
+		dvdd-supply = <&vcc_dvdd>;
+
+		rockchip,camera-module-index = <0>;
+		rockchip,camera-module-facing = "front";
+		rockchip,camera-module-name = "YT-RV1109-2-V1";
+		rockchip,camera-module-lens-name = "40IR-2MP-F20";
+		port {
+			ucam_out0: endpoint {
+				remote-endpoint = <&mipi_in_ucam0>;
+				data-lanes = <1 2>;
+			};
+		};
+
+	};
+};
+
+&pinctrl {
+	csi_ctl {
+		vcc1v3_dvdd_ctl: vcc1v3-dvdd-ctl {
+			rockchip,pins =
+				<0 RK_PC3 RK_FUNC_GPIO &pcfg_pull_up>;
+		};
+	};
+};
