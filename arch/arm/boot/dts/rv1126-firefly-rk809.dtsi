@@ -919,11 +919,11 @@
 			assigned-clocks = <&cru MCLK_I2S0_TX_OUT2IO>;
 			assigned-clock-parents = <&cru MCLK_I2S0_TX>;
 			pinctrl-0 = <&i2s0m0_mclk>;
-			
 			use-ext-amplifier;
 			spk-ctl-gpios = <&gpio3 RK_PD6 GPIO_ACTIVE_HIGH>;
-			hp-det-gpio = <&gpio1 RK_PC5 GPIO_ACTIVE_HIGH>;
-			hp-ctl-gpio = <&gpio1 RK_PC7 GPIO_ACTIVE_HIGH>;
+			hp-det = <&gpio1 RK_PC5 GPIO_ACTIVE_HIGH>;
+			hp-ctl-gpios = <&gpio1 RK_PC7 GPIO_ACTIVE_HIGH>;
+			pinctrl-1 = <&spk_ctl_gpio>;
 
 			hp-volume = <0>;
 			spk-volume = <0>;
@@ -1181,6 +1181,11 @@
                        rockchip,pins = <RK_GPIO1 RK_PA2 RK_FUNC_GPIO &pcfg_pull_up>;
                 };
 
+        };
+		rk809 {
+				spk_ctl_gpio: spk_ctl_gpio {
+					rockchip,pins = <3 RK_PD6 RK_FUNC_GPIO &pcfg_pull_up>;
+                };
         };
 };
 
