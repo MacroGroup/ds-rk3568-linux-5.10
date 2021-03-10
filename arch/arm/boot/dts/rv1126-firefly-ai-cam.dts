@@ -5,6 +5,7 @@
 /dts-v1/;
 #include "rv1126.dtsi"
 #include "rv1109-firefly-ai-cam.dtsi"
+#include "rv1126-firefly-npu-opp.dtsi"
 / {
 	model = "Firefly CAM-CRV1126S2U Board";
 	compatible = "rockchip,rv1109-ai-cam-ddr3L-v1", "rockchip,rv1109";
