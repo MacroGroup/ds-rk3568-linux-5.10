@@ -115,9 +115,11 @@ static void ap1511a_ctrl(struct ircut_dev *ircut, int cmd)
 		msleep(ircut->pulse_width);
 		if (!IS_ERR(ircut->close_gpio))
 			gpiod_set_value_cansleep(ircut->close_gpio, 1);
+		if (!IS_ERR(ircut->open_gpio))
+			gpiod_set_value_cansleep(ircut->open_gpio, 1);
 	} else {
 		if (!IS_ERR(ircut->close_gpio))
-			gpiod_set_value_cansleep(ircut->close_gpio, 0);
+			gpiod_set_value_cansleep(ircut->close_gpio, 1);
 		if (!IS_ERR(ircut->open_gpio))
 			gpiod_set_value_cansleep(ircut->open_gpio, 0);
 		if (!IS_ERR(ircut->led_gpio))
@@ -125,6 +127,8 @@ static void ap1511a_ctrl(struct ircut_dev *ircut, int cmd)
 		msleep(ircut->pulse_width);
 		if (!IS_ERR(ircut->close_gpio))
 			gpiod_set_value_cansleep(ircut->close_gpio, 1);
+		if (!IS_ERR(ircut->open_gpio))
+			gpiod_set_value_cansleep(ircut->open_gpio, 1);
 	}
 }
 
