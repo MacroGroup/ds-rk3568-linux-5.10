@@ -6,7 +6,7 @@
 #include "rv1126.dtsi"
 #include "rv1126-firefly-jd4.dtsi"
 / {
-	model = "Firefly Core-RV1126-JD4 Board";
+	model = "Firefly Core-RV1126-JD4 CS-R1 Board";
 	compatible = "rockchip,rv1126-evb-ddr3-v12", "rockchip,rv1126";
 
 	chosen {

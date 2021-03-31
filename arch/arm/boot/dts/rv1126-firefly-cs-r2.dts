@@ -1,0 +1,140 @@
+// SPDX-License-Identifier: (GPL-2.0+ OR MIT)
+/*
+ * Copyright (c) 2020 Rockchip Electronics Co., Ltd.
+ */
+/dts-v1/;
+#include "rv1126.dtsi"
+#include "rv1126-firefly-jd4.dtsi"
+/ {
+	model = "Firefly Core-RV1126-JD4 CS-R2 Board";
+	compatible = "rockchip,rv1126-evb-ddr3-v12", "rockchip,rv1126";
+
+	chosen {
+		bootargs = "earlycon=uart8250,mmio32,0xff570000 console=ttyFIQ0 root=PARTUUID=614e0000-0000 rootfstype=ext4 rootwait snd_aloop.index=7";
+	};
+};
+
+&backlight {
+	status = "disabled";
+};
+
+&rk809_sound {
+	status = "disabled";
+};
+
+&sdio_pwrseq {
+	status = "disabled";
+};
+
+&cam_ircut0 {
+	status = "disabled";
+};
+
+&dsi {
+	status = "disabled";
+};
+
+&csi_dphy0 {
+	status = "okay";
+};
+
+&gmac {
+	assigned-clock-parents = <&cru CLK_GMAC_SRC_M0>, <&cru RGMII_MODE_CLK>;//集群服务器R1使用这个
+	pinctrl-0 = <&rgmiim0_pins &clk_out_ethernetm0_pins>;//集群服务器R1使用这个
+
+	tx_delay = <0x3c>;
+	rx_delay = <0x33>;
+
+	status = "okay";
+};
+
+&rk809_codec {
+	status = "disabled";
+};
+
+&os04a10 {
+	status = "disabled";
+};
+
+&gsl3680 {
+	status = "disabled";
+};
+
+&i2c1 {
+	sensor@3c {
+		status = "okay";
+        compatible = "firefly,pc9202";
+        sw-gpio = <&gpio1 RK_PA2 GPIO_ACTIVE_HIGH>;
+        pinctrl-names = "default";
+        pinctrl-0 = <&wdt_ctl>;
+		reg = <0x3c>;
+    };
+};
+
+
+&usbdrd_dwc3 {
+	status = "okay";
+	dr_mode = "otg";
+	extcon = <&u2phy0>;
+};
+
+&mipi_csi2 {
+	status = "disabled";
+};
+
+&mipi_dphy {
+	status = "disabled";
+};
+
+&rkcif {
+	status = "disabled";
+};
+
+&rkcif_mmu {
+	status = "disabled";
+};
+
+&rkcif_dvp {
+	status = "disabled";
+};
+
+&rkcif_mipi_lvds {
+	status = "disabled";
+};
+
+&rkcif_mipi_lvds_sditf {
+	status = "disabled";
+};
+
+&rkisp {
+	status = "disabled";
+};
+
+&rkisp_vir0 {
+	status = "disabled";
+};
+
+&rkispp {
+	status = "disabled";
+};
+
+&rkispp_mmu {
+	status = "disabled";
+};
+
+&rockchip_suspend {
+	status = "disabled";
+};
+
+&route_dsi {
+	status = "disabled";
+};
+
+&sdmmc {
+	status = "disabled";
+};
+
+&sdio {
+	status = "disabled";
+};
+
