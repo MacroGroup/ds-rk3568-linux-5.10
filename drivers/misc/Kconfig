@@ -535,6 +535,14 @@ config PIR_ASCHIP
 	  Provides a driver to control the sensibility of the Aschip PIR detection
 	  sensor.
 
+config DS18B20
+    bool "DS18B20 driver"
+    default n
+    help
+      Enable this driver will support 1B820 .
+
+
+
 source "drivers/misc/c2port/Kconfig"
 source "drivers/misc/eeprom/Kconfig"
 source "drivers/misc/cb710/Kconfig"
