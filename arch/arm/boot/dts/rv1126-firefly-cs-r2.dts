@@ -8,6 +8,27 @@
 / {
 	model = "Firefly Core-RV1126-JD4 CS-R2 Board";
 	compatible = "rockchip,rv1126-evb-ddr3-v12", "rockchip,rv1126";
+        
+	ds18b20_1 {
+                compatible = "firefly,ds1820";
+                ds1820-dq = <&gpio0 RK_PD6 GPIO_ACTIVE_LOW>; //GPIO4_D3 TEMP_DET_1
+                pinctrl-0 = <&ds_ctl>;
+                pinctrl-names = "default";
+                regulator-name = "ds_ctl_pin";
+        	ds18b20-id = <1>;
+                status = "okay";
+        }; 
+};
+
+&sfc {
+	pinctrl-names = "default";
+	pinctrl-0 = <&fspi_pins>;
+	assigned-clock-rates = <50000000>;
+	status = "okay";
+};
+
+&lcd_n {
+	status = "disabled";
 };
 
 &backlight {
@@ -133,4 +154,25 @@
 &sdio {
 	status = "disabled";
 };
+&fspi_pins {
+		rockchip,pins =
+			/* fspi_clk */
+			<1 RK_PA3 3 &pcfg_pull_down>,
+			/* fspi_cs0n */
+			<0 RK_PD4 3 &pcfg_pull_up>,
+			/* fspi_d0 */
+			<1 RK_PA0 3 &pcfg_pull_up>,
+			/* fspi_d1 */
+			<1 RK_PA1 3 &pcfg_pull_up>;
+};
 
+
+&pinctrl {
+	ds18b20 {
+                ds_ctl: ds-ctl {
+                        rockchip,pins =
+                                <0 RK_PD6 RK_FUNC_GPIO &pcfg_pull_up>;
+                };
+        };
+
+};
