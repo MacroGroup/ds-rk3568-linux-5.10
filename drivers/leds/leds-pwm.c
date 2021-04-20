@@ -128,7 +128,10 @@ static int led_pwm_add(struct device *dev, struct led_pwm_priv *priv,
 		dev_err(dev, "failed to register PWM led for %s: %d\n",
 			led->name, ret);
 	}
-
+    if (strcmp(led->name, "PWM-IR") == 0){
+        pwm_config(led_data->pwm, 24000, led_data->period);
+		pwm_enable(led_data->pwm);
+    }
 	return ret;
 }
 
