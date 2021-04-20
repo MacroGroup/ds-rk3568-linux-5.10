@@ -500,7 +500,10 @@
 };
 
 &route_dsi {
-	status = "disabled";
+	status = "okay";
+	logo,uboot = "logo.bmp";
+	logo,kernel = "logo_kernel.bmp";
+
 };
 
 &pwm6 {
