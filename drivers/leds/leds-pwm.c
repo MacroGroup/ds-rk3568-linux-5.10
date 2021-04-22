@@ -86,6 +86,7 @@ static int led_pwm_add(struct device *dev, struct led_pwm_priv *priv,
 	struct led_pwm_data *led_data = &priv->leds[priv->num_leds];
 	struct pwm_args pargs;
 	int ret;
+    u32 init_brightness;
 
 	led_data->active_low = led->active_low;
 	led_data->cdev.name = led->name;
@@ -94,8 +95,11 @@ static int led_pwm_add(struct device *dev, struct led_pwm_priv *priv,
 	led_data->cdev.max_brightness = led->max_brightness;
 	led_data->cdev.flags = LED_CORE_SUSPENDRESUME;
 
-	if (child)
+	if (child){
 		led_data->pwm = devm_of_pwm_get(dev, child, NULL);
+        if( of_property_read_u32(child, "init-brightness", &init_brightness) == 0)
+            led_data->cdev.brightness = init_brightness;
+    }
 	else
 		led_data->pwm = devm_pwm_get(dev, led->name);
 	if (IS_ERR(led_data->pwm)) {
@@ -128,10 +132,6 @@ static int led_pwm_add(struct device *dev, struct led_pwm_priv *priv,
 		dev_err(dev, "failed to register PWM led for %s: %d\n",
 			led->name, ret);
 	}
-    if (strcmp(led->name, "PWM-IR") == 0){
-        pwm_config(led_data->pwm, 24000, led_data->period);
-		pwm_enable(led_data->pwm);
-    }
 	return ret;
 }
 
