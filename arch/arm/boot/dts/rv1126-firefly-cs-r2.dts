@@ -8,10 +8,6 @@
 / {
 	model = "Firefly Core-RV1126-JD4 CS-R2 Board";
 	compatible = "rockchip,rv1126-evb-ddr3-v12", "rockchip,rv1126";
-
-	chosen {
-		bootargs = "earlycon=uart8250,mmio32,0xff570000 console=ttyFIQ0 root=PARTUUID=614e0000-0000 rootfstype=ext4 rootwait snd_aloop.index=7";
-	};
 };
 
 &backlight {

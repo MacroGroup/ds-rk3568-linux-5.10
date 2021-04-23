@@ -9,9 +9,5 @@
 / {
 	model = "Firefly CAM-CRV1126S2U Board";
 	compatible = "rockchip,rv1109-ai-cam-ddr3L-v1", "rockchip,rv1109";
-
-	chosen {
-		bootargs = "earlycon=uart8250,mmio32,0xff570000 console=ttyFIQ0 root=PARTUUID=614e0000-0000 rootfstype=ext4 rootwait snd_aloop.index=7";
-	};
 };
 
