@@ -22,13 +22,13 @@
 			label = "PWM-IR";
 			pwms = <&pwm7 0 25000 0>;
 			max-brightness = <255>;
-            init-brightness = <255>;
 		};
 
 		pwmi_rgb {
 			label = "PWM-RGB";
 			pwms = <&pwm2 0 25000 0>;
 			max-brightness = <255>;
+			init-brightness = <15>;
 		};
 
 	};
