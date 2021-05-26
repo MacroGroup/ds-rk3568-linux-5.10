@@ -63,6 +63,7 @@
  *3. optimize dts config of cif's pipeline
  *4. register cif itf dev when clear unready subdev
  *5. mipi csi host add cru rst
+ *6. add keepint time to csi2 err for resetting
  */
 
 #define RKCIF_DRIVER_VERSION RKCIF_API_VERSION
