@@ -12,9 +12,9 @@
 	
 	/delete-node/ wireless-bluetooth;
 	/delete-node/ wireless-wlan;
-
+	
 	chosen {
-		bootargs = "earlycon=uart8250,mmio32,0xff540000 console=ttyFIQ0 rw root=PARTUUID=614e0000-0000 rootfstype=ext4 rootwait swiotlb=1 kpti=0 snd_aloop.index=7";
+		bootargs = "earlycon=uart8250,mmio32,0xff540000 console=ttyFIQ0 ro root=PARTLABEL=rootfs rootfstype=ext4 rootwait overlayroot=device:dev=PARTLABEL=userdata,fstype=ext4,mkfs=1 swiotlb=1 kpti=0 snd_aloop.index=7 systemd.gpt_auto=0 cgroup_disable=all";
 	};
 
     fiq-debugger {
@@ -42,6 +42,18 @@
 		regulator-always-on;
 		regulator-boot-on;
 	};
+
+        wdt_pwr: wdt-pwr {
+                compatible = "regulator-fixed";
+                enable-active-high;
+                gpio = <&gpio4 10 GPIO_ACTIVE_HIGH>;
+                pinctrl-names = "default";
+                pinctrl-0 = <&wdt_pwr_pin>;
+                regulator-name = "wdt_pwr";
+                regulator-always-on;
+                status = "okay";
+
+        };
 
     ion {
         compatible = "rockchip,ion";
@@ -153,8 +165,25 @@
 	status = "disbaled";
 };
 
-&spi1 {
+&spi_wk2xxx {
 	status = "disabled";
+};
+
+&spi1 {
+        status = "okay";
+        max-freq = <48000000>;
+        dev-port = <0>;
+       	dma-names = "tx", "rx";
+	pinctrl-0 = <&spi1m1_clk &spi1m1_csn0 &spi1m1_miso &spi1m1_mosi>;
+	pinctrl-1 = <&spi1m1_clk_hs &spi1m1_csn0 &spi1m1_miso_hs &spi1m1_mosi_hs>;
+
+	spidev0: spidev@00 {
+                 status = "okay";
+                 //compatible = "linux,spidev";
+                 compatible = "jedec,spi-nor";
+                 reg = <0x00>;
+                 spi-max-frequency = <48000000>;
+         };
 };
 
 &rkisp1 {
@@ -164,11 +193,15 @@
 &i2c3 {
 	status = "okay";
 
-    sensor@3c {
-         status = "okay";
-         compatible = "firefly,pc9202";
-         reg = <0x3c>;
-    };
+        sensor@3c {
+                 status = "okay";
+                 compatible = "firefly,pc9202";
+                 sw-gpio = <&gpio3 15 GPIO_ACTIVE_HIGH>;
+                 pinctrl-names = "default";
+                 pinctrl-0 = <&wdt_ctl>;
+                 reg = <0x3c>;
+        };
+
 };
 
 &u2phy_otg {
@@ -179,3 +212,23 @@
 &u2phy_host {
 	status = "disabled";
 };
+
+&sdmmc {
+	status = "disabled";
+};
+
+&pinctrl {
+
+       wdt-pin {
+                wdt_pwr_pin: wdt-pwr-pin {
+                       rockchip,pins = <RK_GPIO4 10 RK_FUNC_GPIO &pcfg_pull_up>;
+                };
+
+                wdt_ctl: wdt-ctl {
+                       rockchip,pins = <RK_GPIO3 15 RK_FUNC_GPIO &pcfg_pull_up>;
+                };
+
+       };
+
+};
+
