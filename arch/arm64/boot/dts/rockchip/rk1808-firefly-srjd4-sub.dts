@@ -43,18 +43,6 @@
 		regulator-boot-on;
 	};
 
-        wdt_pwr: wdt-pwr {
-                compatible = "regulator-fixed";
-                enable-active-high;
-                gpio = <&gpio4 10 GPIO_ACTIVE_HIGH>;
-                pinctrl-names = "default";
-                pinctrl-0 = <&wdt_pwr_pin>;
-                regulator-name = "wdt_pwr";
-                regulator-always-on;
-                status = "okay";
-
-        };
-
     ion {
         compatible = "rockchip,ion";
         #address-cells = <1>;
@@ -200,8 +188,10 @@
                  status = "okay";
                  compatible = "firefly,pc9202";
                  sw-gpio = <&gpio3 15 GPIO_ACTIVE_HIGH>;
+                 pw-gpio = <&gpio4 10 GPIO_ACTIVE_HIGH>;
                  pinctrl-names = "default";
                  pinctrl-0 = <&wdt_ctl>;
+                 pinctrl-1 = <&wdt_pwr_pin>;
                  reg = <0x3c>;
         };
 

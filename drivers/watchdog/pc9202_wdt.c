@@ -29,6 +29,7 @@
 #include <linux/slab.h>
 #include <linux/of_gpio.h>
 #include <linux/wakelock.h>
+#include <linux/delay.h>
 
 #include <linux/blkdev.h>
 
@@ -53,6 +54,7 @@ static int major;
 static struct class *cls;
 static struct device *dev;
 int switch_gpio;
+int power_gpio;
 
 void enable_wdt(void)
 {
@@ -76,6 +78,7 @@ void disable_wdt(void)
 	}
 	else
 		printk("switch_gpio not set\n");
+
 	return;
 }
 
@@ -239,6 +242,7 @@ static int pc9202_wdt_probe(struct i2c_client *client,
     //struct sw2001 *ts;
 	struct sw2001	*pEnc;
 	uint8_t reg_value;
+	int try = 3;
 
     if (!of_device_is_available(client->dev.of_node)) {
 		return 0;
@@ -249,6 +253,22 @@ static int pc9202_wdt_probe(struct i2c_client *client,
         return -ENODEV;
     }
 
+    power_gpio = of_get_named_gpio_flags(client->dev.of_node, "pw-gpio", 0, NULL);
+	if (power_gpio >=0)
+	{
+		if (gpio_request(power_gpio, "wdt-power-gpio")) {
+			printk("gpio %d request failed!\n", power_gpio);
+			gpio_free(power_gpio);
+		} else {
+			gpio_direction_output(power_gpio, 0);
+			msleep(500);
+			gpio_direction_output(power_gpio, 1);
+			msleep(500);
+		}
+	} else {
+		printk("Not found pw-gpio\n");
+	}
+
 	pEnc = kzalloc(sizeof(struct sw2001), GFP_KERNEL);
 	if (!pEnc)
 		return -ENOMEM;
@@ -257,16 +277,22 @@ static int pc9202_wdt_probe(struct i2c_client *client,
 	pEnc->client = client;
 	i2c_set_clientdata(client,pEnc);
 	the_sw2001 = pEnc;
-
+        
+	while(try){ 
 	if(0 != iReadByte(SW2001_REG_WDT_CTRL, &reg_value))
 	{
 		printk("====== i2c detect failed watchdog init err==%x=====\r\n", reg_value);
-		goto err;
+		try--;
 	}
 	else
 	{
 		printk("====== i2c detect success watchdog init========\r\n");
+		break;
 	}
+		msleep(500);
+	}
+	if ( try == 0 )
+		goto err;
 
 	major = register_chrdev(0, "wdt_crl", &wdt_fops);
     if (major < 0)
@@ -305,6 +331,9 @@ static int pc9202_wdt_remove(struct i2c_client *client)
 
 	if (switch_gpio >=0)
 		gpio_free(switch_gpio);
+	if (switch_gpio >=0)
+		gpio_free(power_gpio);
+
 	kfree(axp);
 	i2c_set_clientdata(client, NULL);
 	the_sw2001 = NULL;
