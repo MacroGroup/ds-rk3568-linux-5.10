@@ -120,15 +120,15 @@ static void __dwc3_set_mode(struct work_struct *work)
 
 	if (dwc->dr_mode != USB_DR_MODE_OTG)
 		return;
-
+	
 	if (dwc->current_dr_role == DWC3_GCTL_PRTCAP_OTG)
 		dwc3_otg_update(dwc, 0);
 
 	if (!dwc->desired_dr_role)
 		return;
-
-	if (dwc->en_runtime)
+	if (dwc->en_runtime){
 		goto runtime;
+	}
 
 	if (dwc->desired_dr_role == dwc->current_dr_role)
 		return;
@@ -1521,6 +1521,7 @@ static int dwc3_probe(struct platform_device *pdev)
 	struct device		*dev = &pdev->dev;
 	struct resource		*res, dwc_res;
 	struct dwc3		*dwc;
+	struct device_node *np = pdev->dev.of_node;
 
 	int			ret;
 
@@ -1636,12 +1637,14 @@ static int dwc3_probe(struct platform_device *pdev)
 	ret = dwc3_get_dr_mode(dwc);
 	if (ret)
 		goto err3;
-
-	if (dwc->dr_mode == USB_DR_MODE_OTG &&
-	    of_device_is_compatible(dev->parent->of_node,
-				    "rockchip,rk3399-dwc3")) {
-		pm_runtime_allow(dev);
-		dwc->en_runtime = true;
+	
+	if(!of_property_read_bool(np, "firefly,force_set_dr_mode")){
+		if (dwc->dr_mode == USB_DR_MODE_OTG &&
+	    	of_device_is_compatible(dev->parent->of_node,
+					    "rockchip,rk3399-dwc3")) {
+			pm_runtime_allow(dev);
+			dwc->en_runtime = true;
+		}
 	}
 
 	ret = dwc3_alloc_scratch_buffers(dwc);

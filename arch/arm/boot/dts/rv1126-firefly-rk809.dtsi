@@ -1442,7 +1442,8 @@
 
 &usbdrd_dwc3 {
 	status = "okay";
-	dr_mode = "host";
+	dr_mode = "otg";
+	firefly,force_set_dr_mode;
 	extcon = <&u2phy0>;
 };
 
