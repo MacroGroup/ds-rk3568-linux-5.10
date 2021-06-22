@@ -8,6 +8,11 @@
 / {
 	model = "Firefly Core-RV1126-JD4 CS-R1 Board";
 	compatible = "rockchip,rv1126-evb-ddr3-v12", "rockchip,rv1126";
+	leds {
+		user {
+			default-state = "off";
+		};
+	};
 };
 
 &backlight {
@@ -152,3 +157,4 @@
 			/* fspi_d1 */
 			<1 RK_PA1 3 &pcfg_pull_up>;
 };
+
