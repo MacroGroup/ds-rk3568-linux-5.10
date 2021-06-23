@@ -1194,7 +1194,7 @@ static int rk817_probe(struct snd_soc_component *component)
              schedule_delayed_work(&rk817->adc_poll_work,
                                    3000);
      }
-     else if (rk817->hp_det_gpio)
+     else if (gpio_is_valid(rk817->hp_det_gpio))
      {
              rk817_jack_init(rk817);
              INIT_DELAYED_WORK(&rk817->hp_det_gpio_poll_work, rk817_hp_det_gpio_poll);
