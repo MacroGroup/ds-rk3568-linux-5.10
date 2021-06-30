@@ -20,7 +20,6 @@
 #include <linux/fs.h>
 #include <linux/version.h>
 #include <linux/rk-camera-module.h>
-#include <linux/interrupt.h>
 
 #define RK_IRCUT_NAME "ircut"
 #define DRIVER_VERSION	KERNEL_VERSION(0, 0x01, 0x00)
@@ -59,88 +58,10 @@ struct ircut_dev {
 	struct gpio_desc *open_gpio;
 	struct gpio_desc *close_gpio;
 	struct gpio_desc *led_gpio;
-	int det_gpio;
-	int det_irq;
-	int det_active_low;
-	int det_state;
-	struct delayed_work init_work;
 	u32 module_index;
 	const char *module_facing;
 	const struct ircut_drv_data *drv_data;
 };
-
-static irqreturn_t ircut_irq_handle(int irq, void *dev_id){
-
-	struct ircut_dev *ircut = (struct ircut_dev *)dev_id;
-
-        disable_irq_nosync(ircut->det_irq);
-
-        schedule_delayed_work(&ircut->init_work, 100);
-
-        return IRQ_HANDLED;
-}
-
-int read_ircut_det_gpio(struct ircut_dev *ircut)
-{
-	//msleep(10);
-	ircut->det_state = gpio_get_value(ircut->det_gpio);
-	ircut->det_state = (ircut->det_state ? 0 : 1) ^ ircut->det_active_low;
-
-	if(ircut->det_state) {
-		return 0;
-	} else {
-		return 1;
-	}
-}
-
-static void ap1511a_ctrl(struct ircut_dev *ircut, int cmd)
-{
-	if (cmd > 0) {
-		if (!IS_ERR(ircut->close_gpio))
-			gpiod_set_value_cansleep(ircut->close_gpio, 0);
-		if (!IS_ERR(ircut->open_gpio))
-			gpiod_set_value_cansleep(ircut->open_gpio, 1);
-		if (!IS_ERR(ircut->led_gpio))
-			gpiod_set_value_cansleep(ircut->led_gpio, 0);
-		msleep(ircut->pulse_width);
-		if (!IS_ERR(ircut->close_gpio))
-			gpiod_set_value_cansleep(ircut->close_gpio, 1);
-		if (!IS_ERR(ircut->open_gpio))
-			gpiod_set_value_cansleep(ircut->open_gpio, 1);
-	} else {
-		if (!IS_ERR(ircut->close_gpio))
-			gpiod_set_value_cansleep(ircut->close_gpio, 1);
-		if (!IS_ERR(ircut->open_gpio))
-			gpiod_set_value_cansleep(ircut->open_gpio, 0);
-		if (!IS_ERR(ircut->led_gpio))
-			gpiod_set_value_cansleep(ircut->led_gpio, 0);
-		msleep(ircut->pulse_width);
-		if (!IS_ERR(ircut->close_gpio))
-			gpiod_set_value_cansleep(ircut->close_gpio, 1);
-		if (!IS_ERR(ircut->open_gpio))
-			gpiod_set_value_cansleep(ircut->open_gpio, 1);
-	}
-}
-
-static void ircut_work(struct work_struct *work) {
-
-	struct ircut_dev *ircut = container_of(work, struct ircut_dev, init_work.work);
-
-	if(read_ircut_det_gpio(ircut))
-	{
-		//dev_info(ircut->dev," day!\n");
-		ap1511a_ctrl(ircut,1);
-	}
-	else {
-		//dev_info(ircut->dev," night!\n");
-		ap1511a_ctrl(ircut,0);
-	}
-
-	enable_irq(ircut->det_irq);
-
-	return;
-}
-
 
 #define IRCUT_STATE_EQ(expected) \
 	((ircut->state == (expected)) ? true : false)
@@ -148,8 +69,6 @@ static void ircut_work(struct work_struct *work) {
 static int ap1511a_parse_dt(struct ircut_dev *ircut, struct device_node *node)
 {
 	int ret;
-	enum of_gpio_flags flag;
-
 	dev_dbg(ircut->dev, "ircut_gpio_parse_dt");
 	ret = of_property_read_u32(node,
 		"rockchip,pulse-width",
@@ -181,33 +100,37 @@ static int ap1511a_parse_dt(struct ircut_dev *ircut, struct device_node *node)
 	if (IS_ERR(ircut->led_gpio))
 		dev_err(ircut->dev, "Failed to get led-gpios\n");
 
-	ircut->det_gpio = of_get_named_gpio_flags(node, "det-gpio", 0, &flag);
-
-        if(ircut->det_gpio > 0){
-                ircut->det_active_low = flag & OF_GPIO_ACTIVE_LOW;
-                ret = gpio_request(ircut->det_gpio,"ircut-det-gpio");
-                if(ret != 0){
-                        gpio_free(ircut->det_gpio);
-                        return ret;
-                }
-                ircut->det_irq = gpio_to_irq(ircut->det_gpio);
-                ret = request_irq(ircut->det_irq, ircut_irq_handle, IRQ_TYPE_EDGE_BOTH | IRQF_SHARED, "ircut_det", (void *)ircut);
-		if (ret != 0){
-                        gpio_free(ircut->det_gpio);
-			return ret;
-		}
-		disable_irq_nosync(ircut->det_irq);
-		INIT_DELAYED_WORK(&ircut->init_work, ircut_work);
-		schedule_delayed_work(&ircut->init_work, 100);
-
-        } else {
-		dev_err(ircut->dev, "Failed to get det-gpio\n");
-        }
-
-
 	return 0;
 }
 
+static void ap1511a_ctrl(struct ircut_dev *ircut, int cmd)
+{
+	if (cmd > 0) {
+		if (!IS_ERR(ircut->close_gpio))
+			gpiod_set_value_cansleep(ircut->close_gpio, 0);
+		if (!IS_ERR(ircut->open_gpio))
+			gpiod_set_value_cansleep(ircut->open_gpio, 1);
+		if (!IS_ERR(ircut->led_gpio))
+			gpiod_set_value_cansleep(ircut->led_gpio, 0);
+		msleep(ircut->pulse_width);
+		if (!IS_ERR(ircut->close_gpio))
+			gpiod_set_value_cansleep(ircut->close_gpio, 1);
+		if (!IS_ERR(ircut->open_gpio))
+			gpiod_set_value_cansleep(ircut->open_gpio, 1);
+	} else {
+		if (!IS_ERR(ircut->close_gpio))
+			gpiod_set_value_cansleep(ircut->close_gpio, 1);
+		if (!IS_ERR(ircut->open_gpio))
+			gpiod_set_value_cansleep(ircut->open_gpio, 0);
+		if (!IS_ERR(ircut->led_gpio))
+			gpiod_set_value_cansleep(ircut->led_gpio, 0);
+		msleep(ircut->pulse_width);
+		if (!IS_ERR(ircut->close_gpio))
+			gpiod_set_value_cansleep(ircut->close_gpio, 1);
+		if (!IS_ERR(ircut->open_gpio))
+			gpiod_set_value_cansleep(ircut->open_gpio, 1);
+	}
+}
 
 static int ba6208_parse_dt(struct ircut_dev *ircut, struct device_node *node)
 {

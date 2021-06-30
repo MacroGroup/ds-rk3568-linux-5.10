@@ -239,7 +239,7 @@
 		compatible = "ap1511a,ircut";
 		ircut-open-gpios  = <&pca9555 0 GPIO_ACTIVE_HIGH>; //PWM9_M1  BIN
 		ircut-close-gpios  = <&pca9555 1 GPIO_ACTIVE_HIGH>;//PWM8_M1  AIN
-                det-gpio = <&gpio3 RK_PA4 GPIO_ACTIVE_LOW>;
+
 		rockchip,camera-module-index = <1>;
 		rockchip,camera-module-facing = "front";
 	};
@@ -953,7 +953,7 @@
                 rockchip,camera-module-facing = "front";
                 rockchip,camera-module-name = "CMK-OT1607-FV1";
                 rockchip,camera-module-lens-name = "M12-40IRC-4MP-F16";
-		//ir-cut = <&cam_ircut0>;
+				ir-cut = <&cam_ircut0>;
 
                 port {
                         ucam_out0: endpoint {
