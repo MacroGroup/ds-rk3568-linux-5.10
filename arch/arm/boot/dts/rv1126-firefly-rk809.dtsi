@@ -1478,14 +1478,3 @@
         //dr_mode = "otg";
         vbus-supply = <&vcc_otg_vbus>;
 };
-&sdmmc0_bus4 {
-        rockchip,pins =
-                /* sdmmc0_d0 */
-                <1 RK_PA4 1 &pcfg_pull_up_drv_level_0>,
-                /* sdmmc0_d1 */
-                <1 RK_PA5 1 &pcfg_pull_up_drv_level_0>,
-                /* sdmmc0_d2 */
-                <1 RK_PA6 1 &pcfg_pull_up_drv_level_0>,
-                /* sdmmc0_d3 */
-                <1 RK_PA7 1 &pcfg_pull_up_drv_level_0>;
-};
