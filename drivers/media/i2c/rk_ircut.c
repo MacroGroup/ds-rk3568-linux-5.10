@@ -88,7 +88,6 @@ static int ap1511a_parse_dt(struct ircut_dev *ircut, struct device_node *node)
 	ircut->open_gpio = devm_gpiod_get(ircut->dev, "ircut-open", GPIOD_OUT_HIGH);
 	if (IS_ERR(ircut->open_gpio)) {
 		dev_err(ircut->dev, "Failed to get ircut-open-gpios\n");
-		return PTR_ERR(ircut->open_gpio);
 	}
 
 	ircut->close_gpio = devm_gpiod_get(ircut->dev,
