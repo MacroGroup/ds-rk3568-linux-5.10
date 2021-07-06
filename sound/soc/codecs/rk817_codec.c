@@ -742,6 +742,7 @@ static int rk817_capture_path_put(struct snd_kcontrol *kcontrol,
 						0x00);
 			break;
 		}
+		/*
 		if (!rk817->mic_in_differential) {
 			snd_soc_component_write(component,
 						RK817_CODEC_DADC_VOLR,
@@ -755,6 +756,7 @@ static int rk817_capture_path_put(struct snd_kcontrol *kcontrol,
 						      PWD_PGA_R_MASK,
 						      PWD_PGA_R_EN);
 		}
+		*/
 		break;
 	case HANDS_FREE_MIC:
 		if (pre_path == MIC_OFF)
