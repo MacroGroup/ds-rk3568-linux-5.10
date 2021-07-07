@@ -9,7 +9,7 @@
 #include <dt-bindings/display/media-bus-format.h>
 
 / {
-	adc-keys {
+	adc_keys: adc-keys {
 		status = "okay";
 		compatible = "adc-keys";
 		io-channels = <&saradc 0>;
@@ -150,7 +150,7 @@
 		status = "okay";
 	};
 
-	wireless-bluetooth {
+	wireless_bluetooth: wireless-bluetooth {
 		compatible = "bluetooth-platdata";
 		uart_rts_gpios = <&gpio1 RK_PC0 GPIO_ACTIVE_LOW>;
 		pinctrl-names = "default", "rts_gpio";
@@ -161,7 +161,7 @@
 		status = "okay";
 	};
 
-	wireless-wlan {
+	wireless_wlan: wireless-wlan {
 		compatible = "wlan-platdata";
 		rockchip,grf = <&grf>;
 		clocks = <&rk809 1>;
@@ -174,7 +174,7 @@
 		status = "okay";
 	};
 
-	leds {
+	leds: leds {
         	compatible = "gpio-leds";
         	work {
         		label = "firefly:blue:power";
