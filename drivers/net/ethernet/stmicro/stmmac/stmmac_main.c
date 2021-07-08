@@ -57,6 +57,7 @@
 
 #define	STMMAC_ALIGN(x)		ALIGN(ALIGN(x, SMP_CACHE_BYTES), 16)
 #define	TSO_MAX_BUFF_SIZE	(SZ_16K - 1)
+#define RTL_8211F_PHY_ID        0x001cc916
 
 /* Module parameters */
 #define TX_TIMEO	5000
@@ -4289,6 +4290,27 @@ static int stmmac_hw_init(struct stmmac_priv *priv)
 	return 0;
 }
 
+static int phy_rtl8211f_led_fixup(struct phy_device *phydev)
+{
+   int value;
+    //printk("%s in\n", __func__);
+
+    value = phy_read(phydev, 31);
+    phy_write(phydev, 31, 0xd04);
+
+    mdelay(10);
+    value = phy_read(phydev, 16);
+    value =0x2340;
+    phy_write(phydev, 16, value);
+
+    mdelay(10);
+    phy_read(phydev, 31);
+    phy_write(phydev, 31, 0x00);
+
+    return 0;
+}
+
+
 /**
  * stmmac_dvr_probe
  * @device: device pointer
@@ -4479,6 +4501,11 @@ int stmmac_dvr_probe(struct device *device,
 		netdev_warn(priv->dev, "%s: failed debugFS registration\n",
 			    __func__);
 #endif
+
+       ret = phy_register_fixup_for_uid(RTL_8211F_PHY_ID, 0xffffffff, phy_rtl8211f_led_fixup);
+       if (ret)
+                pr_warn("Cannot register 8211f PHY board fixup.\n");
+
 
 	return ret;
 
