@@ -1,0 +1,62 @@
+// SPDX-License-Identifier: (GPL-2.0+ OR MIT)
+/*
+ * Copyright (c) 2020 Rockchip Electronics Co., Ltd.
+ */
+/dts-v1/;
+#include "rv1126.dtsi"
+#include "rv1126-firefly-jd4.dtsi"
+/ {
+	model = "Firefly Core-RV1126-JD4 Board";
+	compatible = "rockchip,rv1126-evb-ddr3-v12", "rockchip,rv1126";
+	test-power {
+		status = "disabled";
+	};
+};
+
+&wireless_bluetooth {
+	clocks = <&rk809 1>;
+	clock-names = "ext_clock";
+	uart_rts_gpios = <&gpio1 RK_PC0 GPIO_ACTIVE_LOW>;
+	pinctrl-names = "default", "rts_gpio";
+	pinctrl-0 = <&uart0_rtsn>;
+	pinctrl-1 = <&uart0_rtsn_gpio>;
+	BT,reset_gpio    = <&gpio0 RK_PA7 GPIO_ACTIVE_HIGH>;
+	BT,wake_gpio     = <&gpio1 RK_PD1 GPIO_ACTIVE_HIGH>;
+	BT,wake_host_irq = <&gpio0 RK_PA5 GPIO_ACTIVE_HIGH>;
+	status = "okay";
+};
+
+&wireless_wlan {
+	pinctrl-0 = <&wifi_wake_host>;
+	wifi_chip_type = "ap6275s";
+	status = "okay";
+};
+
+&pinctrl {
+	wireless-wlan {
+		/omit-if-no-ref/
+		wifi_wake_host: wifi-wake-host {
+			rockchip,pins = <0 RK_PB0 0 &pcfg_pull_down>;
+		};
+	};
+};
+
+&i2c2 {
+	status = "okay";
+
+	cw2015: cw2015@62 {
+		status = "okay";
+		compatible = "cw201x";
+		reg = <0x62>;
+		bat_config_info = <0x14 0x9B 0x21 0x47 0x74 0x68 0x64 0x62
+				   0x61 0x60 0x5D 0x58 0x53 0x4E 0x44 0x35 
+				   0x2E 0x27 0x27 0x2A 0x35 0x44 0x4E 0x5A
+				   0x58 0xA3 0x07 0xAF 0x06 0x0C 0x3F 0x5C
+				   0x68 0x6C 0x74 0x77 0x3D 0x18 0x83 0x3B
+				   0x00 0x3B 0x52 0x87 0x8F 0x91 0x94 0x52
+				   0x82 0x8C 0x92 0x96 0xB3 0x59 0x74 0xCB
+				   0x2F 0x7D 0x72 0xA5 0xB5 0xC1 0x64 0xB9>;
+		monitor_sec = <5>;
+		virtual_power = <0>;
+	};
+};
