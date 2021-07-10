@@ -13,19 +13,6 @@
 	};
 };
 
-&wireless_bluetooth {
-	clocks = <&rk809 1>;
-	clock-names = "ext_clock";
-	uart_rts_gpios = <&gpio1 RK_PC0 GPIO_ACTIVE_LOW>;
-	pinctrl-names = "default", "rts_gpio";
-	pinctrl-0 = <&uart0_rtsn>;
-	pinctrl-1 = <&uart0_rtsn_gpio>;
-	BT,reset_gpio    = <&gpio0 RK_PA7 GPIO_ACTIVE_HIGH>;
-	BT,wake_gpio     = <&gpio1 RK_PD1 GPIO_ACTIVE_HIGH>;
-	BT,wake_host_irq = <&gpio0 RK_PA5 GPIO_ACTIVE_HIGH>;
-	status = "okay";
-};
-
 &wireless_wlan {
 	pinctrl-0 = <&wifi_wake_host>;
 	wifi_chip_type = "ap6275s";
