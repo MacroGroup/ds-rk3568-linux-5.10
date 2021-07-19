@@ -520,7 +520,7 @@ static struct snd_soc_dai_driver es8311_dai = {
 	.capture = {
 		.stream_name = "Capture",
 		.channels_min = 1,
-		.channels_max = 2,
+		.channels_max = 8,
 		.rates = ES8311_RATES,
 		.formats = ES8311_FORMATS,
 	},
