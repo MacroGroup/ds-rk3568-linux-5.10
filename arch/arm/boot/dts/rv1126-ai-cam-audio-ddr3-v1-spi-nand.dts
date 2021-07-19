@@ -8,11 +8,11 @@
 #include "rv1126-ai-cam-audio.dtsi"
 
 / {
-	model = "Rockchip RV1126 AI CAMERA DDR3L Board";
-	compatible = "rockchip,rv1126-ai-cam-ddr3L-v1", "rockchip,rv1126";
+	model = "Rockchip RV1126 AI CAMERA DDR3L Ext Audio Board";
+	compatible = "rockchip,rv1126-ai-cam-audio-ddr3L-v1-spi-nand", "rockchip,rv1126";
 
 	chosen {
-		bootargs = "earlycon=uart8250,mmio32,0xff570000 console=ttyFIQ0 root=PARTUUID=614e0000-0000 rootfstype=ext4 rootwait snd_aloop.index=7";
+                bootargs = "earlycon=uart8250,mmio32,0xff570000 console=ttyFIQ0 ubi.mtd=3 root=ubi0:rootfs rootfstype=ubifs snd_aloop.index=7";
 	};
 
 	gpio-leds {
@@ -268,3 +268,8 @@
                 };
         };
 };
+
+&sfc {
+	status = "okay";
+};
+
