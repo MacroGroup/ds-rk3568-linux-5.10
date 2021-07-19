@@ -927,11 +927,11 @@ static int imx335_set_hdrae(struct imx335 *imx335,
 	rhs1_min = (SHR1_MIN + 4u + 7u) / 8 * 8 + 2;
 
 	rhs1 = SHR1_MIN + s_exp_time;
+	rhs1 = (rhs1 + 7u) / 8 * 8 + 2; /* shall be 8n + 2 */
 	if (rhs1 > rhs1_max)
 		rhs1 = rhs1_max;
 	if (rhs1 < rhs1_min)
 		rhs1 = rhs1_min;
-	rhs1 = (rhs1 & ~0x7) + 2; /* shall be 8n + 2 */
 	dev_dbg(&client->dev,
 		"line(%d) rhs1 %d, short time %d rhs1_old %d, rhs1_new %d, rhs1_min %d rhs1_max %d\n",
 		__LINE__, rhs1, s_exp_time, rhs1_old, rhs1, rhs1_min, rhs1_max);

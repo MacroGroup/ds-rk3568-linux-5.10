@@ -1,3 +1,4 @@
+<<<<<<< HEAD   (ce1919 media: rockchip: isp: use same api to set clk)
 /* SPDX-License-Identifier: GPL-2.0 */
 /* Copyright (c) 2018 Fuzhou Rockchip Electronics Co., Ltd. */
 
@@ -53,3 +54,5 @@ struct rk_cam_compat_vcm_tim {
 
 #endif /* RK_VCM_HEAD_H */
 
+=======
+>>>>>>> CHANGE (6e50af media: move rk_vcm_head.h from drivers/media/i2c/ to include)

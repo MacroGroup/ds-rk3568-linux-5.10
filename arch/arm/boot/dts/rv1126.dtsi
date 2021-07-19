@@ -125,16 +125,15 @@
 		clocks = <&cru PLL_APLL>;
 		rockchip,bin-scaling-sel = <
 			0	5
-			1	9
+			1	18
 		>;
 		rockchip,bin-voltage-sel = <
 			1	0
 		>;
 		rockchip,pvtm-voltage-sel = <
-			0        100500   1
-			100501   104500   2
-			104501   109500   3
-			109501   999999   4
+			0        106000   1
+			106001   112000   2
+			112001   999999   3
 		>;
 		rockchip,pvtm-freq = <408000>;
 		rockchip,pvtm-volt = <800000>;
@@ -172,7 +171,6 @@
 			opp-microvolt-L1 = <775000 775000 1000000>;
 			opp-microvolt-L2 = <775000 775000 1000000>;
 			opp-microvolt-L3 = <750000 750000 1000000>;
-			opp-microvolt-L4 = <725000 725000 1000000>;
 			clock-latency-ns = <40000>;
 		};
 		opp-1200000000 {
@@ -182,27 +180,22 @@
 			opp-microvolt-L1 = <850000 850000 1000000>;
 			opp-microvolt-L2 = <850000 850000 1000000>;
 			opp-microvolt-L3 = <825000 825000 1000000>;
-			opp-microvolt-L4 = <800000 800000 1000000>;
 			clock-latency-ns = <40000>;
 		};
 		opp-1296000000 {
 			opp-hz = /bits/ 64 <1296000000>;
 			opp-microvolt = <875000 875000 1000000>;
-			opp-microvolt-L0 = <925000 925000 1000000>;
 			opp-microvolt-L1 = <875000 875000 1000000>;
 			opp-microvolt-L2 = <875000 875000 1000000>;
 			opp-microvolt-L3 = <850000 850000 1000000>;
-			opp-microvolt-L4 = <825000 825000 1000000>;
 			clock-latency-ns = <40000>;
 		};
 		opp-1416000000 {
 			opp-hz = /bits/ 64 <1416000000>;
 			opp-microvolt = <925000 925000 1000000>;
-			opp-microvolt-L0 = <975000 975000 1000000>;
 			opp-microvolt-L1 = <925000 925000 1000000>;
 			opp-microvolt-L2 = <925000 925000 1000000>;
 			opp-microvolt-L3 = <900000 900000 1000000>;
-			opp-microvolt-L4 = <875000 875000 1000000>;
 			clock-latency-ns = <40000>;
 		};
 		opp-1512000000 {
@@ -211,7 +204,6 @@
 			opp-microvolt-L1 = <975000 975000 1000000>;
 			opp-microvolt-L2 = <950000 950000 1000000>;
 			opp-microvolt-L3 = <925000 925000 1000000>;
-			opp-microvolt-L4 = <900000 900000 1000000>;
 			clock-latency-ns = <40000>;
 		};
 	};
@@ -1184,17 +1176,11 @@
 		status = "disabled";
 	};
 
-	rng: rng@ff500000 {
+	rng: rng@ff500400 {
 		compatible = "rockchip,cryptov2-rng";
-		reg = <0xff500000 0x4000>;
-		clocks = <&cru CLK_CRYPTO_CORE>, <&cru CLK_CRYPTO_PKA>,
-			<&cru ACLK_CRYPTO>, <&cru HCLK_CRYPTO>;
-		clock-names = "clk_crypto", "clk_crypto_apk",
-				"aclk_crypto", "hclk_crypto";
-		assigned-clocks = <&cru CLK_CRYPTO_CORE>, <&cru CLK_CRYPTO_PKA>,
-					<&cru ACLK_CRYPTO>, <&cru HCLK_CRYPTO>;
-		assigned-clock-rates = <150000000>, <150000000>,
-					<200000000>, <100000000>;
+		reg = <0xff500400 0x80>;
+		clocks = <&cru HCLK_CRYPTO>;
+		clock-names = "hclk_crypto";
 		power-domains = <&power RV1126_PD_CRYPTO>;
 		resets = <&cru SRST_CRYPTO_CORE>;
 		reset-names = "reset";
@@ -1203,7 +1189,7 @@
 
 	crypto: crypto@ff500000 {
 		compatible = "rockchip,rv1126-crypto";
-		reg = <0xff500000 0x4000>;
+		reg = <0xff500000 0x400>, <0xff500480 0x3B80>;
 		interrupts = <GIC_SPI 3 IRQ_TYPE_LEVEL_HIGH>;
 		clocks = <&cru CLK_CRYPTO_CORE>, <&cru CLK_CRYPTO_PKA>,
 			<&cru ACLK_CRYPTO>, <&cru HCLK_CRYPTO>;
@@ -1874,8 +1860,10 @@
 		interrupts = <GIC_SPI 56 IRQ_TYPE_LEVEL_HIGH>,
 			     <GIC_SPI 57 IRQ_TYPE_LEVEL_HIGH>;
 		interrupt-names = "csi-intr1", "csi-intr2";
-		clocks = <&cru PCLK_CSIHOST>, <&cru SRST_CSIHOST_P>;
-		clock-names = "pclk_csi2host", "srst_csihost_p";
+		clocks = <&cru PCLK_CSIHOST>;
+		clock-names = "pclk_csi2host";
+		resets = <&cru SRST_CSIHOST_P>;
+		reset-names = "srst_csihost_p";
 		power-domains = <&power RV1126_PD_VI>;
 		status = "disabled";
 	};
@@ -2241,7 +2229,7 @@
 		clocks = <&pmucru PLL_GPLL>;
 		rockchip,bin-scaling-sel = <
 			0	37
-			1	40
+			1	43
 		>;
 		rockchip,bin-voltage-sel = <
 			1	0
@@ -2263,7 +2251,6 @@
 		opp-500000000 {
 			opp-hz = /bits/ 64 <500000000>;
 			opp-microvolt = <750000 750000 1000000>;
-			opp-microvolt-L0 = <800000 800000 1000000>;
 		};
 		opp-594000000 {
 			opp-hz = /bits/ 64 <594000000>;
@@ -2459,9 +2446,9 @@
 			2	0
 		>;
 		rockchip,pvtm-voltage-sel = <
-			0        108500   1
-			108501   113500   2
-			113501   999999   3
+			0        112500   1
+			112501   117500   2
+			117501   999999   3
 		>;
 		rockchip,pvtm-freq = <396000>;
 		rockchip,pvtm-volt = <800000>;
@@ -2476,27 +2463,27 @@
 		opp-200000000 {
 			opp-hz = /bits/ 64 <200000000>;
 			opp-microvolt = <750000 750000 1000000>;
-			opp-microvolt-L0 = <775000 775000 1000000>;
+			opp-microvolt-L0 = <800000 800000 1000000>;
 		};
 		opp-300000000 {
 			opp-hz = /bits/ 64 <300000000>;
 			opp-microvolt = <750000 750000 1000000>;
-			opp-microvolt-L0 = <775000 775000 1000000>;
+			opp-microvolt-L0 = <800000 800000 1000000>;
 		};
 		opp-396000000 {
 			opp-hz = /bits/ 64 <396000000>;
 			opp-microvolt = <750000 750000 1000000>;
-			opp-microvolt-L0 = <775000 775000 1000000>;
+			opp-microvolt-L0 = <800000 800000 1000000>;
 		};
 		opp-500000000 {
 			opp-hz = /bits/ 64 <500000000>;
 			opp-microvolt = <750000 750000 1000000>;
-			opp-microvolt-L0 = <775000 775000 1000000>;
+			opp-microvolt-L0 = <800000 800000 1000000>;
 		};
 		opp-600000000 {
 			opp-hz = /bits/ 64 <600000000>;
 			opp-microvolt = <750000 750000 1000000>;
-			opp-microvolt-L0 = <775000 775000 1000000>;
+			opp-microvolt-L0 = <800000 800000 1000000>;
 		};
 		opp-700000000 {
 			opp-hz = /bits/ 64 <700000000>;

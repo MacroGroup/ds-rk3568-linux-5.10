@@ -118,6 +118,7 @@ struct rkisp_isp_subdev {
 	bool dphy_errctrl_disabled;
 	atomic_t frm_sync_seq;
 	enum v4l2_quantization quantization;
+	enum v4l2_colorspace colorspace;
 };
 
 struct rkisp_emd_data {

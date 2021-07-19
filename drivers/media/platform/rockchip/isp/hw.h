@@ -58,6 +58,7 @@ struct rkisp_hw_dev {
 	u64 iq_feature;
 	bool is_feature_on;
 	bool is_dma_contig;
+	bool is_dma_sg_ops;
 	bool is_mmu;
 	bool is_idle;
 	bool is_single;

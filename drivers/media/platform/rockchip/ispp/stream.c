@@ -937,7 +937,8 @@ static int config_nr_shp(struct rkispp_device *dev)
 			rkispp_write(dev, RKISPP_SHARP_WR_Y_BASE, val);
 			rkispp_write(dev, RKISPP_SHARP_WR_UV_BASE, val);
 			rkispp_write(dev, RKISPP_SHARP_WR_VIR_STRIDE, ALIGN(width * mult, 16) >> 2);
-			rkispp_set_bits(dev, RKISPP_SHARP_CTRL, SW_SHP_WR_FORMAT_MASK, FMT_FBC);
+			if (dev->inp == INP_ISP)
+				rkispp_set_bits(dev, RKISPP_SHARP_CTRL, SW_SHP_WR_FORMAT_MASK, FMT_FBC);
 		}
 	}
 
@@ -1174,10 +1175,14 @@ static int is_stopped_ii(struct rkispp_stream *stream)
 static void secure_config_mb(struct rkispp_stream *stream)
 {
 	struct rkispp_device *dev = stream->isppdev;
-	u32 limit_range;
+	u32 limit_range, mult = 1;
 
 	/* enable dma immediately, config in idle state */
 	switch (stream->last_module) {
+	case ISPP_MODULE_TNR:
+		rkispp_set_bits(dev, RKISPP_TNR_CTRL, FMT_WR_MASK,
+				SW_TNR_1ST_FRM | stream->out_cap_fmt.wr_fmt << 4);
+		break;
 	case ISPP_MODULE_NR:
 	case ISPP_MODULE_SHP:
 		limit_range = (stream->out_fmt.quantization != V4L2_QUANTIZATION_LIM_RANGE) ?
@@ -1199,13 +1204,23 @@ static void secure_config_mb(struct rkispp_stream *stream)
 	default:
 		break;
 	}
+
+	if (stream->out_cap_fmt.wr_fmt & FMT_YUYV)
+		mult = 2;
+	else if (stream->out_cap_fmt.wr_fmt & FMT_FBC)
+		mult = 0;
+	set_vir_stride(stream, ALIGN(stream->out_fmt.width * mult, 16) >> 2);
+
+	/* config first buf */
+	rkispp_frame_end(stream);
+
 	stream->is_cfg = true;
 }
 
 static int config_mb(struct rkispp_stream *stream)
 {
 	struct rkispp_device *dev = stream->isppdev;
-	u32 i, mult = 1;
+	u32 i;
 
 	for (i = ISPP_MODULE_FEC; i > 0; i = i >> 1) {
 		if (dev->stream_vdev.module_ens & i)
@@ -1223,8 +1238,6 @@ static int config_mb(struct rkispp_stream *stream)
 		stream->config->reg.cur_vir_stride = RKISPP_TNR_WR_VIR_STRIDE;
 		stream->config->reg.cur_y_base_shd = RKISPP_TNR_WR_Y_BASE_SHD;
 		stream->config->reg.cur_uv_base_shd = RKISPP_TNR_WR_UV_BASE_SHD;
-		rkispp_set_bits(dev, RKISPP_TNR_CTRL, FMT_WR_MASK,
-				SW_TNR_1ST_FRM | stream->out_cap_fmt.wr_fmt << 4);
 		break;
 	case ISPP_MODULE_NR:
 	case ISPP_MODULE_SHP:
@@ -1243,14 +1256,6 @@ static int config_mb(struct rkispp_stream *stream)
 		stream->config->reg.cur_y_base_shd = RKISPP_FEC_WR_Y_BASE_SHD;
 		stream->config->reg.cur_uv_base_shd = RKISPP_FEC_WR_UV_BASE_SHD;
 	}
-	if (stream->out_cap_fmt.wr_fmt & FMT_YUYV)
-		mult = 2;
-	else if (stream->out_cap_fmt.wr_fmt & FMT_FBC)
-		mult = 0;
-	set_vir_stride(stream, ALIGN(stream->out_fmt.width * mult, 16) >> 2);
-
-	/* config first buf */
-	rkispp_frame_end(stream);
 
 	if (dev->ispp_sdev.state == ISPP_STOP)
 		secure_config_mb(stream);
@@ -1275,7 +1280,8 @@ static int is_stopped_mb(struct rkispp_stream *stream)
 		val = dev->hw_dev->dummy_buf.dma_addr;
 		rkispp_write(dev, RKISPP_SHARP_WR_Y_BASE, val);
 		rkispp_write(dev, RKISPP_SHARP_WR_UV_BASE, val);
-		rkispp_set_bits(dev, RKISPP_SHARP_CTRL, SW_SHP_WR_FORMAT_MASK, FMT_FBC);
+		if (dev->inp == INP_ISP)
+			rkispp_set_bits(dev, RKISPP_SHARP_CTRL, SW_SHP_WR_FORMAT_MASK, FMT_FBC);
 	}
 
 	/* for wait last frame */
@@ -1500,7 +1506,7 @@ static void rkispp_buf_queue(struct vb2_buffer *vb)
 	memset(isppbuf->buff_addr, 0, sizeof(isppbuf->buff_addr));
 	for (i = 0; i < cap_fmt->mplanes; i++) {
 		vb2_plane_vaddr(vb, i);
-		if (stream->isppdev->hw_dev->is_mmu) {
+		if (stream->isppdev->hw_dev->is_dma_sg_ops) {
 			sgt = vb2_dma_sg_plane_desc(vb, i);
 			isppbuf->buff_addr[i] = sg_dma_address(sgt->sgl);
 		} else {
@@ -1806,6 +1812,7 @@ free_dummy_buf:
 	rkispp_free_common_dummy_buf(stream->isppdev);
 free_buf_queue:
 	destroy_buf_queue(stream, VB2_BUF_STATE_QUEUED);
+	rkispp_destroy_buf(stream);
 	atomic_dec(&dev->stream_vdev.refcnt);
 	stream->streaming = false;
 	stream->is_upd = false;
