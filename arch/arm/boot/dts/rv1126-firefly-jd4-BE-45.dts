@@ -1,0 +1,11 @@
+// SPDX-License-Identifier: (GPL-2.0+ OR MIT)
+/*
+ * Copyright (c) 2020 Rockchip Electronics Co., Ltd.
+ */
+/dts-v1/;
+#include "rv1126.dtsi"
+#include "rv1126-firefly-jd4-BE-45.dtsi"
+/ {
+	model = "Firefly Core-RV1126-JD4 BE-45 Board";
+	compatible = "rockchip,rv1126-evb-ddr3-v12", "rockchip,rv1126";
+};
