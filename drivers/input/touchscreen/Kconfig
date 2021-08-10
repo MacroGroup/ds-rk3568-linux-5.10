@@ -1380,4 +1380,12 @@ config TOUCHSCREEN_VTL_CT36X
 config TOUCHSCREEN_GT1X
 	tristate "GT1X touchscreens support"
 
+config TOUCHSCREEN_HX83102
+    bool "HIMAX HX83102"
+    depends on I2C
+    default n
+    help
+        Say Y here if you have Himax touch panel.
+        If unsure, say N.
+
 endif
