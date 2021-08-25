@@ -91,11 +91,44 @@ static ssize_t rkcif_store_compact_mode(struct device *dev,
 
 	return len;
 }
+
+static ssize_t rkcif_show_line_int_num(struct device *dev,
+					      struct device_attribute *attr,
+					      char *buf)
+{
+	struct rkcif_device *cif_dev = (struct rkcif_device *)dev_get_drvdata(dev);
+	int ret;
+
+	ret = snprintf(buf, PAGE_SIZE, "%d\n",
+		       cif_dev->wait_line_cache);
+	return ret;
+}
+
+static ssize_t rkcif_store_line_int_num(struct device *dev,
+					       struct device_attribute *attr,
+					       const char *buf, size_t len)
+{
+	struct rkcif_device *cif_dev = (struct rkcif_device *)dev_get_drvdata(dev);
+	int val = 0;
+	int ret = 0;
+
+	ret = kstrtoint(buf, 0, &val);
+	if (!ret && val >= 0 && val <= 0x3fff)
+		cif_dev->wait_line_cache = val;
+	else
+		dev_info(cif_dev->dev, "set line int num failed\n");
+	return len;
+}
+
 static DEVICE_ATTR(compact_test, S_IWUSR | S_IRUSR,
 		   rkcif_show_compact_mode, rkcif_store_compact_mode);
 
+static DEVICE_ATTR(wait_line, S_IWUSR | S_IRUSR,
+		   rkcif_show_line_int_num, rkcif_store_line_int_num);
+
 static struct attribute *dev_attrs[] = {
 	&dev_attr_compact_test.attr,
+	&dev_attr_wait_line.attr,
 	NULL,
 };
 
@@ -584,6 +617,7 @@ static int rkcif_create_links(struct rkcif_device *dev)
 
 static int _set_pipeline_default_fmt(struct rkcif_device *dev)
 {
+	rkcif_set_default_fmt(dev);
 	return 0;
 }
 
@@ -1002,6 +1036,8 @@ static void rkcif_init_reset_monitor(struct rkcif_device *dev)
 	timer->csi2_err_cnt_odd = 0;
 	timer->csi2_err_fs_fe_cnt = 0;
 	timer->csi2_err_fs_fe_detect_cnt = 0;
+	timer->csi2_err_triggered_cnt = 0;
+	timer->csi2_first_err_timestamp = 0;
 
 	timer_setup(&timer->timer, rkcif_reset_watchdog_timer_handler, 0);
 
@@ -1149,6 +1185,19 @@ static const struct of_device_id rkcif_plat_of_match[] = {
 	{},
 };
 
+static void rkcif_parse_dts(struct rkcif_device *cif_dev)
+{
+	int ret = 0;
+	struct device_node *node = cif_dev->dev->of_node;
+
+	ret = of_property_read_u32(node,
+			     OF_CIF_WAIT_LINE,
+			     &cif_dev->wait_line);
+	if (ret != 0)
+		cif_dev->wait_line = 0;
+	dev_info(cif_dev->dev, "rkcif wait line %d\n", cif_dev->wait_line);
+}
+
 static int rkcif_plat_probe(struct platform_device *pdev)
 {
 	const struct of_device_id *match;
@@ -1181,6 +1230,8 @@ static int rkcif_plat_probe(struct platform_device *pdev)
 		return -ENODEV;
 
 	rkcif_attach_hw(cif_dev);
+
+	rkcif_parse_dts(cif_dev);
 
 	ret = rkcif_plat_init(cif_dev, node, data->inf_id);
 	if (ret) {

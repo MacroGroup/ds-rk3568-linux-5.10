@@ -318,10 +318,24 @@ static int csi_config(struct rkisp_csi_device *csi)
 		/* clear interrupts state */
 		rkisp_read(dev, CSI2RX_ERR_PHY, true);
 		/* set interrupts mask */
-		rkisp_write(dev, CSI2RX_MASK_PHY, 0xF0FFFF, true);
-		rkisp_write(dev, CSI2RX_MASK_PACKET, 0xF1FFFFF, true);
-		rkisp_write(dev, CSI2RX_MASK_OVERFLOW, 0x7F7FF1, true);
-		rkisp_write(dev, CSI2RX_MASK_STAT, 0x7FFFFF7F, true);
+		val = PHY_ERR_SOTHS | PHY_ERR_SOTSYNCHS |
+			PHY_ERR_EOTSYNCHS | PHY_ERR_ESC | PHY_ERR_CTL;
+		rkisp_write(dev, CSI2RX_MASK_PHY, val, true);
+		val = PACKET_ERR_F_BNDRY_MATCG | PACKET_ERR_F_SEQ |
+			PACKET_ERR_FRAME_DATA | PACKET_ERR_ECC_1BIT |
+			PACKET_ERR_ECC_2BIT | PACKET_ERR_CHECKSUM;
+		rkisp_write(dev, CSI2RX_MASK_PACKET, val, true);
+		val = AFIFO0_OVERFLOW | AFIFO1X_OVERFLOW |
+			LAFIFO1X_OVERFLOW | AFIFO2X_OVERFLOW |
+			IBUFX3_OVERFLOW | IBUF3R_OVERFLOW |
+			Y_STAT_AFIFOX3_OVERFLOW;
+		rkisp_write(dev, CSI2RX_MASK_OVERFLOW, val, true);
+		val = RAW0_WR_FRAME | RAW1_WR_FRAME | RAW2_WR_FRAME |
+			MIPI_DROP_FRM | RAW_WR_SIZE_ERR | MIPI_LINECNT |
+			RAW_RD_SIZE_ERR | MIPI_FRAME_ST_VC(0xf) |
+			MIPI_FRAME_END_VC(0xf) | RAW0_Y_STATE |
+			RAW1_Y_STATE | RAW2_Y_STATE;
+		rkisp_write(dev, CSI2RX_MASK_STAT, val, true);
 
 		/* hdr merge */
 		switch (dev->hdr.op_mode) {
@@ -463,13 +477,13 @@ int rkisp_csi_config_patch(struct rkisp_device *dev)
 			}
 		}
 		rkisp_write(dev, ISP_HDRMGE_BASE, val, false);
-		rkisp_write(dev, CSI2RX_MASK_STAT, 0x7FFFFF7F, true);
+
+		rkisp_set_bits(dev, CSI2RX_MASK_STAT, 0, RAW_RD_SIZE_ERR, true);
 	}
 
-	if (IS_HDR_RDBK(dev->hdr.op_mode)) {
-		rkisp_set_bits(dev, CTRL_SWS_CFG,
-			       0, SW_MPIP_DROP_FRM_DIS, true);
-	}
+	if (IS_HDR_RDBK(dev->hdr.op_mode))
+		rkisp_set_bits(dev, CTRL_SWS_CFG, 0, SW_MPIP_DROP_FRM_DIS, true);
+
 	memset(dev->csi_dev.filt_state, 0, sizeof(dev->csi_dev.filt_state));
 	dev->csi_dev.frame_cnt = -1;
 	dev->csi_dev.frame_cnt_x1 = -1;
@@ -524,15 +538,16 @@ void rkisp_trigger_read_back(struct rkisp_csi_device *csi, u8 dma2frm, u32 mode)
 		is_upd = true;
 	}
 	if (dev->isp_ver == ISP_V20 && dev->dmarx_dev.trigger == T_MANUAL) {
-		if (csi->rd_mode != rd_mode && dev->br_dev.en) {
+		if (csi->rd_mode != rd_mode && RKMODULE_EXTEND_LINE != 0) {
 			tmp = dev->isp_sdev.in_crop.height;
 			val = rkisp_read(dev, CIF_DUAL_CROP_CTRL, false);
 			if (rd_mode == HDR_RDBK_FRAME1) {
-				val |= CIF_DUAL_CROP_MP_MODE_YUV;
+				val |= CIF_DUAL_CROP_MP_MODE_YUV | CIF_DUAL_CROP_SP_MODE_YUV;
 				tmp += RKMODULE_EXTEND_LINE;
 			} else {
-				val &= ~CIF_DUAL_CROP_MP_MODE_YUV;
+				val &= ~(CIF_DUAL_CROP_MP_MODE_YUV | CIF_DUAL_CROP_SP_MODE_YUV);
 			}
+			val |= CIF_DUAL_CROP_CFG_UPD;
 			rkisp_write(dev, CIF_DUAL_CROP_CTRL, val, false);
 			rkisp_write(dev, CIF_ISP_ACQ_V_SIZE, tmp, false);
 			rkisp_write(dev, CIF_ISP_OUT_V_SIZE, tmp, false);
@@ -646,6 +661,7 @@ static void rkisp_dev_trigger_handle(struct rkisp_device *dev, u32 cmd)
 		isp->dmarx_dev.cur_frame.id = t.frame_id;
 		isp->dmarx_dev.cur_frame.sof_timestamp = t.sof_timestamp;
 		isp->dmarx_dev.cur_frame.timestamp = t.frame_timestamp;
+		isp->isp_sdev.frm_timestamp = t.sof_timestamp;
 		mode = t.mode;
 		times = t.times;
 		hw->cur_dev_id = id;
