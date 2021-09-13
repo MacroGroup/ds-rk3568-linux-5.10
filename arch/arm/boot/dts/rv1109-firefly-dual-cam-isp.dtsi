@@ -144,5 +144,5 @@
 &rkispp {
 	status = "okay";
 	/* the max input w h and fps of mulit sensor */
-	max-input = <1920 1080 30>;
+	max-input = <1920 1080 60>;
 };
