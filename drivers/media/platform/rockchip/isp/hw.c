@@ -353,13 +353,13 @@ static const struct isp_clk_info rv1126_isp_clk_rate[] = {
 		.clk_rate = 20,
 		.refer_data = 0,
 	}, {
-		.clk_rate = 300,
+		.clk_rate = 500,
 		.refer_data = 1920, //width
 	}, {
-		.clk_rate = 400,
+		.clk_rate = 600,
 		.refer_data = 2688,
 	}, {
-		.clk_rate = 500,
+		.clk_rate = 600,
 		.refer_data = 3072,
 	}, {
 		.clk_rate = 600,

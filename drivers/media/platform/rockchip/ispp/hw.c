@@ -152,13 +152,13 @@ static const struct ispp_clk_info rv1126_ispp_clk_rate[] = {
 		.clk_rate = 50,
 		.refer_data = 0,
 	}, {
-		.clk_rate = 250,
+		.clk_rate = 500,
 		.refer_data = 1920 //width
 	}, {
-		.clk_rate = 350,
+		.clk_rate = 500,
 		.refer_data = 2688,
 	}, {
-		.clk_rate = 400,
+		.clk_rate = 500,
 		.refer_data = 3072,
 	}, {
 		.clk_rate = 500,
