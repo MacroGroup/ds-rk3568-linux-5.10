@@ -108,6 +108,8 @@
 
 #define USED_SYS_DEBUG
 
+#define OS04A10_ENABLE_60FPS		1
+
 struct preisp_hdrae_exp_s init_hdrae_exp;
 
 static const char * const os04a10_supply_names[] = {
@@ -804,6 +806,23 @@ static const struct regval os04a10_hdr12bit_2560x1440_regs[] = {
  * }
  */
 static const struct os04a10_mode supported_modes[] = {
+#if OS04A10_ENABLE_60FPS
+	{
+		.bus_fmt = MEDIA_BUS_FMT_SBGGR10_1X10,
+		.width = 2688,
+		.height = 1520,
+		.max_fps = {
+			.numerator = 10000,
+			.denominator = 605668,
+		},
+		.exp_def = 0x0240,
+		.hts_def = 0x02dc * 4,
+		.vts_def = 0x0658,
+		.reg_list = os04a10_linear10bit_2688x1520_regs,
+		.hdr_mode = NO_HDR,
+		.vc[PAD0] = V4L2_MBUS_CSI2_CHANNEL_0,
+	},
+#else
 	{
 		.bus_fmt = MEDIA_BUS_FMT_SBGGR10_1X10,
 		.width = 2688,
@@ -819,6 +838,7 @@ static const struct os04a10_mode supported_modes[] = {
 		.hdr_mode = NO_HDR,
 		.vc[PAD0] = V4L2_MBUS_CSI2_CHANNEL_0,
 	},
+#endif
 	{
 		.bus_fmt = MEDIA_BUS_FMT_SBGGR10_1X10,
 		.width = 2688,
