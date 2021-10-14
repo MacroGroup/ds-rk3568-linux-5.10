@@ -84,7 +84,7 @@
 #endif
 
 /* select I2C bus number for es7202 */
-#define ES7202_I2C_BUS_NUM    1
+#define ES7202_I2C_BUS_NUM	CONFIG_SND_SOC_ES7202_I2C_BUS
 
 /* 
 * select DTS or I2C Detect method for es7202 

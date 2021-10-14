@@ -17,6 +17,7 @@ Required properties:
 Optional properties:
 - rockchip,pwm-output-mode: This is a boolean property, if present, output pwm
   to drive spk.
+- pa-ctl-gpios: The gpio of Power Amplifier Controller.
 
 Example:
 

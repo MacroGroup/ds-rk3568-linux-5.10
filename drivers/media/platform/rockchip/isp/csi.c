@@ -332,8 +332,7 @@ static int csi_config(struct rkisp_csi_device *csi)
 		rkisp_write(dev, CSI2RX_MASK_OVERFLOW, val, true);
 		val = RAW0_WR_FRAME | RAW1_WR_FRAME | RAW2_WR_FRAME |
 			MIPI_DROP_FRM | RAW_WR_SIZE_ERR | MIPI_LINECNT |
-			RAW_RD_SIZE_ERR | MIPI_FRAME_ST_VC(0xf) |
-			MIPI_FRAME_END_VC(0xf) | RAW0_Y_STATE |
+			RAW_RD_SIZE_ERR | RAW0_Y_STATE |
 			RAW1_Y_STATE | RAW2_Y_STATE;
 		rkisp_write(dev, CSI2RX_MASK_STAT, val, true);
 
@@ -658,6 +657,10 @@ static void rkisp_dev_trigger_handle(struct rkisp_device *dev, u32 cmd)
 		isp = hw->isp[id];
 		rkisp_csi_trigger_event(isp, T_CMD_DEQUEUE, &t);
 		isp->dmarx_dev.pre_frame = isp->dmarx_dev.cur_frame;
+		if (t.frame_id > isp->dmarx_dev.pre_frame.id &&
+		    t.frame_id - isp->dmarx_dev.pre_frame.id > 1)
+			isp->isp_sdev.dbg.frameloss +=
+				t.frame_id - isp->dmarx_dev.pre_frame.id + 1;
 		isp->dmarx_dev.cur_frame.id = t.frame_id;
 		isp->dmarx_dev.cur_frame.sof_timestamp = t.sof_timestamp;
 		isp->dmarx_dev.cur_frame.timestamp = t.frame_timestamp;

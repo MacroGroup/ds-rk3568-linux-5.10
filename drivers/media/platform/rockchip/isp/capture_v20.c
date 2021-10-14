@@ -1098,8 +1098,10 @@ static void update_dmatx_v2(struct rkisp_stream *stream)
 			else
 				hdr_qbuf(&dev->hdr.q_tx[index], buf);
 		}
-		if (!buf && dev->hw_dev->dummy_buf.mem_priv)
+		if (!buf && dev->hw_dev->dummy_buf.mem_priv) {
 			buf = &dev->hw_dev->dummy_buf;
+			stream->dbg.frameloss++;
+		}
 		if (buf)
 			mi_set_y_addr(stream, buf->dma_addr);
 	}
@@ -1130,6 +1132,7 @@ static void update_mi(struct rkisp_stream *stream)
 		mi_set_y_addr(stream, dummy_buf->dma_addr);
 		mi_set_cb_addr(stream, dummy_buf->dma_addr);
 		mi_set_cr_addr(stream, dummy_buf->dma_addr);
+		stream->dbg.frameloss++;
 	}
 
 	mi_set_y_offset(stream, 0);
@@ -1413,6 +1416,7 @@ static int mi_frame_end(struct rkisp_stream *stream)
 					v4l2_err(&dev->v4l2_dev,
 						 "multiple long data in hdr frame\n");
 					rkisp_buf_queue(&cap->rdbk_buf[RDBK_L]->vb.vb2_buf);
+					stream->dbg.frameloss++;
 				}
 				cap->rdbk_buf[RDBK_L] = stream->curr_buf;
 			} else if (stream->id == RKISP_STREAM_DMATX1) {
@@ -1420,6 +1424,7 @@ static int mi_frame_end(struct rkisp_stream *stream)
 					v4l2_err(&dev->v4l2_dev,
 						 "multiple middle data in hdr frame\n");
 					rkisp_buf_queue(&cap->rdbk_buf[RDBK_M]->vb.vb2_buf);
+					stream->dbg.frameloss++;
 				}
 				cap->rdbk_buf[RDBK_M] = stream->curr_buf;
 			} else if (stream->id == RKISP_STREAM_DMATX2) {
@@ -1427,6 +1432,7 @@ static int mi_frame_end(struct rkisp_stream *stream)
 					v4l2_err(&dev->v4l2_dev,
 						 "multiple short data in hdr frame\n");
 					rkisp_buf_queue(&cap->rdbk_buf[RDBK_S]->vb.vb2_buf);
+					stream->dbg.frameloss++;
 				}
 				cap->rdbk_buf[RDBK_S] = stream->curr_buf;
 				rdbk_frame_end(stream);
@@ -1873,6 +1879,7 @@ rkisp_start_streaming(struct vb2_queue *queue, unsigned int count)
 			return -EBUSY;
 	}
 
+	memset(&stream->dbg, 0, sizeof(stream->dbg));
 	atomic_inc(&dev->cap_dev.refcnt);
 	if (!dev->isp_inp || !stream->linked) {
 		v4l2_err(v4l2_dev, "check video link or isp input\n");

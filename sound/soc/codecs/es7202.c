@@ -560,7 +560,7 @@ static struct snd_soc_dai_driver es7202_dai0 = {
 	.capture = {
 		.stream_name = "Capture",
 		.channels_min = 1,
-		.channels_max = 8,
+		.channels_max = 2,
 		.rates = es7202_RATES,
 		.formats = es7202_FORMATS,
 	},
@@ -602,8 +602,9 @@ static struct snd_soc_dai_driver es7202_dai3 = {
 	.capture = {
 		.stream_name = "Capture",
 		.channels_min = 1,
-		.channels_max = 2,
+		.channels_max = 8,
 		.rates = es7202_RATES,
+		.formats = SNDRV_PCM_FMTBIT_S16_LE,
 	},
 	.ops = &es7202_ops,
 	.symmetric_rates = 1,
@@ -615,8 +616,9 @@ static struct snd_soc_dai_driver es7202_dai4 = {
 	.capture = {
 		.stream_name = "Capture",
 		.channels_min = 1,
-		.channels_max = 2,
+		.channels_max = 10,
 		.rates = es7202_RATES,
+		.formats = SNDRV_PCM_FMTBIT_S16_LE,
 	},
 	.ops = &es7202_ops,
 	.symmetric_rates = 1,
@@ -628,8 +630,9 @@ static struct snd_soc_dai_driver es7202_dai5 = {
 	.capture = {
 		.stream_name = "Capture",
 		.channels_min = 1,
-		.channels_max = 2,
+		.channels_max = 12,
 		.rates = es7202_RATES,
+		.formats = SNDRV_PCM_FMTBIT_S16_LE,
 	},
 	.ops = &es7202_ops,
 	.symmetric_rates = 1,
@@ -641,8 +644,9 @@ static struct snd_soc_dai_driver es7202_dai6 = {
 	.capture = {
 		.stream_name = "Capture",
 		.channels_min = 1,
-		.channels_max = 2,
+		.channels_max = 14,
 		.rates = es7202_RATES,
+		.formats = SNDRV_PCM_FMTBIT_S16_LE,
 	},
 	.ops = &es7202_ops,
 	.symmetric_rates = 1,
@@ -654,8 +658,9 @@ static struct snd_soc_dai_driver es7202_dai7 = {
 	.capture = {
 		.stream_name = "Capture",
 		.channels_min = 1,
-		.channels_max = 2,
+		.channels_max = 16,
 		.rates = es7202_RATES,
+		.formats = SNDRV_PCM_FMTBIT_S16_LE,
 	},
 	.ops = &es7202_ops,
 	.symmetric_rates = 1,
@@ -741,6 +746,8 @@ static int es7202_probe(struct snd_soc_component *component)
 		es7202_write(ES7202_RESET_REG00, 0x01, i2c_ctl[cnt]);
 		es7202_write(ES7202_CLK_EN_REG03, 0x03, i2c_ctl[cnt]);
 		es7202_write(ES7202_BIAS_VMID_REG11, 0x2E, i2c_ctl[cnt]);
+
+		es7202_multi_chips_update_bits(ES7202_PDM_INF_CTL_REG07, 0x03, 0x00);
 	}
 	return ret;
 }

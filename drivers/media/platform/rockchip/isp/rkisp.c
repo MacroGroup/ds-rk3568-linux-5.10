@@ -1740,7 +1740,7 @@ static int rkisp_isp_sd_s_stream(struct v4l2_subdev *sd, int on)
 	}
 
 	rkisp_start_3a_run(isp_dev);
-
+	memset(&isp_dev->isp_sdev.dbg, 0, sizeof(isp_dev->isp_sdev.dbg));
 	atomic_set(&isp_dev->isp_sdev.frm_sync_seq, 0);
 	ret = rkisp_config_cif(isp_dev);
 	if (ret < 0)

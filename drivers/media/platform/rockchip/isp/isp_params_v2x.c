@@ -956,10 +956,6 @@ static void
 isp_cproc_config(struct rkisp_isp_params_vdev *params_vdev,
 		 const struct isp2x_cproc_cfg *arg)
 {
-	struct isp2x_isp_other_cfg *cur_other_cfg =
-		&params_vdev->isp2x_params->others;
-	struct isp2x_ie_cfg *cur_ie_config = &cur_other_cfg->ie_cfg;
-	u32 effect = cur_ie_config->effect;
 	u32 quantization = params_vdev->quantization;
 
 	rkisp_iowrite32(params_vdev, arg->contrast, CPROC_CONTRAST);
@@ -967,8 +963,7 @@ isp_cproc_config(struct rkisp_isp_params_vdev *params_vdev,
 	rkisp_iowrite32(params_vdev, arg->sat, CPROC_SATURATION);
 	rkisp_iowrite32(params_vdev, arg->brightness, CPROC_BRIGHTNESS);
 
-	if (quantization != V4L2_QUANTIZATION_FULL_RANGE ||
-	    effect != V4L2_COLORFX_NONE) {
+	if (quantization != V4L2_QUANTIZATION_FULL_RANGE) {
 		isp_param_clear_bits(params_vdev, CPROC_CTRL,
 				     CIF_C_PROC_YOUT_FULL |
 				     CIF_C_PROC_YIN_FULL |
@@ -3127,10 +3122,6 @@ static void isp_hdrtmo_wait_first_line(struct rkisp_isp_params_vdev *params_vdev
 		else
 			break;
 	} while (retry-- > 0);
-
-	if (retry < 0)
-		dev_err(params_vdev->dev->dev, "hdr line_cnt(%d) < 1line\n",
-			line_cnt);
 }
 
 static void
