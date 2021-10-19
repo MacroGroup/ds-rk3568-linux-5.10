@@ -172,13 +172,14 @@ uvc_video_complete(struct usb_ep *ep, struct usb_request *req)
 		printk(KERN_INFO "VS request completed with status %d.\n",
 			req->status);
 		uvcg_queue_cancel(queue, 0);
+		break;
 	}
 
 	spin_lock_irqsave(&video->req_lock, flags);
 	list_add_tail(&req->list, &video->req_free);
 	spin_unlock_irqrestore(&video->req_lock, flags);
 
-	schedule_work(&video->pump);
+	queue_work(video->async_wq, &video->pump);
 }
 
 static int
@@ -340,7 +341,6 @@ int uvcg_video_enable(struct uvc_video *video, int enable)
 	if (!enable) {
 		cancel_work_sync(&video->pump);
 		uvcg_queue_cancel(&video->queue, 0);
-
 		for (i = 0; i < opts->uvc_num_request; ++i)
 			if (video->req[i])
 				usb_ep_dequeue(video->ep, video->req[i]);
@@ -366,7 +366,7 @@ int uvcg_video_enable(struct uvc_video *video, int enable)
 	} else
 		video->encode = uvc_video_encode_isoc;
 
-	schedule_work(&video->pump);
+	queue_work(video->async_wq, &video->pump);
 
 	return ret;
 }
