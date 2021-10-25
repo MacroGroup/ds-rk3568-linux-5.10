@@ -1446,6 +1446,25 @@
 	status = "okay";
 };
 
+
+&uart1 {
+	status = "okay";
+};
+
+&uart2 {
+	status = "disabled";
+};
+
+&uart3 {
+	pinctrl-0 = <&uart3m2_xfer &uart3m2_ctsn &uart3m2_rtsn>;
+	status = "okay";
+};
+
+&uart4 {
+	pinctrl-0 = <&uart4m1_xfer>;
+	status = "okay";
+};
+
 &usb_host0_ehci {
 	status = "okay";
 };
