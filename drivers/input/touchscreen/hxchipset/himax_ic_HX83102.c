@@ -572,7 +572,6 @@ static void hx83102ab_power_on_init(void)
 	uint8_t tmp_data[DATA_LEN_4];
 
 	I("%s:\n", __func__);
-	printk("============ %s %d jjlook ==========\n", __func__, __LINE__);
 	kp_himax_parse_assign_cmd(fw_data_safe_mode_release_pw_reset,
 			tmp_data, 4);
 	kp_g_core_fp->fp_register_write((*kp_pfw_op)->addr_raw_out_sel,
@@ -1435,11 +1434,7 @@ static bool hx83102e_read_event_stack(uint8_t *buf, uint8_t length)
 
 	if ((*kp_private_ts)->debug_log_level & BIT(2)) {
 		getnstimeofday(&t_end);
-		t_delta.tv_nsec = (t_end.tv_sec * 1000000000 + t_end.tv_nsec)
-					- (t_start.tv_sec
-					* 1000000000
-					+ t_start.tv_nsec); /*ns*/
-
+		t_delta.tv_nsec = (t_end.tv_sec * 1000000000 + t_end.tv_nsec) - (t_start.tv_sec * 1000000000 + t_start.tv_nsec); /*ns*/
 		i2c_speed = (len * 9 * 1000000
 			/ (int)t_delta.tv_nsec) * 13 / 10;
 		(*kp_private_ts)->bus_speed = (int)i2c_speed;
@@ -1722,7 +1717,6 @@ DECLARE(HX_MOD_KSYM_HX83102);
 static int himax_hx83102_probe(void)
 {
 	I("%s:Enter\n", __func__);
-	printk("============ %s %d jjlook ==========\n", __func__, __LINE__);
 	himax_add_chip_dt(hx83102_chip_detect);
 
 	return 0;
@@ -1739,7 +1733,6 @@ static int __init himax_hx83102_init(void)
 	int ret = 0;
 
 	I("%s\n", __func__);
-	printk("============ %s %d jjlook ==========\n", __func__, __LINE__);
 	ret = himax_hx83102_probe();
 	return 0;
 }

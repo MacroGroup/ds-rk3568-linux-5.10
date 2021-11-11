@@ -1653,20 +1653,16 @@ static int himax_ts_work_status(struct himax_ts_data *ts)
 	/* 1: normal, 2:SMWP */
 	int result = HX_REPORT_COORD;
 
-	printk("============ %s %d jjlook ==========\n", __func__, __LINE__);
 	hx_touch_data->diag_cmd = ts->diag_cmd;
 	if (hx_touch_data->diag_cmd)
 		result = HX_REPORT_COORD_RAWDATA;
 
-	printk("============ %s %d jjlook ==========\n", __func__, __LINE__);
 #if defined(HX_SMART_WAKEUP)
-	printk("============ %s %d jjlook ==========\n", __func__, __LINE__);
 	if (atomic_read(&ts->suspend_mode)
 	&& (ts->SMWP_enable)
 	&& (!hx_touch_data->diag_cmd))
 		result = HX_REPORT_SMWP_EVENT;
 #endif
-	printk("============ %s %d jjlook ==========\n", __func__, __LINE__);
 	/* I("Now Status is %d\n", result); */
 	return result;
 }
@@ -1958,9 +1954,9 @@ static int himax_err_ctrl(struct himax_ts_data *ts,
 
 	ts_status = himax_checksum_cal(ts, buf, ts_path, ts_status);
 	if (ts_status == HX_CHKSUM_FAIL) {
-		ts_status = HX_REPORT_DATA;
-		goto END_FUNCTION;
-		//goto CHK_FAIL;
+               ts_status = HX_REPORT_DATA;
+               goto END_FUNCTION;
+               //goto CHK_FAIL;
 	} else {
 #if defined(HX_ESD_RECOVERY)
 		/* continuous N times record, not total N times. */
@@ -2245,11 +2241,9 @@ static int himax_parse_report_data(struct himax_ts_data *ts,
 
 	switch (ts_path) {
 	case HX_REPORT_COORD:
-	printk("============ %s %d jjlook ==========\n", __func__, __LINE__);
 		ts_status = himax_parse_report_points(ts, ts_path, ts_status);
 		break;
 	case HX_REPORT_COORD_RAWDATA:
-	printk("============ %s %d jjlook ==========\n", __func__, __LINE__);
 		/* touch monitor rawdata */
 		if (debug_data != NULL) {
 			if (debug_data->fp_set_diag_cmd(ic_data, hx_touch_data))
@@ -2322,22 +2316,18 @@ static void himax_finger_report(struct himax_ts_data *ts)
 					g_target_report_data->w[i]);
 			}
 #if !defined(HX_PROTOCOL_A)
-	printk("============ %s %d jjlook ==========\n", __func__, __LINE__);
 			input_mt_slot(ts->input_dev, i);
 #else
-	printk("============ %s %d jjlook ==========\n", __func__, __LINE__);
 			input_report_key(ts->input_dev, BTN_TOUCH, 1);
 #endif
 			input_report_abs(ts->input_dev, ABS_MT_TOUCH_MAJOR,
 					g_target_report_data->w[i]);
 #if !defined(HX_PROTOCOL_A)
-	printk("============ %s %d jjlook ==========\n", __func__, __LINE__);
 			input_report_abs(ts->input_dev, ABS_MT_WIDTH_MAJOR,
 					g_target_report_data->w[i]);
 			input_report_abs(ts->input_dev, ABS_MT_PRESSURE,
 					g_target_report_data->w[i]);
 #else
-	printk("============ %s %d jjlook ==========\n", __func__, __LINE__);
 			input_report_abs(ts->input_dev, ABS_MT_TRACKING_ID, i + 1);
 #endif
 			input_report_abs(ts->input_dev, ABS_MT_POSITION_X,
@@ -2345,17 +2335,14 @@ static void himax_finger_report(struct himax_ts_data *ts)
 			input_report_abs(ts->input_dev, ABS_MT_POSITION_Y,
 					g_target_report_data->y[i]);
 #if !defined(HX_PROTOCOL_A)
-	printk("============ %s %d jjlook ==========\n", __func__, __LINE__);
 			ts->last_slot = i;
 			input_mt_report_slot_state(ts->input_dev,
 					MT_TOOL_FINGER, 1);
 #else
-	printk("============ %s %d jjlook ==========\n", __func__, __LINE__);
 			input_mt_sync(ts->input_dev);
 #endif
 		} else {
 #if !defined(HX_PROTOCOL_A)
-	printk("============ %s %d jjlook ==========\n", __func__, __LINE__);
 			input_mt_slot(ts->input_dev, i);
 			input_report_abs(ts->input_dev, ABS_MT_TOUCH_MAJOR, 0);
 			input_report_abs(ts->input_dev, ABS_MT_WIDTH_MAJOR, 0);
@@ -2366,10 +2353,8 @@ static void himax_finger_report(struct himax_ts_data *ts)
 		}
 	}
 #if !defined(HX_PROTOCOL_A)
-	printk("============ %s %d jjlook ==========\n", __func__, __LINE__);
 	input_report_key(ts->input_dev, BTN_TOUCH, 1);
 #endif
-	printk("============ %s %d jjlook x = %d y = %d==========\n", __func__, __LINE__, g_target_report_data->x[i], g_target_report_data->y[i]);
 	input_sync(ts->input_dev);
 
 	if (!ic_data->HX_PEN_FUNC)
@@ -2551,7 +2536,6 @@ static void himax_finger_leave(struct himax_ts_data *ts)
 
 static void himax_report_points(struct himax_ts_data *ts)
 {
-	printk("============ %s %d jjlook ==========\n", __func__, __LINE__);
 	if (g_ts_dbg != 0)
 		I("%s: start!\n", __func__);
 
@@ -2559,6 +2543,7 @@ static void himax_report_points(struct himax_ts_data *ts)
 		himax_finger_report(ts);
 	else
 		himax_finger_leave(ts);
+
 	Last_EN_NoiseFilter = EN_NoiseFilter;
 
 	if (g_ts_dbg != 0)
@@ -2568,13 +2553,10 @@ static void himax_report_points(struct himax_ts_data *ts)
 
 int himax_report_data(struct himax_ts_data *ts, int ts_path, int ts_status)
 {
-	printk("============ %s %d jjlook ==========\n", __func__, __LINE__);
 	if (g_ts_dbg != 0)
 		I("%s: Entering, ts_status=%d!\n", __func__, ts_status);
 
-	printk("============ %s %d jjlook ==========\n", __func__, __LINE__);
 	if (ts_path == HX_REPORT_COORD || ts_path == HX_REPORT_COORD_RAWDATA) {
-	printk("============ %s %d jjlook ==========\n", __func__, __LINE__);
 		/* Touch Point information */
 		himax_report_points(ts);
 
@@ -2601,13 +2583,9 @@ static int himax_ts_operation(struct himax_ts_data *ts,
 	memset(ts->xfer_buff, 0x00, 128 * sizeof(uint8_t));
 	memset(hw_reset_check, 0x00, sizeof(hw_reset_check));
 
-	printk("============ %s %d jjlook ==========\n", __func__, __LINE__);
 	ts_status = himax_touch_get(ts, ts->xfer_buff, ts_path, ts_status);
-	if (ts_status == HX_TS_GET_DATA_FAIL){
-
+	if (ts_status == HX_TS_GET_DATA_FAIL)
 		goto END_FUNCTION;
-	printk("============ %s %d jjlook ==========\n", __func__, __LINE__);
-	}
 
 	ts_status = himax_distribute_touch_data(ts->xfer_buff,
 			ts_path, ts_status);
@@ -2631,28 +2609,22 @@ void himax_ts_work(struct himax_ts_data *ts)
 	int ts_status = HX_TS_NORMAL_END;
 	int ts_path = 0;
 
-	printk("============ %s %d jjlook ==========\n", __func__, __LINE__);
 	if (debug_data != NULL)
 		debug_data->fp_ts_dbg_func(ts, HX_FINGER_ON);
 
 #if defined(HX_USB_DETECT_GLOBAL)
-	printk("============ %s %d jjlook ==========\n", __func__, __LINE__);
 	himax_cable_detect_func(false);
 #endif
 
-	printk("============ %s %d jjlook ==========\n", __func__, __LINE__);
 	ts_path = himax_ts_work_status(ts);
 	switch (ts_path) {
 	case HX_REPORT_COORD:
-	printk("============ %s %d jjlook ==========\n", __func__, __LINE__);
 		ts_status = himax_ts_operation(ts, ts_path, ts_status);
 		break;
 	case HX_REPORT_SMWP_EVENT:
-	printk("============ %s %d jjlook ==========\n", __func__, __LINE__);
 		ts_status = himax_ts_operation(ts, ts_path, ts_status);
 		break;
 	case HX_REPORT_COORD_RAWDATA:
-	printk("============ %s %d jjlook ==========\n", __func__, __LINE__);
 		ts_status = himax_ts_operation(ts, ts_path, ts_status);
 		break;
 	default:
@@ -2660,12 +2632,10 @@ void himax_ts_work(struct himax_ts_data *ts)
 		goto END_FUNCTION;
 	}
 
-	printk("============ %s %d jjlook ==========\n", __func__, __LINE__);
 	if (ts_status == HX_TS_GET_DATA_FAIL)
 		goto GET_TOUCH_FAIL;
 	else
 		goto END_FUNCTION;
-	printk("============ %s %d jjlook ==========\n", __func__, __LINE__);
 
 GET_TOUCH_FAIL:
 	I("%s: Now reset the Touch chip.\n", __func__);
@@ -2790,17 +2760,14 @@ int himax_chip_common_init(void)
 	struct himax_i2c_platform_data *pdata;
 	struct himax_chip_entry *entry;
 
-	printk("============ %s %d jjlook ==========\n", __func__, __LINE__);
 	I("Prepare kernel fp\n");
 	kp_getname_kernel = (void *)kallsyms_lookup_name("getname_kernel");
 	if (!kp_getname_kernel) {
-	printk("============ %s %d jjlook ==========\n", __func__, __LINE__);
 		E("prepare kp_getname_kernel failed!\n");
 		/*goto err_xfer_buff_fail;*/
 	}
 	kp_file_open_name = (void *)kallsyms_lookup_name("file_open_name");
 	if (!kp_file_open_name) {
-	printk("============ %s %d jjlook ==========\n", __func__, __LINE__);
 		E("prepare kp_file_open_name failed!\n");
 		goto err_xfer_buff_fail;
 	}
@@ -2838,11 +2805,9 @@ int himax_chip_common_init(void)
 	}
 
 	if (himax_parse_dt(ts, pdata) < 0) {
-	printk("============ %s %d jjlook ==========\n", __func__, __LINE__);
 		I(" pdata is NULL for DT\n");
 		goto err_alloc_dt_pdata_failed;
 	}
-	printk("============ %s %d jjlook ==========\n", __func__, __LINE__);
 
 #if defined(HX_RST_PIN_FUNC)
 	ts->rst_gpio = pdata->gpio_reset;
@@ -2861,7 +2826,6 @@ int himax_chip_common_init(void)
 
 #endif
 
-	printk("============ %s %d jjlook ==========\n", __func__, __LINE__);
 	g_hx_chip_inited = 0;
 	idx = himax_get_ksym_idx();
 	if (idx >= 0) {
@@ -2886,24 +2850,19 @@ int himax_chip_common_init(void)
 			}
 		}
 	} else {
-	printk("============ %s %d jjlook ==========\n", __func__, __LINE__);
 		I("%s: No available chip exist!\n", __func__);
 		goto error_ic_detect_failed;
 	}
 
-	printk("============ %s %d jjlook ==========\n", __func__, __LINE__);
 	if (i == entry->hx_ic_dt_num) {
-	printk("============ %s %d jjlook ==========\n", __func__, __LINE__);
 		E("%s: chip detect failed!\n", __func__);
 		goto error_ic_detect_failed;
 	}
 
 found_hx_chip:
 	if (g_core_fp.fp_chip_init != NULL) {
-	printk("============ %s %d jjlook ==========\n", __func__, __LINE__);
 		g_core_fp.fp_chip_init();
 	} else {
-	printk("============ %s %d jjlook ==========\n", __func__, __LINE__);
 		E("%s: function point of chip_init is NULL!\n", __func__);
 		goto error_ic_detect_failed;
 	}
