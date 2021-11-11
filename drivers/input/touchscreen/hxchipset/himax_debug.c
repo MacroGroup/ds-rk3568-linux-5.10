@@ -642,12 +642,12 @@ static ssize_t himax_proc_register_write(char *buf, size_t len)
 
 			byte_length = count - 1;
 			if (strcmp(HX_85XX_H_SERIES_PWON,
-				private_ts->chip_name) == 0 && cfg_flag == 0){
+				private_ts->chip_name) == 0 && cfg_flag == 0) {
 				cfg_flag = 2;
-			g_core_fp.fp_register_write(reg_cmd,
+				g_core_fp.fp_register_write(reg_cmd,
 					byte_length, &w_data[0], cfg_flag);
 			}
-		        
+
 		}
 		break;
 		};
@@ -2775,13 +2775,10 @@ int himax_touch_proc_init(void)
 	himax_proc_debug_file = proc_create(HIMAX_PROC_DEBUG_FILE,
 				0644, himax_touch_proc_dir,
 				&himax_proc_debug_ops);
-	printk("============ %s %d jjlook ==========\n", __func__, __LINE__);
 	if (himax_proc_debug_file == NULL) {
-	printk("============ %s %d jjlook ==========\n", __func__, __LINE__);
 		E(" %s: proc debug file create failed!\n", __func__);
 		goto fail_3;
 	}
-	printk("============ %s %d jjlook ==========\n", __func__, __LINE__);
 	dbg_func_ptr_init();
 
 	himax_proc_flash_dump_file = proc_create(HIMAX_PROC_FLASH_DUMP_FILE,

@@ -446,10 +446,11 @@ static void himax_mcu_sense_on(uint8_t FlashMode)
 
 			ret = himax_bus_write(pic_op->adr_i2c_psw_lb[0],
 					tmp_data, 1, HIMAX_I2C_RETRY_TIMES);
-			if (ret < 0)
+			if (ret < 0) {
 				E("%s: i2c access fail!\n", __func__);
+			}
 
-			ret = himax_bus_write(pic_op->adr_i2c_psw_ub[0],
+				ret = himax_bus_write(pic_op->adr_i2c_psw_ub[0],
 					tmp_data, 1, HIMAX_I2C_RETRY_TIMES);
 			if (ret < 0)
 				E("%s: i2c access fail!\n", __func__);
@@ -1612,8 +1613,7 @@ static bool himax_mcu_read_event_stack(uint8_t *buf, uint8_t length)
 
 	if (private_ts->debug_log_level & BIT(2)) {
 		getnstimeofday(&t_end);
-		t_delta.tv_nsec = (t_end.tv_sec * 1000000000 + t_end.tv_nsec)
-			- (t_start.tv_sec * 1000000000 + t_start.tv_nsec);
+		t_delta.tv_nsec = (t_end.tv_sec * 1000000000 + t_end.tv_nsec) - (t_start.tv_sec * 1000000000 + t_start.tv_nsec);
 
 		i2c_speed = (len * 9 * 1000000
 			/ (int)t_delta.tv_nsec) * 13 / 10;
