@@ -10,7 +10,7 @@
 };
 
 &os04a10 {
-	status = "disabled";
+	status = "okay";
 };
 
 &lcd_n {
