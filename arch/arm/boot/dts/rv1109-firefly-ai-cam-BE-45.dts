@@ -1,0 +1,18 @@
+// SPDX-License-Identifier: (GPL-2.0+ OR MIT)
+/*
+ * Copyright (c) 2020 Rockchip Electronics Co., Ltd.
+ */
+/dts-v1/;
+#include "rv1109.dtsi"
+#include "rv1109-firefly-ai-cam-BE-45.dtsi"
+#include "rv1109-firefly-npu-opp.dtsi"
+/ {
+	model = "Firefly CAM-CRV1109S2U BE-45 Board";
+	compatible = "rockchip,rv1109-ai-cam-ddr3L-v1", "rockchip,rv1109";
+
+        chosen {
+		bootargs = "earlycon=uart8250,mmio32,0xff570000 console=ttyFIQ0 root=PARTUUID=614e0000-0000 rootfstype=ext4 rootwait snd_aloop.index=7";
+	};
+};
+
+
