@@ -224,6 +224,9 @@ struct dw_mci {
 	struct timer_list       cto_timer;
 	struct timer_list       dto_timer;
 	struct timer_list	xfer_timer;
+	struct pinctrl		*pinctrl;
+	struct pinctrl_state	*off_state;
+	struct pinctrl_state	*on_state;
 };
 
 /* DMA ops for Internal/External DMAC interface */

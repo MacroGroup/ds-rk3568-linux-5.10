@@ -67,6 +67,22 @@ int dw_mci_pltfm_register(struct platform_device *pdev,
 	host->phy_regs = regs->start;
 
 	platform_set_drvdata(pdev, host);
+
+	host->pinctrl = devm_pinctrl_get(host->dev);
+	if (IS_ERR(host->pinctrl)) {
+		dev_err(host->dev, "Get pinctrl failed!\n");
+	}
+
+	host->on_state = pinctrl_lookup_state(host->pinctrl, "on");
+	if (IS_ERR(host->on_state)) {
+		dev_err(host->dev, "No default pinctrl state\n");
+	}
+
+	host->off_state = pinctrl_lookup_state(host->pinctrl, "off");
+	if (IS_ERR(host->off_state)) {
+		dev_err(host->dev, "No off pinctrl state\n");
+	}
+
 	return dw_mci_probe(host);
 }
 EXPORT_SYMBOL_GPL(dw_mci_pltfm_register);

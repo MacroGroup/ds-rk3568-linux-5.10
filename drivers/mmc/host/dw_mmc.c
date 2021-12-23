@@ -1368,6 +1368,8 @@ static void dw_mci_set_ios(struct mmc_host *mmc, struct mmc_ios *ios)
 
 	switch (ios->power_mode) {
 	case MMC_POWER_UP:
+		if (!IS_ERR(slot->host->pinctrl) && !IS_ERR(slot->host->on_state))
+			pinctrl_select_state(slot->host->pinctrl, slot->host->on_state);
 		if (!IS_ERR(mmc->supply.vmmc)) {
 			ret = mmc_regulator_set_ocr(mmc, mmc->supply.vmmc,
 					ios->vdd);
@@ -1411,12 +1413,26 @@ static void dw_mci_set_ios(struct mmc_host *mmc, struct mmc_ios *ios)
 		/* Turn clock off before power goes down */
 		dw_mci_setup_bus(slot, false);
 
+		if (!IS_ERR(mmc->supply.vqmmc) && slot->host->vqmmc_enabled) {
+
+			ios->signal_voltage = MMC_SIGNAL_VOLTAGE_330;
+			ret = regulator_set_voltage_triplet(mmc->supply.vqmmc,
+				2700000, 3300000, 3600000);
+			pr_info("set vqmmc to 3.3v, ret=%d\n", ret);
+			mdelay(10);
+		}
+
 		if (!IS_ERR(mmc->supply.vmmc))
 			mmc_regulator_set_ocr(mmc, mmc->supply.vmmc, 0);
 
 		if (!IS_ERR(mmc->supply.vqmmc) && slot->host->vqmmc_enabled)
 			regulator_disable(mmc->supply.vqmmc);
 		slot->host->vqmmc_enabled = false;
+
+		if (!IS_ERR(slot->host->pinctrl) && !IS_ERR(slot->host->off_state)) {
+			pinctrl_select_state(slot->host->pinctrl, slot->host->off_state);
+			mdelay(300);
+		}
 
 		regs = mci_readl(slot->host, PWREN);
 		regs &= ~(1 << slot->id);
