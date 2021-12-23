@@ -740,6 +740,13 @@ static int mi_frame_end(struct rkisp_stream *stream)
 			ns = ktime_get_ns();
 		vb2_buf->timestamp = ns;
 
+		ns = ktime_get_ns();
+		stream->dbg.interval = ns - stream->dbg.timestamp;
+		stream->dbg.timestamp = ns;
+		stream->dbg.id = stream->curr_buf->vb.sequence;
+		if (stream->id == RKISP_STREAM_MP || stream->id == RKISP_STREAM_SP)
+			stream->dbg.delay = ns - dev->isp_sdev.frm_timestamp;
+
 		if (is_rdbk_stream(stream) &&
 		    dev->dmarx_dev.trigger == T_MANUAL) {
 			if (stream->id == RKISP_STREAM_DMATX0) {
@@ -961,7 +968,7 @@ static void rkisp_buf_queue(struct vb2_buffer *vb)
 	memset(ispbuf->buff_addr, 0, sizeof(ispbuf->buff_addr));
 	for (i = 0; i < isp_fmt->mplanes; i++) {
 		vb2_plane_vaddr(vb, i);
-		if (stream->ispdev->hw_dev->is_mmu) {
+		if (stream->ispdev->hw_dev->is_dma_sg_ops) {
 			sgt = vb2_dma_sg_plane_desc(vb, i);
 			ispbuf->buff_addr[i] = sg_dma_address(sgt->sgl);
 		} else {
@@ -988,21 +995,7 @@ static void rkisp_buf_queue(struct vb2_buffer *vb)
 		 stream->id, ispbuf->buff_addr[0]);
 
 	spin_lock_irqsave(&stream->vbq_lock, lock_flags);
-
-	/* XXX: replace dummy to speed up  */
-	if (stream->streaming &&
-	    !stream->next_buf &&
-	    !stream->interlaced &&
-	    stream->id != RKISP_STREAM_DMATX0 &&
-	    stream->id != RKISP_STREAM_DMATX1 &&
-	    stream->id != RKISP_STREAM_DMATX2 &&
-	    stream->id != RKISP_STREAM_DMATX3 &&
-	    atomic_read(&stream->ispdev->isp_sdev.frm_sync_seq) == 0) {
-		stream->next_buf = ispbuf;
-		stream->ops->update_mi(stream);
-	} else {
-		list_add_tail(&ispbuf->queue, &stream->buf_queue);
-	}
+	list_add_tail(&ispbuf->queue, &stream->buf_queue);
 	spin_unlock_irqrestore(&stream->vbq_lock, lock_flags);
 }
 
@@ -1458,17 +1451,21 @@ void rkisp_mipi_v21_isr(unsigned int phy, unsigned int packet,
 {
 	struct v4l2_device *v4l2_dev = &dev->v4l2_dev;
 	struct rkisp_stream *stream;
+	u32 packet_err = PACKET_ERR_F_BNDRY_MATCG | PACKET_ERR_F_SEQ |
+		PACKET_ERR_FRAME_DATA | PACKET_ERR_ECC_1BIT |
+		PACKET_ERR_ECC_2BIT | PACKET_ERR_CHECKSUM;
+	u32 state_err = RAW_WR_SIZE_ERR | RAW_RD_SIZE_ERR;
 	int i, id;
 
 	v4l2_dbg(3, rkisp_debug, &dev->v4l2_dev,
 		 "csi state:0x%x\n", state);
 	if (phy && (dev->isp_inp & INP_CSI))
 		v4l2_warn(v4l2_dev, "MIPI error: phy: 0x%08x\n", phy);
-	if (packet && (dev->isp_inp & INP_CSI))
+	if ((packet & packet_err) && (dev->isp_inp & INP_CSI))
 		v4l2_warn(v4l2_dev, "MIPI error: packet: 0x%08x\n", packet);
 	if (overflow)
 		v4l2_warn(v4l2_dev, "MIPI error: overflow: 0x%08x\n", overflow);
-	if (state & 0xeff00)
+	if (state & state_err)
 		v4l2_warn(v4l2_dev, "MIPI error: size: 0x%08x\n", state);
 	if (state & ISP21_MIPI_DROP_FRM)
 		v4l2_warn(v4l2_dev, "MIPI drop frame\n");

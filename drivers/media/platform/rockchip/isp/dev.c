@@ -71,6 +71,10 @@ u64 rkisp_debug_reg = 0xFFFFFFFFFLL;
 module_param_named(debug_reg, rkisp_debug_reg, ullong, 0644);
 MODULE_PARM_DESC(debug_reg, "rkisp debug register");
 
+static unsigned int rkisp_wait_line;
+module_param_named(wait_line, rkisp_wait_line, uint, 0644);
+MODULE_PARM_DESC(wait_line, "rkisp wait line to buf done early");
+
 static DEFINE_MUTEX(rkisp_dev_mutex);
 static LIST_HEAD(rkisp_device_list);
 
@@ -664,22 +668,26 @@ static int rkisp_get_reserved_mem(struct rkisp_device *isp_dev)
 	/* Get reserved memory region from Device-tree */
 	np = of_parse_phandle(dev->of_node, "memory-region-thunderboot", 0);
 	if (!np) {
-		dev_err(dev, "No %s specified\n", "memory-region-thunderboot");
-		return -1;
+		dev_info(dev, "No memory-region-thunderboot specified\n");
+		return 0;
 	}
 
 	ret = of_address_to_resource(np, 0, &r);
 	if (ret) {
 		dev_err(dev, "No memory address assigned to the region\n");
-		return -1;
+		return ret;
 	}
 
 	isp_dev->resmem_pa = r.start;
 	isp_dev->resmem_size = resource_size(&r);
+	isp_dev->resmem_addr = dma_map_single(dev, phys_to_virt(r.start),
+					      sizeof(struct rkisp_thunderboot_resmem_head),
+					      DMA_BIDIRECTIONAL);
+	ret = dma_mapping_error(dev, isp_dev->resmem_addr);
+
 	dev_info(dev, "Allocated reserved memory, paddr: 0x%x\n",
 		(u32)isp_dev->resmem_pa);
-
-	return 0;
+	return ret;
 }
 
 static int rkisp_plat_probe(struct platform_device *pdev)
@@ -717,7 +725,10 @@ static int rkisp_plat_probe(struct platform_device *pdev)
 	sprintf(isp_dev->name, "%s%d",
 		DRIVER_NAME, isp_dev->dev_id);
 
-	rkisp_get_reserved_mem(isp_dev);
+	ret = rkisp_get_reserved_mem(isp_dev);
+	if (ret)
+		return ret;
+
 	mutex_init(&isp_dev->apilock);
 	mutex_init(&isp_dev->iqlock);
 	atomic_set(&isp_dev->pipe.power_cnt, 0);
@@ -763,6 +774,9 @@ static int rkisp_plat_probe(struct platform_device *pdev)
 	ret = rkisp_register_platform_subdevs(isp_dev);
 	if (ret < 0)
 		goto err_unreg_media_dev;
+
+	rkisp_wait_line = 0;
+	of_property_read_u32(dev->of_node, "wait-line", &rkisp_wait_line);
 
 	rkisp_proc_init(isp_dev);
 
@@ -816,6 +830,7 @@ static int __maybe_unused rkisp_runtime_resume(struct device *dev)
 	struct rkisp_device *isp_dev = dev_get_drvdata(dev);
 	int ret;
 
+	isp_dev->cap_dev.wait_line = rkisp_wait_line;
 	mutex_lock(&isp_dev->hw_dev->dev_lock);
 	ret = pm_runtime_get_sync(isp_dev->hw_dev->dev);
 	mutex_unlock(&isp_dev->hw_dev->dev_lock);

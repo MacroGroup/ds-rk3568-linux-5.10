@@ -192,7 +192,7 @@ static void nr_config(struct rkispp_params_vdev *params_vdev,
 		      struct rkispp_nr_config *arg)
 {
 	u32 i, val;
-	u8 big_en, nobig_en;
+	u8 big_en, nobig_en, sd32_self_en = 0;
 
 	rkispp_write(params_vdev->dev, RKISPP_NR_UVNR_GAIN_1SIGMA,
 		arg->uvnr_gain_1sigma);
@@ -320,8 +320,11 @@ static void nr_config(struct rkispp_params_vdev *params_vdev,
 		nobig_en = 0;
 	}
 
+	if (params_vdev->dev->hw_dev->dev_num == 1)
+		sd32_self_en = arg->uvnr_sd32_self_en;
 	val = arg->uvnr_step1_en << 1 | arg->uvnr_step2_en << 2 |
-	      arg->nr_gain_en << 3 | nobig_en << 5 | big_en << 6;
+	      arg->nr_gain_en << 3 | sd32_self_en << 4 |
+	      nobig_en << 5 | big_en << 6;
 	rkispp_set_bits(params_vdev->dev, RKISPP_NR_UVNR_CTRL_PARA,
 			SW_UVNR_STEP1_ON | SW_UVNR_STEP2_ON |
 			SW_NR_GAIN_BYPASS | SW_UVNR_NOBIG_EN |
@@ -351,16 +354,6 @@ static void nr_enable(struct rkispp_params_vdev *params_vdev, bool en,
 			SW_UVNR_STEP1_ON | SW_UVNR_STEP2_ON |
 			SW_NR_GAIN_BYPASS | SW_UVNR_NOBIG_EN |
 			SW_UVNR_BIG_EN | SW_NR_EN, val);
-}
-
-static bool is_nr_enable(struct rkispp_params_vdev *params_vdev)
-{
-	u32 cur_en;
-
-	cur_en = rkispp_read(params_vdev->dev, RKISPP_NR_UVNR_CTRL_PARA);
-	cur_en &= SW_NR_EN;
-
-	return (!!cur_en);
 }
 
 static void shp_config(struct rkispp_params_vdev *params_vdev,
@@ -515,16 +508,6 @@ static void shp_enable(struct rkispp_params_vdev *params_vdev, bool en,
 			SW_SHP_EDGE_AVG_EN | SW_SHP_EN, val);
 }
 
-static bool is_shp_enable(struct rkispp_params_vdev *params_vdev)
-{
-	u32 cur_en;
-
-	cur_en = rkispp_read(params_vdev->dev, RKISPP_SHARP_CORE_CTRL);
-	cur_en &= SW_SHP_EN;
-
-	return (!!cur_en);
-}
-
 static void fec_config(struct rkispp_params_vdev *params_vdev,
 		       struct rkispp_fec_config *arg)
 {
@@ -567,6 +550,8 @@ static void fec_config(struct rkispp_params_vdev *params_vdev,
 	fec_data->stat = FEC_BUF_CHIPINUSE;
 	params_vdev->buf_fec_idx = buf_idx;
 
+	rkispp_prepare_buffer(dev, &params_vdev->buf_fec[buf_idx]);
+
 	dma_addr = params_vdev->buf_fec[buf_idx].dma_addr;
 	val = dma_addr + fec_data->meshxf_oft;
 	rkispp_write(params_vdev->dev, RKISPP_FEC_MESH_XFRA_BASE, val);
@@ -607,19 +592,6 @@ static void fec_enable(struct rkispp_params_vdev *params_vdev, bool en)
 	rkispp_set_bits(params_vdev->dev, RKISPP_FEC_CORE_CTRL, SW_FEC_EN, en);
 }
 
-static bool is_fec_enable(struct rkispp_params_vdev *params_vdev)
-{
-	u32 cur_en;
-
-	if (params_vdev->dev->hw_dev->is_fec_ext)
-		return false;
-
-	cur_en = rkispp_read(params_vdev->dev, RKISPP_FEC_CORE_CTRL);
-	cur_en &= SW_FEC_EN;
-
-	return (!!cur_en);
-}
-
 static void orb_config(struct rkispp_params_vdev *params_vdev,
 		       struct rkispp_orb_config *arg)
 {
@@ -630,16 +602,6 @@ static void orb_config(struct rkispp_params_vdev *params_vdev,
 static void orb_enable(struct rkispp_params_vdev *params_vdev, bool en)
 {
 	rkispp_set_bits(params_vdev->dev, RKISPP_ORB_CORE_CTRL, SW_ORB_EN, en);
-}
-
-static bool is_orb_enable(struct rkispp_params_vdev *params_vdev)
-{
-	u32 cur_en;
-
-	cur_en = rkispp_read(params_vdev->dev, RKISPP_ORB_CORE_CTRL);
-	cur_en &= SW_ORB_EN;
-
-	return (!!cur_en);
 }
 
 static int rkispp_params_enum_fmt_meta_out(struct file *file, void *priv,
@@ -689,18 +651,30 @@ static int rkispp_params_querycap(struct file *file,
 }
 
 static int rkispp_params_subs_evt(struct v4l2_fh *fh,
-				 const struct v4l2_event_subscription *sub)
+				  const struct v4l2_event_subscription *sub)
 {
+	struct rkispp_params_vdev *params_vdev = video_get_drvdata(fh->vdev);
+
 	if (sub->id != 0)
 		return -EINVAL;
 
 	switch (sub->type) {
 	case CIFISP_V4L2_EVENT_STREAM_START:
 	case CIFISP_V4L2_EVENT_STREAM_STOP:
+		params_vdev->is_subs_evt = true;
 		return v4l2_event_subscribe(fh, sub, 0, NULL);
 	default:
 		return -EINVAL;
 	}
+}
+
+static int rkispp_params_unsubs_evt(struct v4l2_fh *fh,
+				    const struct v4l2_event_subscription *sub)
+{
+	struct rkispp_params_vdev *params_vdev = video_get_drvdata(fh->vdev);
+
+	params_vdev->is_subs_evt = false;
+	return v4l2_event_unsubscribe(fh, sub);
 }
 
 static const struct v4l2_ioctl_ops rkispp_params_ioctl = {
@@ -719,7 +693,7 @@ static const struct v4l2_ioctl_ops rkispp_params_ioctl = {
 	.vidioc_try_fmt_meta_out = rkispp_params_g_fmt_meta_out,
 	.vidioc_querycap = rkispp_params_querycap,
 	.vidioc_subscribe_event = rkispp_params_subs_evt,
-	.vidioc_unsubscribe_event = v4l2_event_unsubscribe
+	.vidioc_unsubscribe_event = rkispp_params_unsubs_evt,
 };
 
 static int
@@ -755,6 +729,24 @@ rkispp_param_init_fecbuf(struct rkispp_params_vdev *params,
 		fec_data->meshyf_oft = fec_data->meshxf_oft + ALIGN(mesh_size, 16);
 		fec_data->meshxi_oft = fec_data->meshyf_oft + ALIGN(mesh_size, 16);
 		fec_data->meshyi_oft = fec_data->meshxi_oft + ALIGN(mesh_size * 2, 16);
+
+		if (!i) {
+			u32 val, dma_addr = params->buf_fec[i].dma_addr;
+
+			val = dma_addr + fec_data->meshxf_oft;
+			rkispp_write(pp_dev, RKISPP_FEC_MESH_XFRA_BASE, val);
+			val = dma_addr + fec_data->meshyf_oft;
+			rkispp_write(pp_dev, RKISPP_FEC_MESH_YFRA_BASE, val);
+			val = dma_addr + fec_data->meshxi_oft;
+			rkispp_write(pp_dev, RKISPP_FEC_MESH_XINT_BASE, val);
+			val = dma_addr + fec_data->meshyi_oft;
+			rkispp_write(pp_dev, RKISPP_FEC_MESH_YINT_BASE, val);
+		}
+		v4l2_dbg(1, rkispp_debug, &pp_dev->v4l2_dev,
+			 "%s idx:%d fd:%d dma:0x%x offset xf:0x%x yf:0x%x xi:0x%x yi:0x%x\n",
+			 __func__, i, params->buf_fec[i].dma_fd, params->buf_fec[i].dma_addr,
+			fec_data->meshxf_oft, fec_data->meshyf_oft,
+			fec_data->meshxi_oft, fec_data->meshyi_oft);
 	}
 
 	return 0;
@@ -803,18 +795,14 @@ static void rkispp_params_vb2_buf_queue(struct vb2_buffer *vb)
 	new_params = (struct rkispp_params_cfg *)vb2_plane_vaddr(vb, 0);
 	spin_lock_irqsave(&params_vdev->config_lock, flags);
 	if (params_vdev->first_params) {
-		vb2_buffer_done(&params_buf->vb.vb2_buf, VB2_BUF_STATE_DONE);
 		params_vdev->first_params = false;
-		*params_vdev->cur_params = *new_params;
 		if (new_params->module_init_ens) {
 			if (params_vdev->dev->hw_dev->is_fec_ext)
 				new_params->module_init_ens &= ~ISPP_MODULE_FEC_ST;
 			stream_vdev->module_ens = new_params->module_init_ens;
 
 		}
-		spin_unlock_irqrestore(&params_vdev->config_lock, flags);
 		wake_up(&params_vdev->dev->sync_onoff);
-		return;
 	}
 	spin_unlock_irqrestore(&params_vdev->config_lock, flags);
 
@@ -961,12 +949,26 @@ rkispp_params_init_vb2_queue(struct vb2_queue *q,
 	return vb2_queue_init(q);
 }
 
-void rkispp_params_isr(struct rkispp_params_vdev *params_vdev, u32 mis)
+static void fec_data_abandon(struct rkispp_params_vdev *vdev,
+			     struct rkispp_params_cfg *params)
+{
+	struct rkispp_fec_head *data;
+	int i;
+
+	for (i = 0; i < FEC_MESH_BUF_NUM; i++) {
+		if (params->fec_cfg.buf_fd == vdev->buf_fec[i].dma_fd) {
+			data = (struct rkispp_fec_head *)vdev->buf_fec[i].vaddr;
+			if (data)
+				data->stat = FEC_BUF_INIT;
+			break;
+		}
+	}
+}
+
+void rkispp_params_cfg(struct rkispp_params_vdev *params_vdev, u32 frame_id)
 {
 	struct rkispp_params_cfg *new_params = NULL;
-	u32 module_en_update, module_cfg_update;
-	u32 module_ens, module_cur_ens;
-	bool isr_sync;
+	u32 module_en_update, module_cfg_update, module_ens;
 
 	spin_lock(&params_vdev->config_lock);
 	if (!params_vdev->streamon) {
@@ -974,17 +976,32 @@ void rkispp_params_isr(struct rkispp_params_vdev *params_vdev, u32 mis)
 		return;
 	}
 
-	if (!params_vdev->cur_buf &&
-	    !list_empty(&params_vdev->params)) {
+	/* get buffer by frame_id */
+	while (!list_empty(&params_vdev->params) && !params_vdev->cur_buf) {
 		params_vdev->cur_buf = list_first_entry(&params_vdev->params,
-					struct rkispp_buffer, queue);
-		list_del(&params_vdev->cur_buf->queue);
+				struct rkispp_buffer, queue);
+
+		new_params = (struct rkispp_params_cfg *)(params_vdev->cur_buf->vaddr[0]);
+		if (new_params->frame_id < frame_id) {
+			if (new_params->module_cfg_update & ISPP_MODULE_FEC)
+				fec_data_abandon(params_vdev, new_params);
+			list_del(&params_vdev->cur_buf->queue);
+			vb2_buffer_done(&params_vdev->cur_buf->vb.vb2_buf, VB2_BUF_STATE_DONE);
+			params_vdev->cur_buf = NULL;
+			continue;
+		} else if (new_params->frame_id == frame_id) {
+			list_del(&params_vdev->cur_buf->queue);
+		} else {
+			params_vdev->cur_buf = NULL;
+		}
+		break;
 	}
 
 	if (!params_vdev->cur_buf) {
 		spin_unlock(&params_vdev->config_lock);
 		return;
 	}
+
 	new_params = (struct rkispp_params_cfg *)(params_vdev->cur_buf->vaddr[0]);
 
 	module_en_update = new_params->module_en_update;
@@ -996,179 +1013,48 @@ void rkispp_params_isr(struct rkispp_params_vdev *params_vdev, u32 mis)
 		module_ens &= ~ISPP_MODULE_FEC;
 	}
 
-	isr_sync = true;
-	if ((module_en_update & ISPP_MODULE_TNR) &&
-	    (module_ens & ISPP_MODULE_TNR) &&
-	    !is_tnr_enable(params_vdev))
-		isr_sync = false;
-	if (module_cfg_update & ISPP_MODULE_TNR &&
-	    (mis & TNR_INT || !isr_sync)) {
-		tnr_config(params_vdev,
-			   &new_params->tnr_cfg);
-		module_cfg_update &= ~ISPP_MODULE_TNR;
-	}
-	if (module_en_update & ISPP_MODULE_TNR &&
-	    (mis & TNR_INT || !isr_sync)) {
-		tnr_enable(params_vdev,
-			   !!(module_ens & ISPP_MODULE_TNR));
-		module_en_update &= ~ISPP_MODULE_TNR;
-	}
-
-	isr_sync = true;
-	if ((module_en_update & ISPP_MODULE_NR) &&
-	    (module_ens & ISPP_MODULE_NR) &&
-	    !is_nr_enable(params_vdev))
-		isr_sync = false;
-	if (module_cfg_update & ISPP_MODULE_NR &&
-	    (mis & NR_INT || !isr_sync)) {
-		nr_config(params_vdev,
-			  &new_params->nr_cfg);
-		module_cfg_update &= ~ISPP_MODULE_NR;
-	}
-	if (module_en_update & ISPP_MODULE_NR &&
-	    (mis & NR_INT || !isr_sync)) {
-		nr_enable(params_vdev,
-			  !!(module_ens & ISPP_MODULE_NR),
-			  &new_params->nr_cfg);
-		module_en_update &= ~ISPP_MODULE_NR;
-	}
-
-	isr_sync = true;
-	if ((module_en_update & ISPP_MODULE_SHP) &&
-	    (module_ens & ISPP_MODULE_SHP) &&
-	    !is_shp_enable(params_vdev))
-		isr_sync = false;
-	if (module_cfg_update & ISPP_MODULE_SHP &&
-	    (mis & SHP_INT || !isr_sync)) {
-		shp_config(params_vdev,
-			   &new_params->shp_cfg);
-		module_cfg_update &= ~ISPP_MODULE_SHP;
-	}
-	if (module_en_update & ISPP_MODULE_SHP &&
-	    (mis & SHP_INT || !isr_sync)) {
-		shp_enable(params_vdev,
-			   !!(module_ens & ISPP_MODULE_SHP),
-			   &new_params->shp_cfg);
-		module_en_update &= ~ISPP_MODULE_SHP;
-	}
-
-	isr_sync = true;
-	if ((module_en_update & ISPP_MODULE_ORB) &&
-	    (module_ens & ISPP_MODULE_ORB) &&
-	    !is_orb_enable(params_vdev))
-		isr_sync = false;
-	if (module_cfg_update & ISPP_MODULE_ORB &&
-	    (mis & ORB_INT || !isr_sync)) {
-		orb_config(params_vdev,
-			   &new_params->orb_cfg);
-		module_cfg_update &= ~ISPP_MODULE_ORB;
-	}
-	if (module_en_update & ISPP_MODULE_ORB &&
-	    (mis & ORB_INT || !isr_sync)) {
-		orb_enable(params_vdev,
-			   !!(module_ens & ISPP_MODULE_ORB));
-		module_en_update &= ~ISPP_MODULE_ORB;
-	}
-
-	isr_sync = true;
-	if ((module_en_update & ISPP_MODULE_FEC) &&
-	    (module_ens & ISPP_MODULE_FEC) &&
-	    !is_fec_enable(params_vdev))
-		isr_sync = false;
-	if (module_cfg_update & ISPP_MODULE_FEC &&
-	    (mis & FEC_INT || !isr_sync)) {
-		fec_config(params_vdev,
-			   &new_params->fec_cfg);
-		module_cfg_update &= ~ISPP_MODULE_FEC;
-	}
-	if (module_en_update & ISPP_MODULE_FEC &&
-	    (mis & FEC_INT || !isr_sync)) {
-		fec_enable(params_vdev,
-			   !!(module_ens & ISPP_MODULE_FEC));
-		module_en_update &= ~ISPP_MODULE_FEC;
-	}
-
-	new_params->module_en_update = module_en_update;
-	new_params->module_cfg_update = module_cfg_update;
-
-	module_cur_ens = 0;
-	if (is_tnr_enable(params_vdev))
-		module_cur_ens |= ISPP_MODULE_TNR;
-	if (is_nr_enable(params_vdev))
-		module_cur_ens |= ISPP_MODULE_NR;
-	if (is_shp_enable(params_vdev))
-		module_cur_ens |= ISPP_MODULE_SHP;
-	if (is_orb_enable(params_vdev))
-		module_cur_ens |= ISPP_MODULE_ORB;
-	if (is_fec_enable(params_vdev))
-		module_cur_ens |= ISPP_MODULE_FEC;
-
-	if (!(module_en_update & module_cur_ens) &&
-	    !(module_cfg_update & module_cur_ens)) {
-		vb2_buffer_done(&params_vdev->cur_buf->vb.vb2_buf,
-				VB2_BUF_STATE_DONE);
-		params_vdev->cur_buf = NULL;
-	}
-	spin_unlock(&params_vdev->config_lock);
-}
-
-void rkispp_params_configure(struct rkispp_params_vdev *params_vdev)
-{
-	u32 module_en_update = params_vdev->cur_params->module_en_update;
-	u32 module_cfg_update = params_vdev->cur_params->module_cfg_update;
-	u32 module_ens = params_vdev->cur_params->module_ens;
-	unsigned long flags;
-
-	if (params_vdev->dev->hw_dev->is_fec_ext) {
-		module_en_update &= ~ISPP_MODULE_FEC;
-		module_cfg_update &= ~ISPP_MODULE_FEC;
-		module_ens &= ~ISPP_MODULE_FEC;
-	}
-
-	spin_lock_irqsave(&params_vdev->config_lock, flags);
-	if (params_vdev->first_params) {
-		params_vdev->first_params = false;
-		v4l2_warn(&params_vdev->dev->v4l2_dev,
-			  "can not get first iq setting in stream on\n");
-	}
-	spin_unlock_irqrestore(&params_vdev->config_lock, flags);
-
 	if (module_cfg_update & ISPP_MODULE_TNR)
 		tnr_config(params_vdev,
-			   &params_vdev->cur_params->tnr_cfg);
+			   &new_params->tnr_cfg);
 	if (module_en_update & ISPP_MODULE_TNR)
 		tnr_enable(params_vdev,
 			   !!(module_ens & ISPP_MODULE_TNR));
 
 	if (module_cfg_update & ISPP_MODULE_NR)
 		nr_config(params_vdev,
-			  &params_vdev->cur_params->nr_cfg);
+			  &new_params->nr_cfg);
 	if (module_en_update & ISPP_MODULE_NR)
 		nr_enable(params_vdev,
 			  !!(module_ens & ISPP_MODULE_NR),
-			  &params_vdev->cur_params->nr_cfg);
+			  &new_params->nr_cfg);
 
 	if (module_cfg_update & ISPP_MODULE_SHP)
 		shp_config(params_vdev,
-			   &params_vdev->cur_params->shp_cfg);
+			   &new_params->shp_cfg);
 	if (module_en_update & ISPP_MODULE_SHP)
 		shp_enable(params_vdev,
 			   !!(module_ens & ISPP_MODULE_SHP),
-			   &params_vdev->cur_params->shp_cfg);
+			   &new_params->shp_cfg);
 
 	if (module_cfg_update & ISPP_MODULE_FEC)
 		fec_config(params_vdev,
-			   &params_vdev->cur_params->fec_cfg);
+			   &new_params->fec_cfg);
 	if (module_en_update & ISPP_MODULE_FEC)
 		fec_enable(params_vdev,
 			   !!(module_ens & ISPP_MODULE_FEC));
 
 	if (module_cfg_update & ISPP_MODULE_ORB)
 		orb_config(params_vdev,
-			   &params_vdev->cur_params->orb_cfg);
+			   &new_params->orb_cfg);
 	if (module_en_update & ISPP_MODULE_ORB)
 		orb_enable(params_vdev,
 			   !!(module_ens & ISPP_MODULE_ORB));
+
+	vb2_buffer_done(&params_vdev->cur_buf->vb.vb2_buf,
+				VB2_BUF_STATE_DONE);
+	params_vdev->cur_buf = NULL;
+
+	spin_unlock(&params_vdev->config_lock);
 }
 
 void rkispp_params_get_fecbuf_inf(struct rkispp_params_vdev *params_vdev,
@@ -1197,6 +1083,7 @@ int rkispp_register_params_vdev(struct rkispp_device *dev)
 	int ret;
 
 	params_vdev->dev = dev;
+	params_vdev->is_subs_evt = false;
 	params_vdev->cur_params = vmalloc(sizeof(*params_vdev->cur_params));
 	if (!params_vdev->cur_params)
 		return -ENOMEM;

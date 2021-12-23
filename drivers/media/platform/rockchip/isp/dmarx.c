@@ -493,7 +493,7 @@ static void rkisp_buf_queue(struct vb2_buffer *vb)
 
 	memset(ispbuf->buff_addr, 0, sizeof(ispbuf->buff_addr));
 	for (i = 0; i < isp_fmt->mplanes; i++) {
-		if (stream->ispdev->hw_dev->is_mmu) {
+		if (stream->ispdev->hw_dev->is_dma_sg_ops) {
 			sgt = vb2_dma_sg_plane_desc(vb, i);
 			ispbuf->buff_addr[i] = sg_dma_address(sgt->sgl);
 		} else {
@@ -560,6 +560,10 @@ static void dmarx_stop_streaming(struct vb2_queue *queue)
 
 	dmarx_stop(stream);
 	destroy_buf_queue(stream, VB2_BUF_STATE_ERROR);
+
+	if (stream->id == RKISP_STREAM_RAWRD2 &&
+	    (stream->ispdev->isp_ver == ISP_V20 || stream->ispdev->isp_ver == ISP_V21))
+		kfifo_reset(&stream->ispdev->csi_dev.rdbk_kfifo);
 }
 
 static int dmarx_start_streaming(struct vb2_queue *queue,

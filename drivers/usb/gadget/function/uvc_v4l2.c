@@ -41,6 +41,7 @@ uvc_send_response(struct uvc_device *uvc, struct uvc_request_data *data)
 	req->length = min_t(unsigned int, uvc->event_length, data->length);
 	req->zero = data->length < uvc->event_length;
 
+	uvc_trace(UVC_TRACE_CONTROL, "%s: req len %d\n", __func__, req->length);
 	memcpy(req->buf, data->data, req->length);
 
 	return usb_ep_queue(cdev->gadget->ep0, req, GFP_KERNEL);
@@ -57,6 +58,7 @@ struct uvc_format {
 
 static struct uvc_format uvc_formats[] = {
 	{ 16, V4L2_PIX_FMT_YUYV  },
+	{ 12, V4L2_PIX_FMT_NV12  },
 	{ 0,  V4L2_PIX_FMT_MJPEG },
 	{ 0,  V4L2_PIX_FMT_H264  },
 	{ 0,  V4L2_PIX_FMT_H265  },
@@ -198,6 +200,9 @@ uvc_v4l2_streamon(struct file *file, void *fh, enum v4l2_buf_type type)
 
 	if (type != video->queue.queue.type)
 		return -EINVAL;
+
+	if (uvc->state != UVC_STATE_CONNECTED)
+		return -ENODEV;
 
 	/* Enable UVC video. */
 	ret = uvcg_video_enable(video, 1);

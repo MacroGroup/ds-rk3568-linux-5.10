@@ -40,6 +40,7 @@ struct rkispp_device {
 	struct rkispp_stats_vdev stats_vdev;
 	struct proc_dir_entry *procfs;
 
+	struct work_struct irq_work;
 	enum rkispp_ver	ispp_ver;
 	/* mutex to serialize the calls from user */
 	struct mutex apilock;
@@ -50,9 +51,13 @@ struct rkispp_device {
 	u32 isp_mode;
 	u32 isr_cnt;
 	u32 isr_err_cnt;
+	u32 mis_val;
 	wait_queue_head_t sync_onoff;
 	bool stream_sync;
 
 	void (*irq_hdl)(u32 mis, struct rkispp_device *dev);
+
+	u32 first_frame_dma;
+	bool is_first;
 };
 #endif

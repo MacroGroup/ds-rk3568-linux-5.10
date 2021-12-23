@@ -129,14 +129,6 @@ struct fec_module {
 	bool is_end;
 };
 
-/* fec internal using buf */
-struct in_fec_buf {
-	struct rkispp_dummy_buffer mesh_xint;
-	struct rkispp_dummy_buffer mesh_yint;
-	struct rkispp_dummy_buffer mesh_xfra;
-	struct rkispp_dummy_buffer mesh_yfra;
-};
-
 /* struct rkispp_stream - ISPP stream video device
  * id: stream video identify
  * buf_queue: queued buffer list
@@ -158,7 +150,6 @@ struct rkispp_stream {
 
 	struct list_head buf_queue;
 	struct rkispp_buffer *curr_buf;
-	struct rkispp_buffer *next_buf;
 	wait_queue_head_t done;
 	spinlock_t vbq_lock;
 
@@ -177,6 +168,7 @@ struct rkispp_stream {
 	bool is_upd;
 	bool is_cfg;
 	bool is_end;
+	bool is_reg_withstream;
 };
 
 enum {
@@ -192,6 +184,7 @@ struct module_monitor {
 	struct completion cmpl;
 	u16 time;
 	u8 module;
+	bool is_err;
 };
 
 struct rkispp_monitor {
@@ -224,9 +217,14 @@ struct rkispp_stream_vdev {
 	struct frame_debug_info dbg;
 	struct rkispp_monitor monitor;
 	struct rkispp_vir_cpy vir_cpy;
+	struct rkisp_ispp_buf input[VIDEO_MAX_FRAME];
+	struct hrtimer fec_qst;
+	struct hrtimer frame_qst;
 	atomic_t refcnt;
 	u32 module_ens;
 	u32 irq_ends;
+	u32 wait_line;
+	bool is_done_early;
 };
 
 int rkispp_get_tnrbuf_fd(struct rkispp_device *dev, struct rkispp_buf_idxfd *idxfd);

@@ -1257,6 +1257,9 @@ static int dwc3_core_init_mode(struct dwc3 *dwc)
 				dev_err(dev, "failed to initialize gadget\n");
 			return ret;
 		}
+
+		if (dwc->uwk_en)
+			device_init_wakeup(dev, true);
 		break;
 	case USB_DR_MODE_HOST:
 		/*
@@ -1301,6 +1304,9 @@ static int dwc3_core_init_mode(struct dwc3 *dwc)
 				dev_err(dev, "failed to initialize dual-role\n");
 			return ret;
 		}
+
+		if (dwc->uwk_en)
+			device_init_wakeup(dev, true);
 		break;
 	default:
 		dev_err(dev, "Unsupported mode of operation %d\n", dwc->dr_mode);
@@ -1442,6 +1448,8 @@ static void dwc3_get_properties(struct dwc3 *dwc)
 				"snps,tx-fifo-resize");
 	dwc->xhci_warm_reset_on_suspend_quirk = device_property_read_bool(dev,
 				"snps,xhci-warm-reset-on-suspend-quirk");
+	dwc->uwk_en = device_property_read_bool(dev,
+				"wakeup-source");
 
 	dwc->lpm_nyet_threshold = lpm_nyet_threshold;
 	dwc->tx_de_emphasis = tx_de_emphasis;
@@ -1967,6 +1975,12 @@ static int dwc3_suspend(struct device *dev)
 	struct dwc3	*dwc = dev_get_drvdata(dev);
 	int		ret;
 
+	if (dwc->uwk_en) {
+		dwc3_gadget_disable_irq(dwc);
+		synchronize_irq(dwc->irq_gadget);
+		return 0;
+	}
+
 	if (pm_runtime_suspended(dwc->dev))
 		return 0;
 
@@ -2005,6 +2019,11 @@ static int dwc3_resume(struct device *dev)
 {
 	struct dwc3	*dwc = dev_get_drvdata(dev);
 	int		ret;
+
+	if (dwc->uwk_en) {
+		dwc3_gadget_enable_irq(dwc);
+		return 0;
+	}
 
 	if (pm_runtime_suspended(dwc->dev))
 		return 0;

@@ -18,6 +18,8 @@ static u32 sfc_nand_get_ecc_status3(void);
 static u32 sfc_nand_get_ecc_status4(void);
 static u32 sfc_nand_get_ecc_status5(void);
 static u32 sfc_nand_get_ecc_status6(void);
+static u32 sfc_nand_get_ecc_status7(void);
+static u32 sfc_nand_get_ecc_status8(void);
 
 static struct nand_info spi_nand_tbl[] = {
 	/* TC58CVG0S0HxAIx */
@@ -38,9 +40,11 @@ static struct nand_info spi_nand_tbl[] = {
 	/* MX35LF2GE4AD */
 	{ 0xC2, 0x26, 0x00, 4, 0x40, 1, 2048, 0x0C, 19, 0x8, 1, { 0x04, 0x08, 0xFF, 0xFF }, &sfc_nand_get_ecc_status0 },
 	/* MX35LF4GE4AD */
-	{ 0xC2, 0x37, 0x00, 8, 0x40, 1, 2048, 0x0C, 19, 0x8, 1, { 0x04, 0x08, 0x14, 0x18 }, &sfc_nand_get_ecc_status0 },
-	/* MT29F1G01ZAC */
-	{ 0x2C, 0x12, 0x00, 4, 0x40, 1, 1024, 0x00, 18, 0x1, 1, { 0x04, 0x08, 0xFF, 0xFF }, &sfc_nand_get_ecc_status1 },
+	{ 0xC2, 0x37, 0x00, 8, 0x40, 1, 2048, 0x0C, 20, 0x8, 1, { 0x04, 0x08, 0x14, 0x18 }, &sfc_nand_get_ecc_status0 },
+	/* MX35UF1GE4AC */
+	{ 0xC2, 0x92, 0x00, 4, 0x40, 1, 1024, 0x0C, 18, 0x4, 1, { 0x04, 0x08, 0xFF, 0xFF }, &sfc_nand_get_ecc_status0 },
+	/* MX35UF2GE4AC */
+	{ 0xC2, 0xA2, 0x00, 4, 0x40, 1, 2048, 0x0C, 19, 0x4, 1, { 0x04, 0x08, 0xFF, 0xFF }, &sfc_nand_get_ecc_status0 },
 
 	/* GD5F1GQ4UAYIG */
 	{ 0xC8, 0xF1, 0x00, 4, 0x40, 1, 1024, 0x0C, 18, 0x8, 1, { 0x04, 0x08, 0xFF, 0xFF }, &sfc_nand_get_ecc_status0 },
@@ -54,13 +58,23 @@ static struct nand_info spi_nand_tbl[] = {
 	{ 0xC8, 0x52, 0x00, 4, 0x40, 1, 2048, 0x4C, 19, 0x4, 1, { 0x04, 0x14, 0xFF, 0xFF }, &sfc_nand_get_ecc_status2 },
 	/* GD5F1GQ4R */
 	{ 0xC8, 0xC1, 0x00, 4, 0x40, 1, 1024, 0x0C, 18, 0x8, 1, { 0x04, 0x08, 0xFF, 0xFF }, &sfc_nand_get_ecc_status3 },
+	/* GD5F4GQ6RExxG 1*4096 */
+	{ 0xC8, 0x45, 0x00, 4, 0x40, 2, 2048, 0x4C, 20, 0x4, 1, { 0x04, 0x08, 0X14, 0x18 }, &sfc_nand_get_ecc_status2 },
+	/* GD5F4GQ6UExxG 1*4096 */
+	{ 0xC8, 0x55, 0x00, 4, 0x40, 2, 2048, 0x4C, 20, 0x4, 1, { 0x04, 0x08, 0X14, 0x18 }, &sfc_nand_get_ecc_status2 },
+	/* GD5F1GQ4UExxH */
+	{ 0xC8, 0xD9, 0x00, 4, 0x40, 1, 1024, 0x0C, 18, 0x8, 1, { 0x04, 0x08, 0xFF, 0xFF }, &sfc_nand_get_ecc_status3 },
 
 	/* W25N01GV */
 	{ 0xEF, 0xAA, 0x21, 4, 0x40, 1, 1024, 0x4C, 18, 0x1, 0, { 0x04, 0x14, 0x24, 0xFF }, &sfc_nand_get_ecc_status1 },
 	/* W25N02KVZEIR */
 	{ 0xEF, 0xAA, 0x22, 4, 0x40, 1, 2048, 0x4C, 19, 0x8, 0, { 0x04, 0x14, 0x24, 0xFF }, &sfc_nand_get_ecc_status0 },
+	/* W25N04KVZEIR */
+	{ 0xEF, 0xAA, 0x23, 4, 0x40, 1, 4096, 0x4C, 20, 0x8, 0, { 0x04, 0x14, 0x24, 0x34 }, &sfc_nand_get_ecc_status0 },
 	/* W25N01GW */
 	{ 0xEF, 0xBA, 0x00, 4, 0x40, 1, 1024, 0x4C, 18, 0x1, 0, { 0x04, 0x14, 0x24, 0xFF }, &sfc_nand_get_ecc_status1 },
+	/* W25N512GVEIG */
+	{ 0xEF, 0xAA, 0x20, 4, 0x40, 1, 512, 0x4C, 17, 0x1, 0, { 0x04, 0x14, 0x24, 0xFF }, &sfc_nand_get_ecc_status1 },
 
 	/* HYF2GQ4UAACAE */
 	{ 0xC9, 0x52, 0x00, 4, 0x40, 1, 2048, 0x4C, 19, 0xE, 1, { 0x04, 0x24, 0xFF, 0xFF }, &sfc_nand_get_ecc_status0 },
@@ -85,6 +99,8 @@ static struct nand_info spi_nand_tbl[] = {
 	{ 0xCD, 0xEB, 0x00, 4, 0x40, 1, 2048, 0x4C, 19, 0x4, 0, { 0x04, 0x08, 0xFF, 0xFF }, &sfc_nand_get_ecc_status1 },
 	/* FS35ND04G-S2Y2 1*4096 */
 	{ 0xCD, 0xEC, 0x00, 4, 0x40, 2, 2048, 0x4C, 20, 0x4, 0, { 0x04, 0x08, 0xFF, 0xFF }, &sfc_nand_get_ecc_status1 },
+	/* F35SQA001G */
+	{ 0xCD, 0x71, 0x00, 4, 0x40, 1, 1024, 0x4C, 18, 0x1, 1, { 0x04, 0x08, 0xFF, 0xFF }, &sfc_nand_get_ecc_status1 },
 
 	/* DS35Q1GA-IB */
 	{ 0xE5, 0x71, 0x00, 4, 0x40, 1, 1024, 0x0C, 18, 0x4, 1, { 0x04, 0x14, 0xFF, 0xFF }, &sfc_nand_get_ecc_status1 },
@@ -92,6 +108,8 @@ static struct nand_info spi_nand_tbl[] = {
 	{ 0xE5, 0x72, 0x00, 4, 0x40, 2, 1024, 0x0C, 19, 0x4, 1, { 0x04, 0x14, 0xFF, 0xFF }, &sfc_nand_get_ecc_status1 },
 	/* DS35M1GA-1B */
 	{ 0xE5, 0x21, 0x00, 4, 0x40, 1, 1024, 0x0C, 18, 0x4, 1, { 0x04, 0x14, 0xFF, 0xFF }, &sfc_nand_get_ecc_status1 },
+	/* DS35Q2GB-IB */
+	{ 0xE5, 0xF2, 0x00, 4, 0x40, 2, 1024, 0x0C, 19, 0x8, 1, { 0x04, 0x14, 0xFF, 0xFF }, &sfc_nand_get_ecc_status6 },
 
 	/* EM73C044VCC-H */
 	{ 0xD5, 0x22, 0x00, 4, 0x40, 1, 1024, 0x0C, 18, 0x8, 1, { 0x04, 0x14, 0xFF, 0xFF }, &sfc_nand_get_ecc_status0 },
@@ -99,20 +117,32 @@ static struct nand_info spi_nand_tbl[] = {
 	{ 0xD5, 0x20, 0x00, 4, 0x40, 1, 2048, 0x0C, 19, 0x8, 1, { 0x04, 0x14, 0xFF, 0xFF }, &sfc_nand_get_ecc_status0 },
 	/* EM73E044SNA-G */
 	{ 0xD5, 0x03, 0x00, 8, 0x40, 1, 2048, 0x4C, 20, 0x8, 1, { 0x04, 0x28, 0x08, 0x2C }, &sfc_nand_get_ecc_status0 },
+	/* EM73C044VCF-H */
+	{ 0xD5, 0x25, 0x00, 4, 0x40, 1, 1024, 0x0C, 18, 0x4, 1, { 0x04, 0x14, 0xFF, 0xFF }, &sfc_nand_get_ecc_status0 },
 
 	/* XT26G02A */
-	{ 0x0B, 0xE2, 0x00, 4, 0x40, 1, 2048, 0x4C, 19, 0x1, 1, { 0x08, 0x0C, 0xFF, 0xFF }, &sfc_nand_get_ecc_status4 },
+	{ 0x0B, 0xE2, 0x00, 4, 0x40, 1, 2048, 0x4C, 19, 0x8, 1, { 0x08, 0x0C, 0xFF, 0xFF }, &sfc_nand_get_ecc_status4 },
 	/* XT26G01A */
-	{ 0x0B, 0xE1, 0x00, 4, 0x40, 1, 1024, 0x4C, 18, 0x1, 1, { 0x08, 0x0C, 0xFF, 0xFF }, &sfc_nand_get_ecc_status4 },
+	{ 0x0B, 0xE1, 0x00, 4, 0x40, 1, 1024, 0x4C, 18, 0x8, 1, { 0x08, 0x0C, 0xFF, 0xFF }, &sfc_nand_get_ecc_status4 },
 	/* XT26G04A */
-	{ 0x0B, 0xE3, 0x00, 4, 0x80, 1, 2048, 0x4C, 20, 0x1, 1, { 0x08, 0x0C, 0xFF, 0xFF }, &sfc_nand_get_ecc_status4 },
+	{ 0x0B, 0xE3, 0x00, 4, 0x80, 1, 2048, 0x4C, 20, 0x8, 1, { 0x08, 0x0C, 0xFF, 0xFF }, &sfc_nand_get_ecc_status4 },
 	/* XT26G01B */
-	{ 0x0B, 0xF1, 0x00, 4, 0x40, 1, 1024, 0x4C, 18, 0x1, 1, { 0x08, 0x0C, 0xFF, 0xFF }, &sfc_nand_get_ecc_status4 },
+	{ 0x0B, 0xF1, 0x00, 4, 0x40, 1, 1024, 0x4C, 18, 0x8, 1, { 0x08, 0x0C, 0xFF, 0xFF }, &sfc_nand_get_ecc_status4 },
 	/* XT26G02B */
-	{ 0x0B, 0xF2, 0x00, 4, 0x40, 1, 2048, 0x4C, 19, 0x1, 1, { 0x08, 0x0C, 0xFF, 0xFF }, &sfc_nand_get_ecc_status5 },
+	{ 0x0B, 0xF2, 0x00, 4, 0x40, 1, 2048, 0x4C, 19, 0x4, 1, { 0x08, 0x0C, 0xFF, 0xFF }, &sfc_nand_get_ecc_status5 },
+	/* XT26G01C */
+	{ 0x0B, 0x11, 0x00, 4, 0x40, 1, 1024, 0x4C, 18, 0x8, 1, { 0x08, 0x0C, 0xFF, 0xFF }, &sfc_nand_get_ecc_status7 },
+	/* XT26G02C */
+	{ 0x0B, 0x12, 0x00, 4, 0x40, 1, 2048, 0x4C, 19, 0x8, 1, { 0x08, 0x0C, 0xFF, 0xFF }, &sfc_nand_get_ecc_status7 },
+	/* XT26G04C */
+	{ 0x0B, 0x13, 0x00, 8, 0x40, 1, 2048, 0x4C, 20, 0x8, 1, { 0x04, 0x08, 0x0C, 0x10 }, &sfc_nand_get_ecc_status7 },
+	/* XT26G11C */
+	{ 0x0B, 0x15, 0x00, 4, 0x40, 1, 1024, 0x4C, 18, 0x8, 1, { 0x04, 0x08, 0xFF, 0xFF }, &sfc_nand_get_ecc_status0 },
 
-	/* MT29F2G1ABA, XT26G02E, F50L2G41XA */
-	{ 0x2C, 0x24, 0x00, 4, 0x40, 2, 1024, 0x4C, 19, 0x1, 1, { 0x20, 0x24, 0xFF, 0xFF }, &sfc_nand_get_ecc_status6 },
+	/* MT29F2G01ABA, XT26G02E, F50L2G41XA */
+	{ 0x2C, 0x24, 0x00, 4, 0x40, 2, 1024, 0x4C, 19, 0x8, 0, { 0x20, 0x24, 0xFF, 0xFF }, &sfc_nand_get_ecc_status6 },
+	/* MT29F1G01ABA, F50L1G41XA */
+	{ 0x2C, 0x14, 0x00, 4, 0x40, 1, 1024, 0x4C, 18, 0x8, 0, { 0x20, 0x24, 0xFF, 0xFF }, &sfc_nand_get_ecc_status6 },
 
 	/* FM25S01 */
 	{ 0xA1, 0xA1, 0x00, 4, 0x40, 1, 1024, 0x4C, 18, 0x1, 0, { 0x00, 0x04, 0xFF, 0xFF }, &sfc_nand_get_ecc_status1 },
@@ -127,6 +157,12 @@ static struct nand_info spi_nand_tbl[] = {
 	{ 0xC8, 0x01, 0x00, 4, 0x40, 1, 1024, 0x4C, 18, 0x1, 0, { 0x14, 0x24, 0xFF, 0xFF }, &sfc_nand_get_ecc_status1 },
 	/* ATO25D1GA */
 	{ 0x9B, 0x12, 0x00, 4, 0x40, 1, 1024, 0x40, 18, 0x1, 1, { 0x14, 0x24, 0xFF, 0xFF }, &sfc_nand_get_ecc_status1 },
+	/* BWJX08K-2Gb */
+	{ 0xBC, 0xB3, 0x00, 4, 0x40, 1, 2048, 0x4C, 19, 0x8, 1, { 0x04, 0x10, 0xFF, 0xFF }, &sfc_nand_get_ecc_status0 },
+	/* JS28U1GQSCAHG-83 */
+	{ 0xBF, 0x21, 0x00, 4, 0x40, 1, 1024, 0x40, 18, 0x4, 1, { 0x08, 0x0C, 0xFF, 0xFF }, &sfc_nand_get_ecc_status8 },
+	/* SGM7000I-S24W1GH */
+	{ 0xEA, 0xC1, 0x00, 4, 0x40, 1, 1024, 0x0C, 18, 0x4, 1, { 0x04, 0x08, 0xFF, 0xFF }, &sfc_nand_get_ecc_status1 },
 };
 
 static struct nand_info *p_nand_info;
@@ -254,7 +290,7 @@ static int sfc_nand_block_protect1(u32 addr)
 	else if (addr < 0xE000)
 		status = 5 << 3 | 0 << 2 | 1 << 1;
 	else if (addr < 0xF800)
-		status = 3 << 3 | 0 << 2 | 1 << 1;
+		status = 4 << 3 | 0 << 2 | 1 << 1;
 	else if (addr < 0xFC00)
 		status = 2 << 3 | 0 << 2 | 1 << 1;
 	else
@@ -299,7 +335,7 @@ static int sfc_nand_wait_busy(u8 *data, int timeout)
  * 0b01, Bit errors were detected and corrected.
  * 0b10, Multiple bit errors were detected and not corrected.
  * 0b11, Bits errors were detected and corrected, bit error count
- *	exceed the bit flip detection threshold
+ *	reach the bit flip detection threshold
  */
 static u32 sfc_nand_get_ecc_status0(void)
 {
@@ -480,7 +516,7 @@ static u32 sfc_nand_get_ecc_status3(void)
  * [0b1000], Multiple bit errors were detected and
  *	not corrected.
  * [0b1100], Bit error count equals the bit flip
- *	detectionthreshold
+ *	detection threshold
  * else, reserved
  */
 static u32 sfc_nand_get_ecc_status4(void)
@@ -522,7 +558,7 @@ static u32 sfc_nand_get_ecc_status4(void)
  * [0b001, 0b011], Bit errors were detected and corrected. Not
  *	reach Flipping Bits;
  * [0b100], Bit error count equals the bit flip
- *	detectionthreshold
+ *	detection threshold
  * [0b101, 0b110], Reserved;
  * [0b111], Multiple bit errors were detected and
  *	not corrected.
@@ -598,6 +634,91 @@ static u32 sfc_nand_get_ecc_status6(void)
 	if (ecc == 0 || ecc == 1 || ecc == 3)
 		ret = SFC_NAND_ECC_OK;
 	else if (ecc == 5)
+		ret = SFC_NAND_ECC_REFRESH;
+	else
+		ret = (u32)SFC_NAND_ECC_ERROR;
+
+	return ret;
+}
+
+/*
+ * ecc spectial type7:
+ * ecc bits: 0xC0[4,7]
+ * [0b0000], No bit errors were detected;
+ * [0b0001, 0b0111], 1-7 Bit errors were detected and corrected. Not
+ *	reach Flipping Bits;
+ * [0b1000], 8 Bit errors were detected and corrected. Bit error count
+ * 	equals the bit flip detectionthreshold;
+ * [0b1111], Bit errors greater than ECC capability(8 bits) and not corrected;
+ * others, Reserved.
+ */
+static u32 sfc_nand_get_ecc_status7(void)
+{
+	u32 ret;
+	u32 i;
+	u8 ecc;
+	u8 status;
+	u32 timeout = 1000 * 1000;
+
+	for (i = 0; i < timeout; i++) {
+		ret = sfc_nand_read_feature(0xC0, &status);
+
+		if (ret != SFC_OK)
+			return SFC_NAND_ECC_ERROR;
+
+		if (!(status & (1 << 0)))
+			break;
+
+		sfc_delay(1);
+	}
+
+	ecc = (status >> 4) & 0xf;
+
+	if (ecc < 7)
+		ret = SFC_NAND_ECC_OK;
+	else if (ecc == 7 || ecc == 8)
+		ret = SFC_NAND_ECC_REFRESH;
+	else
+		ret = (u32)SFC_NAND_ECC_ERROR;
+
+	return ret;
+}
+
+/*
+ * ecc spectial type8:
+ * ecc bits: 0xC0[4,6]
+ * [0b000], No bit errors were detected;
+ * [0b001, 0b011], 1~3 Bit errors were detected and corrected. Not
+ *	reach Flipping Bits;
+ * [0b100], Bit error count equals the bit flip
+ *	detection threshold
+ * others, Reserved.
+ */
+static u32 sfc_nand_get_ecc_status8(void)
+{
+	u32 ret;
+	u32 i;
+	u8 ecc;
+	u8 status;
+	u32 timeout = 1000 * 1000;
+
+	for (i = 0; i < timeout; i++) {
+		ret = sfc_nand_read_feature(0xC0, &status);
+
+		if (ret != SFC_OK)
+			return SFC_NAND_ECC_ERROR;
+
+		if (!(status & (1 << 0)))
+			break;
+
+		sfc_delay(1);
+	}
+
+	ecc = (status >> 4) & 0x07;
+
+	if (ecc < 4)
+		ret = SFC_NAND_ECC_OK;
+	else if (ecc == 4)
 		ret = SFC_NAND_ECC_REFRESH;
 	else
 		ret = (u32)SFC_NAND_ECC_ERROR;
@@ -692,15 +813,16 @@ u32 sfc_nand_prog_page_raw(u8 cs, u32 addr, u32 *p_page_buf)
 	sfc_request(&op, plane, p_page_buf, page_size);
 
 	/*
-	 * At the moment of power lost, flash maybe work in a unkonw state
-	 * and result in bit flip, when this situation is detected by cache
-	 * recheck, it's better to wait a second for a reliable hardware
-	 * environment to avoid abnormal data written to flash array.
+	 * At the moment of power lost or dev running in harsh environment, flash
+	 * maybe work in a unkonw state and result in bit flip, when this situation
+	 * is detected by cache recheck, it's better to wait a second for a reliable
+	 * hardware environment to avoid abnormal data written to flash array.
 	 */
 	sfc_nand_read_cache(addr, (u32 *)sfc_nand_dev.recheck_buffer, 0, data_area_size);
 	if (memcmp(sfc_nand_dev.recheck_buffer, p_page_buf, data_area_size)) {
 		rkflash_print_error("%s cache bitflip1\n", __func__);
 		msleep(1000);
+		sfc_request(&op, plane, p_page_buf, page_size);
 	}
 
 	op.sfcmd.d32 = 0;
@@ -836,7 +958,7 @@ u32 sfc_nand_check_bad_block(u8 cs, u32 addr)
 	ret = sfc_nand_read(addr, &marker, data_size, 2);
 
 	/* unify with mtd framework */
-	if (ret == SFC_NAND_ECC_ERROR)
+	if (ret == SFC_NAND_ECC_ERROR || (u16)marker != 0xffff)
 		rkflash_print_error("%s page= %x ret= %x spare= %x\n",
 				    __func__, addr, ret, marker);
 

@@ -78,6 +78,8 @@ static int rkispp_subdev_link_setup(struct media_entity *entity,
 
 	if (!strcmp(remote->entity->name, II_VDEV_NAME)) {
 		stream = &vdev->stream[STREAM_II];
+		if (ispp_sdev->state & ISPP_START)
+			return -EBUSY;
 		if (flags & MEDIA_LNK_FL_ENABLED)
 			dev->inp = INP_DDR;
 		else if (ispp_sdev->remote_sd)
@@ -128,12 +130,8 @@ static int rkispp_sd_get_fmt(struct v4l2_subdev *sd,
 		mf = v4l2_subdev_get_try_format(sd, cfg, fmt->pad);
 	}
 
-	if (ispp_sdev->dev->inp != INP_ISP) {
-		*mf = ispp_sdev->in_fmt;
-		return 0;
-	}
-
-	if (fmt->pad == RKISPP_PAD_SINK) {
+	*mf = ispp_sdev->in_fmt;
+	if (fmt->pad == RKISPP_PAD_SINK && ispp_sdev->dev->inp == INP_ISP) {
 		ret = v4l2_subdev_call(ispp_sdev->remote_sd,
 				       pad, get_fmt, cfg, fmt);
 		if (!ret) {
@@ -143,7 +141,7 @@ static int rkispp_sd_get_fmt(struct v4l2_subdev *sd,
 			ispp_sdev->in_fmt = *mf;
 			ispp_sdev->out_fmt = *ispp_fmt;
 		}
-	} else {
+	} else if (fmt->pad == RKISPP_PAD_SOURCE) {
 		*mf = ispp_sdev->in_fmt;
 		mf->width = ispp_sdev->out_fmt.width;
 		mf->height = ispp_sdev->out_fmt.height;
@@ -157,7 +155,30 @@ static int rkispp_sd_set_fmt(struct v4l2_subdev *sd,
 			     struct v4l2_subdev_pad_config *cfg,
 			     struct v4l2_subdev_format *fmt)
 {
-	/* format from isp output or rkispp_m_bypass input */
+	struct rkispp_subdev *ispp_sdev = v4l2_get_subdevdata(sd);
+	struct v4l2_mbus_framefmt *mf;
+
+	if (!fmt)
+		return -EINVAL;
+
+	/* format from isp output */
+	if (fmt->pad == RKISPP_PAD_SINK && ispp_sdev->dev->inp == INP_ISP)
+		return 0;
+
+	mf = &fmt->format;
+	if (fmt->which == V4L2_SUBDEV_FORMAT_TRY) {
+		if (!cfg)
+			return -EINVAL;
+		mf = v4l2_subdev_get_try_format(sd, cfg, fmt->pad);
+	}
+
+	if (fmt->pad == RKISPP_PAD_SINK) {
+		ispp_sdev->in_fmt = *mf;
+	} else {
+		ispp_sdev->out_fmt.width = mf->width;
+		ispp_sdev->out_fmt.height = mf->height;
+	}
+
 	return 0;
 }
 
@@ -246,17 +267,23 @@ static int rkispp_sd_s_stream(struct v4l2_subdev *sd, int on)
 {
 	struct rkispp_subdev *ispp_sdev = v4l2_get_subdevdata(sd);
 	struct rkispp_device *dev = ispp_sdev->dev;
-	int ret;
+	int ret = 0;
 
 	v4l2_dbg(1, rkispp_debug, &ispp_sdev->dev->v4l2_dev,
 		 "s_stream on:%d\n", on);
 
 	if (on) {
+		dev->is_first = true;
+		dev->first_frame_dma = -1;
 		ispp_sdev->state = ISPP_START;
+		ispp_sdev->frm_sync_seq = -1;
+		ispp_sdev->frame_timestamp = 0;
 		rkispp_event_handle(dev, CMD_STREAM, &ispp_sdev->state);
 	}
-	ret = v4l2_subdev_call(ispp_sdev->remote_sd,
-			       video, s_stream, on);
+
+	if (dev->inp == INP_ISP)
+		ret = v4l2_subdev_call(ispp_sdev->remote_sd, video, s_stream, on);
+
 	if ((on && ret) || (!on && !ret)) {
 		ispp_sdev->state = ISPP_STOP;
 		if (dev->stream_vdev.monitor.is_en) {
@@ -310,7 +337,6 @@ static int rkispp_sd_s_power(struct v4l2_subdev *sd, int on)
 	v4l2_dbg(1, rkispp_debug, &ispp_dev->v4l2_dev,
 		 "s_power on:%d\n", on);
 	if (on) {
-		atomic_set(&ispp_sdev->frm_sync_seq, 0);
 		if (ispp_dev->inp == INP_ISP) {
 			struct v4l2_subdev_format fmt;
 			struct v4l2_subdev_selection sel;
@@ -397,7 +423,7 @@ static long rkispp_ioctl(struct v4l2_subdev *sd, unsigned int cmd, void *arg)
 		break;
 	case RKISP_ISPP_CMD_GET_REG_WITHSTREAM:
 		rkispp_reg_withstream = arg;
-		*rkispp_reg_withstream = rkispp_get_reg_withstream();
+		*rkispp_reg_withstream = rkispp_is_reg_withstream_global();
 		break;
 	case RKISPP_CMD_TRIGGER_YNRRUN:
 		rkispp_sendbuf_to_nr(ispp_dev, (struct rkispp_tnr_inf *)arg);
@@ -433,28 +459,28 @@ static long rkispp_compat_ioctl32(struct v4l2_subdev *sd,
 	switch (cmd) {
 	case RKISPP_CMD_GET_FECBUF_INFO:
 		ret = rkispp_ioctl(sd, cmd, &fecbuf);
-		if (!ret)
-			ret = copy_to_user(up, &fecbuf, sizeof(fecbuf));
+		if (!ret && copy_to_user(up, &fecbuf, sizeof(fecbuf)))
+			ret = -EFAULT;
 		break;
 	case RKISPP_CMD_SET_FECBUF_SIZE:
-		ret = copy_from_user(&fecsize, up, sizeof(fecsize));
-		if (!ret)
-			ret = rkispp_ioctl(sd, cmd, &fecsize);
+		if (copy_from_user(&fecsize, up, sizeof(fecsize)))
+			return -EFAULT;
+		ret = rkispp_ioctl(sd, cmd, &fecsize);
 		break;
 	case RKISPP_CMD_TRIGGER_YNRRUN:
-		ret = copy_from_user(&tnr_inf, up, sizeof(tnr_inf));
-		if (!ret)
-			ret = rkispp_ioctl(sd, cmd, &tnr_inf);
+		if (copy_from_user(&tnr_inf, up, sizeof(tnr_inf)))
+			return -EFAULT;
+		ret = rkispp_ioctl(sd, cmd, &tnr_inf);
 		break;
 	case RKISPP_CMD_GET_TNRBUF_FD:
 		ret = rkispp_ioctl(sd, cmd, &idxfd);
-		if (!ret)
-			ret = copy_to_user(up, &idxfd, sizeof(idxfd));
+		if (!ret && copy_to_user(up, &idxfd, sizeof(idxfd)))
+			ret = -EFAULT;
 		break;
 	case RKISPP_CMD_TRIGGER_MODE:
-		ret = copy_from_user(&t_mode, up, sizeof(t_mode));
-		if (!ret)
-			ret = rkispp_ioctl(sd, cmd, &t_mode);
+		if (copy_from_user(&t_mode, up, sizeof(t_mode)))
+			return -EFAULT;
+		ret = rkispp_ioctl(sd, cmd, &t_mode);
 		break;
 	default:
 		ret = -ENOIOCTLCMD;

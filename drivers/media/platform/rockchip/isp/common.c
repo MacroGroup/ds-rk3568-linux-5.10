@@ -4,6 +4,7 @@
 #include <media/videobuf2-dma-contig.h>
 #include <media/videobuf2-dma-sg.h>
 #include <linux/of_platform.h>
+#include <linux/slab.h>
 #include "dev.h"
 #include "isp_ispp.h"
 #include "regs.h"
@@ -30,6 +31,11 @@ u32 rkisp_read(struct rkisp_device *dev, u32 reg, bool is_direct)
 	else
 		val = *(u32 *)(dev->sw_base_addr + reg);
 	return val;
+}
+
+u32 rkisp_read_reg_cache(struct rkisp_device *dev, u32 reg)
+{
+	return *(u32 *)(dev->sw_base_addr + reg);
 }
 
 void rkisp_set_bits(struct rkisp_device *dev, u32 reg, u32 mask, u32 val, bool is_direct)
@@ -89,7 +95,7 @@ int rkisp_alloc_buffer(struct rkisp_device *dev,
 	}
 
 	buf->mem_priv = mem_priv;
-	if (dev->hw_dev->is_mmu) {
+	if (dev->hw_dev->is_dma_sg_ops) {
 		sg_tbl = (struct sg_table *)g_ops->cookie(mem_priv);
 		buf->dma_addr = sg_dma_address(sg_tbl->sgl);
 	} else {

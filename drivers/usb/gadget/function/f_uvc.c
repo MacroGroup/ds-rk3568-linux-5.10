@@ -280,6 +280,10 @@ uvc_function_ep0_complete(struct usb_ep *ep, struct usb_request *req)
 	struct v4l2_event v4l2_event;
 	struct uvc_event *uvc_event = (void *)&v4l2_event.u.data;
 
+	uvc_trace(UVC_TRACE_CONTROL,
+		  "event_setup_out %d, data len %d\n",
+		  uvc->event_setup_out, req->actual);
+
 	if (uvc->event_setup_out) {
 		uvc->event_setup_out = 0;
 
@@ -302,6 +306,11 @@ uvc_function_setup(struct usb_function *f, const struct usb_ctrlrequest *ctrl)
 	 *	ctrl->bRequestType, ctrl->bRequest, le16_to_cpu(ctrl->wValue),
 	 *	le16_to_cpu(ctrl->wIndex), le16_to_cpu(ctrl->wLength));
 	 */
+
+	uvc_trace(UVC_TRACE_CONTROL,
+		  "setup request %02x %02x value %04x index %04x %04x\n",
+		  ctrl->bRequestType, ctrl->bRequest, le16_to_cpu(ctrl->wValue),
+		  le16_to_cpu(ctrl->wIndex), le16_to_cpu(ctrl->wLength));
 
 	if ((ctrl->bRequestType & USB_TYPE_MASK) != USB_TYPE_CLASS) {
 		INFO(f->config->cdev, "invalid request type\n");
@@ -386,6 +395,14 @@ uvc_function_set_alt(struct usb_function *f, unsigned interface, unsigned alt)
 				return -EINVAL;
 
 		usb_ep_enable(uvc->control_ep);
+
+		if (uvc->event_suspend) {
+			memset(&v4l2_event, 0, sizeof(v4l2_event));
+			v4l2_event.type = UVC_EVENT_RESUME;
+			v4l2_event_queue(&uvc->vdev, &v4l2_event);
+			uvc->event_suspend = 0;
+			uvc_trace(UVC_TRACE_SUSPEND, "send UVC_EVENT_RESUME\n");
+		}
 
 		if (uvc->state == UVC_STATE_DISCONNECTED) {
 			memset(&v4l2_event, 0, sizeof(v4l2_event));
@@ -504,6 +521,30 @@ uvc_function_disable(struct usb_function *f)
 
 	usb_ep_disable(uvc->video.ep);
 	usb_ep_disable(uvc->control_ep);
+}
+
+static void uvc_function_suspend(struct usb_function *f)
+{
+	struct uvc_device *uvc = to_uvc(f);
+	struct v4l2_event v4l2_event;
+
+	memset(&v4l2_event, 0, sizeof(v4l2_event));
+	v4l2_event.type = UVC_EVENT_SUSPEND;
+	v4l2_event_queue(&uvc->vdev, &v4l2_event);
+	uvc->event_suspend = 1;
+	uvc_trace(UVC_TRACE_SUSPEND, "send UVC_EVENT_SUSPEND\n");
+}
+
+static void uvc_function_resume(struct usb_function *f)
+{
+	struct uvc_device *uvc = to_uvc(f);
+	struct v4l2_event v4l2_event;
+
+	memset(&v4l2_event, 0, sizeof(v4l2_event));
+	v4l2_event.type = UVC_EVENT_RESUME;
+	v4l2_event_queue(&uvc->vdev, &v4l2_event);
+	uvc->event_suspend = 0;
+	uvc_trace(UVC_TRACE_SUSPEND, "send UVC_EVENT_RESUME\n");
 }
 
 /* --------------------------------------------------------------------------
@@ -879,6 +920,9 @@ uvc_function_bind(struct usb_configuration *c, struct usb_function *f)
 		uvc_ss_bulk_streaming_ep.bEndpointAddress = address;
 	}
 
+	if (opts->device_name)
+		uvc_en_us_strings[UVC_STRING_CONTROL_IDX].s = opts->device_name;
+
 	us = usb_gstrings_attach(cdev, uvc_function_strings,
 				 ARRAY_SIZE(uvc_en_us_strings));
 	if (IS_ERR(us)) {
@@ -993,6 +1037,13 @@ static void uvc_free_inst(struct usb_function_instance *f)
 	struct f_uvc_opts *opts = fi_to_f_uvc_opts(f);
 
 	mutex_destroy(&opts->lock);
+
+	if (opts->device_name_allocated) {
+		opts->device_name_allocated = false;
+		kfree(opts->device_name);
+		opts->device_name = NULL;
+	}
+
 	kfree(opts);
 }
 
@@ -1112,6 +1163,7 @@ static struct usb_function_instance *uvc_alloc_inst(void)
 	opts->streaming_interval = 1;
 	opts->streaming_maxpacket = 1024;
 	opts->uvc_num_request = UVC_NUM_REQUESTS;
+	opts->pm_qos_latency = 0;
 
 	ret = uvcg_attach_configfs(opts);
 	if (ret < 0) {
@@ -1196,6 +1248,8 @@ static struct usb_function *uvc_alloc(struct usb_function_instance *fi)
 	uvc->func.disable = uvc_function_disable;
 	uvc->func.setup = uvc_function_setup;
 	uvc->func.free_func = uvc_free;
+	uvc->func.suspend = uvc_function_suspend;
+	uvc->func.resume = uvc_function_resume;
 	uvc->func.bind_deactivated = true;
 
 	return &uvc->func;

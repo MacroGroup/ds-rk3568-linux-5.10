@@ -541,7 +541,11 @@ config DS18B20
     help
       Enable this driver will support 1B820 .
 
-
+config RK803
+	tristate "RK803"
+	default n
+	help
+	  Driver for RK803 which is used for driving porjector and IR flood LED.
 
 source "drivers/misc/c2port/Kconfig"
 source "drivers/misc/eeprom/Kconfig"

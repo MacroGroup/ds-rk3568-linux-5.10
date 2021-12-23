@@ -3,6 +3,7 @@
 
 #include <linux/delay.h>
 #include <linux/pm_runtime.h>
+#include <linux/slab.h>
 #include <media/v4l2-common.h>
 #include <media/v4l2-event.h>
 #include <media/v4l2-fh.h>
@@ -20,6 +21,25 @@ struct rkisp_bridge_buf *to_bridge_buf(struct rkisp_ispp_buf *dbufs)
 	return container_of(dbufs, struct rkisp_bridge_buf, dbufs);
 }
 
+/* compatible with MI frame end are triggered before ISP frame end */
+static void reg_buf_wait_for_stats(struct rkisp_bridge_device *dev,
+				   struct rkisp_ispp_reg *reg_buf,
+				   struct rkisp_isp2x_stat_buffer *tmp_statsbuf)
+{
+	s32 retry = 10;
+
+	do {
+		if (reg_buf->frame_id > tmp_statsbuf->frame_id)
+			usleep_range(1000, 1200);
+		else
+			break;
+	} while (retry-- > 0);
+
+	if (retry < 0)
+		v4l2_err(&dev->sd, "reg id(%d) don't match stats id(%d)\n",
+			 reg_buf->frame_id, tmp_statsbuf->frame_id);
+}
+
 static void dump_dbg_reg(struct rkisp_bridge_device *dev, struct rkisp_ispp_reg *reg_buf)
 {
 	struct rkisp_isp2x_stat_buffer *tmp_statsbuf;
@@ -27,6 +47,7 @@ static void dump_dbg_reg(struct rkisp_bridge_device *dev, struct rkisp_ispp_reg 
 	u32 offset = 0, size;
 
 	tmp_statsbuf = (struct rkisp_isp2x_stat_buffer *)dev->ispdev->stats_vdev.tmp_statsbuf.vaddr;
+	reg_buf_wait_for_stats(dev, reg_buf, tmp_statsbuf);
 	memset(reg_buf->isp_offset, -1, sizeof(reg_buf->isp_offset));
 	memset(reg_buf->ispp_offset, -1, sizeof(reg_buf->ispp_offset));
 	memset(reg_buf->isp_size, 0, sizeof(reg_buf->isp_offset));
@@ -179,11 +200,10 @@ static void dump_dbg_reg(struct rkisp_bridge_device *dev, struct rkisp_ispp_reg 
 		size = ISP2X_RAWAELITE_MEAN_NUM * sizeof(tmp_statsbuf->params.rawae0.data[0]);
 		reg_buf->isp_size[ISP2X_ID_RAWAE0] += size;
 		reg_buf->isp_stats_size[ISP2X_ID_RAWAE0] = size;
-		if (tmp_statsbuf->frame_id == reg_buf->frame_id) {
+		if (tmp_statsbuf->frame_id == reg_buf->frame_id)
 			memcpy(&reg_buf->reg[offset], &tmp_statsbuf->params.rawae0.data[0], size);
-		} else {
+		else
 			memset(&reg_buf->reg[offset], 0, size);
-		}
 		offset += size;
 	}
 
@@ -197,11 +217,10 @@ static void dump_dbg_reg(struct rkisp_bridge_device *dev, struct rkisp_ispp_reg 
 		size = ISP2X_RAWAEBIG_MEAN_NUM * sizeof(tmp_statsbuf->params.rawae1.data[0]);
 		reg_buf->isp_size[ISP2X_ID_RAWAE1] += size;
 		reg_buf->isp_stats_size[ISP2X_ID_RAWAE1] = size;
-		if (tmp_statsbuf->frame_id == reg_buf->frame_id) {
+		if (tmp_statsbuf->frame_id == reg_buf->frame_id)
 			memcpy(&reg_buf->reg[offset], &tmp_statsbuf->params.rawae1.data[0], size);
-		} else {
+		else
 			memset(&reg_buf->reg[offset], 0, size);
-		}
 		offset += size;
 	}
 
@@ -215,11 +234,10 @@ static void dump_dbg_reg(struct rkisp_bridge_device *dev, struct rkisp_ispp_reg 
 		size = ISP2X_RAWAEBIG_MEAN_NUM * sizeof(tmp_statsbuf->params.rawae2.data[0]);
 		reg_buf->isp_size[ISP2X_ID_RAWAE2] += size;
 		reg_buf->isp_stats_size[ISP2X_ID_RAWAE2] = size;
-		if (tmp_statsbuf->frame_id == reg_buf->frame_id) {
+		if (tmp_statsbuf->frame_id == reg_buf->frame_id)
 			memcpy(&reg_buf->reg[offset], &tmp_statsbuf->params.rawae2.data[0], size);
-		} else {
+		else
 			memset(&reg_buf->reg[offset], 0, size);
-		}
 		offset += size;
 	}
 
@@ -233,11 +251,10 @@ static void dump_dbg_reg(struct rkisp_bridge_device *dev, struct rkisp_ispp_reg 
 		size = ISP2X_RAWAEBIG_MEAN_NUM * sizeof(tmp_statsbuf->params.rawae3.data[0]);
 		reg_buf->isp_size[ISP2X_ID_RAWAE3] += size;
 		reg_buf->isp_stats_size[ISP2X_ID_RAWAE3] = size;
-		if (tmp_statsbuf->frame_id == reg_buf->frame_id) {
+		if (tmp_statsbuf->frame_id == reg_buf->frame_id)
 			memcpy(&reg_buf->reg[offset], &tmp_statsbuf->params.rawae3.data[0], size);
-		} else {
+		else
 			memset(&reg_buf->reg[offset], 0, size);
-		}
 		offset += size;
 	}
 
@@ -481,13 +498,30 @@ static void rkisp_bridge_save_fbcgain(struct rkisp_device *dev, struct rkisp_isp
 	spin_unlock_irqrestore(&hw->buf_lock, lock_flags);
 }
 
-static int frame_end(struct rkisp_bridge_device *dev, bool en)
+static void rkisp_bridge_work(struct work_struct *work)
 {
-	struct rkisp_hw_dev *hw = dev->ispdev->hw_dev;
+	struct rkisp_bridge_work *br_wk =
+		container_of(work, struct rkisp_bridge_work, work);
+	struct rkisp_bridge_device *dev = br_wk->dev;
+
+	struct rkisp_ispp_reg *reg_buf = (struct rkisp_ispp_reg *)br_wk->param;
+
+	dump_dbg_reg(dev, reg_buf);
+
+	kfree(br_wk);
+}
+
+static int frame_end(struct rkisp_bridge_device *dev, bool en, u32 state)
+{
+	struct rkisp_device *ispdev = dev->ispdev;
+	struct rkisp_hw_dev *hw = ispdev->hw_dev;
 	struct v4l2_subdev *sd = v4l2_get_subdev_hostdata(&dev->sd);
 	unsigned long lock_flags = 0;
 	u64 ns = ktime_get_ns();
 	struct rkisp_bridge_buf *buf;
+
+	if (state == FRAME_IRQ && ispdev->cap_dev.is_done_early)
+		return 0;
 
 	rkisp_dmarx_get_frame(dev->ispdev, &dev->dbg.id, NULL, NULL, true);
 	dev->dbg.interval = ns - dev->dbg.timestamp;
@@ -518,13 +552,26 @@ static int frame_end(struct rkisp_bridge_device *dev, bool en)
 			v4l2_subdev_call(sd, core, ioctl, RKISP_ISPP_CMD_REQUEST_REGBUF,
 					 &reg_buf);
 			if (reg_buf) {
-				reg_buf->stat = ISP_ISPP_INUSE;
-				reg_buf->dev_id = hw->cur_buf->index;
-				reg_buf->frame_id = hw->cur_buf->frame_id;
-				reg_buf->sof_timestamp = sof_ns;
-				reg_buf->frame_timestamp = hw->cur_buf->frame_timestamp;
-				reg_buf->exposure = dev->ispdev->params_vdev.exposure;
-				dump_dbg_reg(dev, reg_buf);
+				struct rkisp_bridge_work *br_wk;
+
+				br_wk = kzalloc(sizeof(struct rkisp_bridge_work), GFP_ATOMIC);
+				if (br_wk) {
+					reg_buf->stat = ISP_ISPP_INUSE;
+					reg_buf->dev_id = hw->cur_buf->index;
+					reg_buf->frame_id = hw->cur_buf->frame_id;
+					reg_buf->sof_timestamp = sof_ns;
+					reg_buf->frame_timestamp = hw->cur_buf->frame_timestamp;
+					reg_buf->exposure = dev->ispdev->params_vdev.exposure;
+
+					br_wk->dev = dev;
+					br_wk->param = (void *)reg_buf;
+					INIT_WORK((struct work_struct *)&br_wk->work,
+						  rkisp_bridge_work);
+					if (!queue_work(dev->wq, (struct work_struct *)&br_wk->work)) {
+						v4l2_err(&dev->sd, "queue work failed\n");
+						kfree(br_wk);
+					}
+				}
 			}
 
 			if (dev->ispdev->send_fbcgain) {
@@ -548,9 +595,8 @@ static int frame_end(struct rkisp_bridge_device *dev, bool en)
 			}
 		}
 		hw->cur_buf = NULL;
-	} else if (dev->ispdev->send_fbcgain) {
-		v4l2_dbg(1, rkisp_debug, &dev->sd,
-			 "use dummy buffer, lost fbcgain data, frm_id %d\n", dev->dbg.id);
+	} else {
+		v4l2_dbg(1, rkisp_debug, &dev->sd, "no buf, lost frame:%d\n", dev->dbg.id);
 	}
 
 	if (hw->nxt_buf) {
@@ -559,6 +605,41 @@ static int frame_end(struct rkisp_bridge_device *dev, bool en)
 	}
 
 	return 0;
+}
+
+static enum hrtimer_restart rkisp_bridge_frame_done_early(struct hrtimer *timer)
+{
+	struct rkisp_bridge_device *br =
+		container_of(timer, struct rkisp_bridge_device, frame_qst);
+	struct rkisp_device *dev = br->ispdev;
+	enum hrtimer_restart ret = HRTIMER_NORESTART;
+	u32 ycnt, line = dev->cap_dev.wait_line;
+	u32 seq, time, max_time = 1000000;
+	u64 ns = ktime_get_ns();
+
+	time = (u32)(ns - br->fs_ns);
+	ycnt = rkisp_read(dev, ISP_MPFBC_ENC_POS, true) & 0x3ff;
+	ycnt *= 8;
+	rkisp_dmarx_get_frame(dev, &seq, NULL, NULL, true);
+	if (!br->en || dev->isp_state == ISP_STOP) {
+		goto end;
+	} else if (ycnt < line) {
+		if (!ycnt)
+			ns = max_time;
+		else
+			ns = time * (line - ycnt) / ycnt;
+		if (ns > max_time)
+			ns = max_time;
+		hrtimer_forward(timer, timer->base->get_time(), ns_to_ktime(ns));
+		ret = HRTIMER_RESTART;
+	} else {
+		v4l2_dbg(3, rkisp_debug, &dev->v4l2_dev,
+			 "%s seq:%d line:%d ycnt:%d time:%dus\n",
+			 __func__, seq, line, ycnt, time / 1000);
+		frame_end(br, br->en, FRAME_WORK);
+	}
+end:
+	return ret;
 }
 
 static int config_gain(struct rkisp_bridge_device *dev)
@@ -953,6 +1034,7 @@ static void crop_off(struct rkisp_bridge_device *dev)
 
 static int bridge_start(struct rkisp_bridge_device *dev)
 {
+	struct rkisp_device *ispdev = dev->ispdev;
 	struct rkisp_stream *sp_stream;
 
 	sp_stream = &dev->ispdev->cap_dev.stream[RKISP_STREAM_SP];
@@ -970,6 +1052,15 @@ static int bridge_start(struct rkisp_bridge_device *dev)
 	dev->ispdev->skip_frame = 0;
 	rkisp_stats_first_ddr_config(&dev->ispdev->stats_vdev);
 	dev->en = true;
+
+	ispdev->cap_dev.is_done_early = false;
+	if (ispdev->send_fbcgain)
+		ispdev->cap_dev.wait_line = 0;
+	if (ispdev->cap_dev.wait_line) {
+		if (ispdev->cap_dev.wait_line < dev->crop.height / 4)
+			ispdev->cap_dev.wait_line = dev->crop.height / 4;
+		ispdev->cap_dev.is_done_early = true;
+	}
 	return 0;
 }
 
@@ -995,6 +1086,7 @@ static int bridge_stop(struct rkisp_bridge_device *dev)
 	irq = dev->cfg->frame_end_id;
 	irq = (irq == MI_MPFBC_FRAME) ? ISP_FRAME_MPFBC : ISP_FRAME_MP;
 	dev->ispdev->irq_ends_mask &= ~irq;
+	drain_workqueue(dev->wq);
 
 	/* make sure ispp last frame done */
 	if (dev->work_mode & ISP_ISPP_QUICK) {
@@ -1405,6 +1497,7 @@ void rkisp_bridge_update_mi(struct rkisp_device *dev)
 	    br->work_mode & ISP_ISPP_QUICK)
 		return;
 
+	br->fs_ns = ktime_get_ns();
 	spin_lock_irqsave(&hw->buf_lock, lock_flags);
 	if (!hw->nxt_buf && !list_empty(&hw->list)) {
 		hw->nxt_buf = list_first_entry(&hw->list,
@@ -1422,6 +1515,9 @@ void rkisp_bridge_update_mi(struct rkisp_device *dev)
 		val = buf->dummy[GROUP_BUF_GAIN].dma_addr;
 		rkisp_write(dev, br->cfg->reg.g0_base, val, true);
 	}
+
+	if (dev->cap_dev.is_done_early)
+		hrtimer_start(&br->frame_qst, ns_to_ktime(1000000), HRTIMER_MODE_REL);
 
 	v4l2_dbg(2, rkisp_debug, &br->sd,
 		 "update pic(shd:0x%x base:0x%x) gain(shd:0x%x base:0x%x)\n",
@@ -1459,7 +1555,7 @@ void rkisp_bridge_isr(u32 *mis_val, struct rkisp_device *dev)
 
 	irq = (irq == MI_MPFBC_FRAME) ? ISP_FRAME_MPFBC : ISP_FRAME_MP;
 	if (!(bridge->work_mode & ISP_ISPP_QUICK)) {
-		frame_end(bridge, bridge->en);
+		frame_end(bridge, bridge->en, FRAME_IRQ);
 		if (!bridge->en)
 			dev->irq_ends_mask &= ~irq;
 	}
@@ -1504,6 +1600,10 @@ int rkisp_register_bridge_subdev(struct rkisp_device *dev,
 	ret = media_create_pad_link(source, RKISP_ISP_PAD_SOURCE_PATH,
 				    sink, 0, bridge->linked);
 	init_waitqueue_head(&bridge->done);
+	bridge->wq = alloc_workqueue("rkisp bridge workqueue",
+				     WQ_UNBOUND | WQ_MEM_RECLAIM, 1);
+	hrtimer_init(&bridge->frame_qst, CLOCK_MONOTONIC, HRTIMER_MODE_REL);
+	bridge->frame_qst.function = rkisp_bridge_frame_done_early;
 	return ret;
 
 free_media:

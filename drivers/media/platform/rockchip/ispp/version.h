@@ -82,6 +82,37 @@
  * 2. fix panic for vmap at interrupt
  * 3. add virtual video for iqtool
  *
+ * v1.5.1
+ * 1. add vb2_rdma_sg_memops to support contiguous page
+ * 2. fix config of clk_dbg
+ * 3. check frame id when apply params
+ *
+ * v1.6.0 (match aiq v1.66.0)
+ * 1. limit min clk to 50
+ * 2. check scl stop if fec enable
+ * 3. sync to free buf for multi dev stream off
+ * 4. support output isp/ispp reg in nv12 format
+ * 5. isp and ispp add shutdown
+ * 6. optimize the frame rate of fec en
+ * 7. image input from user
+ * 8. fix input video config
+ * 9. add cru reset
+ * 10. check SHARP_CORE_CTRL after update
+ * 11. add uvnr sd32 self en control
+ *
+ * v1.6.1
+ * 1. reserved memory using rdma_sg ops
+ * 2. destory ispp buffers if start_stream failed
+ *
+ * v1.6.2
+ * 1. fix isp and ispp share dmabuf release fail
+ * 2. fix bug that ispp register isn't included in SEI
+ * 3. frame buffer done early
+ * 4. reset at frame end
+ * 5. fix page fault due to scl exit early
+ * 6. fbc error handle
+ * 7. first frame handle for multi dev
+ * 8. fix driver mode sync with ispserver
  */
 
 #define RKISPP_DRIVER_VERSION ISPP_API_VERSION

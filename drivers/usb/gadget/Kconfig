@@ -213,6 +213,9 @@ config USB_F_HID
 config USB_F_PRINTER
 	tristate
 
+config USB_F_MTP
+	tristate
+
 config USB_F_TCM
 	tristate
 
@@ -220,6 +223,9 @@ config USB_F_ACC
 	tristate
 
 config USB_F_AUDIO_SRC
+	tristate
+
+config USB_F_DFU
 	tristate
 
 # this first set of drivers all depend on bulk-capable hardware.
@@ -358,6 +364,13 @@ config USB_CONFIGFS_MASS_STORAGE
 	  device (in much the same way as the "loop" device driver),
 	  specified as a module parameter or sysfs option.
 
+config USB_CONFIGFS_F_DFU
+	bool "Device Firmware Upgrade (DFU) gadget"
+	depends on USB_CONFIGFS
+	select USB_F_DFU
+	help
+	  This gadget driver provides DFU capability.
+
 config USB_CONFIGFS_F_LB_SS
 	bool "Loopback and sourcesink function (for testing)"
 	depends on USB_CONFIGFS
@@ -382,6 +395,13 @@ config USB_CONFIGFS_F_FS
 	  of composite gadgets such that some of the functions are
 	  implemented in kernel space (for instance Ethernet, serial or
 	  mass storage) and other are implemented in user space.
+
+config USB_CONFIGFS_F_MTP
+	bool "MTP gadget"
+	depends on USB_CONFIGFS
+	select USB_F_MTP
+	help
+	  USB gadget MTP support
 
 config USB_CONFIGFS_F_ACC
 	bool "Accessory gadget"

@@ -20,5 +20,7 @@
 #define BOOT_CHARGING		(REBOOT_FLAG + 11)
 /* enter usb mass storage mode */
 #define BOOT_UMS		(REBOOT_FLAG + 12)
+/*enter dfu download mode */
+#define BOOT_DFU_DOWNLOAD       (REBOOT_FLAG + 13)
 
 #endif

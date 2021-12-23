@@ -41,6 +41,12 @@ struct rkisp_bridge_buf {
 	struct rkisp_dummy_buffer dummy[GROUP_BUF_MAX];
 };
 
+struct rkisp_bridge_work {
+	struct work_struct work;
+	struct rkisp_bridge_device *dev;
+	void *param;
+};
+
 struct rkisp_bridge_device {
 	struct rkisp_device *ispdev;
 	struct v4l2_subdev sd;
@@ -50,6 +56,9 @@ struct rkisp_bridge_device {
 	struct rkisp_bridge_ops *ops;
 	struct rkisp_bridge_config *cfg;
 	struct frame_debug_info dbg;
+	struct workqueue_struct *wq;
+	struct hrtimer frame_qst;
+	u64 fs_ns;
 	u8 work_mode;
 	u8 buf_num;
 	bool pingpong;
