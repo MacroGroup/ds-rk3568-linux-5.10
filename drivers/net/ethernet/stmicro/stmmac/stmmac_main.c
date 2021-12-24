@@ -56,6 +56,10 @@
 
 #define STMMAC_ALIGN(x)	L1_CACHE_ALIGN(x)
 
+#define RTL_8201F_PHY_ID  0x001cc816
+#define RTL_8211E_PHY_ID  0x001cc915
+#define DP_83848_PHY_ID   0x20005c90
+
 /* Module parameters */
 #define TX_TIMEO	5000
 static int watchdog = TX_TIMEO;
@@ -2824,6 +2828,30 @@ static int stmmac_hw_init(struct stmmac_priv *priv)
 	return 0;
 }
 
+static int phy_rtl8201f_led_fixup(struct phy_device *phydev)
+{
+    int value;
+    /* switch to page 7 */
+    value = phy_read(phydev, 31);
+    value &= 0xff00;
+    value |= 0x0007;
+    value = phy_write(phydev, 31, value);
+
+    /* set customized led enable */
+
+    value = phy_read(phydev, 19);
+    value &= 0xffcf;
+    value |= 0x0000;
+    phy_write(phydev, 19, value);
+
+    /* back to page 0 */
+    value = phy_read(phydev, 31);
+    value &= 0x0000;
+    value = phy_write(phydev, 31, value);
+
+    return 0;
+}
+
 /**
  * stmmac_dvr_probe
  * @device: device pointer
@@ -2973,6 +3001,10 @@ int stmmac_dvr_probe(struct device *device,
 			goto error_mdio_register;
 		}
 	}
+
+    ret = phy_register_fixup_for_uid(RTL_8201F_PHY_ID, 0xffffffff, phy_rtl8201f_led_fixup);
+    if (ret)
+      pr_warn("Cannot register PHY board fixup.\n");
 
 	ret = register_netdev(ndev);
 	if (ret) {
