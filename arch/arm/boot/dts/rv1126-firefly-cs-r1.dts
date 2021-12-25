@@ -41,7 +41,7 @@
 
 &gmac {
 	assigned-clock-parents = <&cru CLK_GMAC_SRC_M0>, <&cru RGMII_MODE_CLK>;//集群服务器R1使用这个
-	pinctrl-0 = <&rgmiim0_pins &clk_out_ethernetm0_pins>;//集群服务器R1使用这个
+	pinctrl-0 = <&rgmiim0_miim &rgmiim0_bus2 &rgmiim0_bus4 &clkm0_out_ethernet>;
 
 	tx_delay = <0x3c>;
 	rx_delay = <0x33>;

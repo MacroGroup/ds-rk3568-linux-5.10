@@ -662,7 +662,7 @@
 	assigned-clock-rates = <125000000>, <0>, <25000000>;
 
 	pinctrl-names = "default";
-	pinctrl-0 = <&rgmiim1_pins &clk_out_ethernetm1_pins>;//核心板和底板使用这个
+	pinctrl-0 = <&rgmiim1_miim &rgmiim1_bus2 &rgmiim1_bus4 &clkm1_out_ethernet>;
 	//pinctrl-0 = <&rgmiim0_pins &clk_out_ethernetm0_pins>;//集群服务器R1使用这个
 
 	tx_delay = <0x2a>;
@@ -1400,6 +1400,7 @@
 	sd-uhs-sdr25;
 	sd-uhs-sdr104;
 	vqmmc-supply = <&vccio_sd>;
+	vmmc-supply = <&vcc3v3_sd>;
 	status = "okay";
 
 };
