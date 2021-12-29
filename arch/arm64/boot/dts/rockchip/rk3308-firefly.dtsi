@@ -8,11 +8,11 @@
 #include "rk3308k.dtsi"
 
 / {
-	model = "Rockchip RK3308 EVB V11";
-	compatible = "rockchip,rk3308-evb-v11", "rockchip,rk3308";
+	model = "Firefly RK3308 Board";
+	compatible = "firefly,rk3308-firefly", "firefly,rk3308";
 
 	chosen {
-		bootargs = "earlycon=uart8250,mmio32,0xff0c0000 swiotlb=1 console=ttyFIQ0 root=PARTUUID=614e0000-0000 rootfstype=squashfs rootwait snd_aloop.index=7";
+		bootargs = "earlycon=uart8250,mmio32,0xff0c0000 swiotlb=1 console=ttyFIQ0 root=PARTUUID=614e0000-0000 rootfstype=ext2 rootwait snd_aloop.index=7";
 	};
 
 	adc-keys {
@@ -234,6 +234,15 @@
 		regulator-max-microvolt = <3300000>;
 	};
 
+	vccio_flash: vccio-flash {
+		compatible = "regulator-fixed";
+		regulator-name = "vccio_flash";
+		regulator-always-on;
+		regulator-boot-on;
+		regulator-min-microvolt = <1800000>;
+		regulator-max-microvolt = <1800000>;
+	};
+
 	vcc_phy: vcc-phy-regulator {
 		compatible = "regulator-fixed";
 		regulator-name = "vcc_phy";
@@ -278,7 +287,7 @@
 	rockchip,no-deep-low-power;
 	rockchip,loopback-grp = <0>;
 	hp-ctl-gpios = <&gpio0 RK_PA1 GPIO_ACTIVE_HIGH>;
-	spk-ctl-gpios = <&gpio0 RK_PA5 GPIO_ACTIVE_HIGH>;
+	spk-ctl-gpios = <&gpio0 RK_PC1 GPIO_ACTIVE_LOW>;
 };
 
 &cpu0 {
@@ -333,7 +342,7 @@
 	vccio0-supply = <&vcc_io>;
 	vccio1-supply = <&vcc_io>;
 	vccio2-supply = <&vcc_1v8>;
-	vccio3-supply = <&vcc_io>;
+	vccio3-supply = <&vccio_flash>;
 	vccio4-supply = <&vccio_sdio>;
 	vccio5-supply = <&vccio_sd>;
 };
@@ -748,7 +757,10 @@
 	sd-uhs-sdr104;
 	vmmc-supply = <&vcc_sd>;
 	vqmmc-supply = <&vccio_sd>;
-	status = "disabled";
+	pinctrl-names = "on", "off";
+	pinctrl-0 = <&sdmmc_clk &sdmmc_cmd &sdmmc_det &sdmmc_bus4>;
+	pinctrl-1 = <&sdmmc_gpio>;
+	status = "okay";
 };
 
 &tsadc {
