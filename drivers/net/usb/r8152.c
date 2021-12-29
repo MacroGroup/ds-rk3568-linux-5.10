@@ -26,6 +26,7 @@
 #include <net/ip6_checksum.h>
 #include <linux/usb/cdc.h>
 #include <linux/suspend.h>
+#include <asm/system_info.h>
 
 #include "compatibility.h"
 
@@ -1198,6 +1199,24 @@ static int
 rtl8152_set_speed(struct r8152 *tp, u8 autoneg, u32 speed, u8 duplex,
 		  u32 advertising);
 
+static int eth_mac_from_system_serial(struct r8152 *tp, u8 *addr)
+{
+	struct net_device *dev = tp->netdev;
+
+	if (system_serial_low != 0 && system_serial_high != 0) {
+		addr[0] = (system_serial_high >> 24) & 0xfe;/* clear multicast bit */
+		addr[1] = (system_serial_high >> 16) | 0x02;/* set local assignment bit (IEEE802) */
+		addr[2] = system_serial_low >> 24;
+		addr[3] = system_serial_low >> 16;
+		addr[4] = system_serial_low >> 8;
+		addr[5] = system_serial_low;
+		netif_info(tp, probe, dev, "Create an ether addr [%x:%x:%x:%x:%x:%x] from system serial number\n",
+			   addr[0], addr[1], addr[2], addr[3], addr[4], addr[5]);
+
+	}
+	return 0;
+}
+
 static int rtl8152_set_mac_address(struct net_device *netdev, void *p)
 {
 	struct r8152 *tp = netdev_priv(netdev);
@@ -1246,6 +1265,7 @@ static int set_ethernet_addr(struct r8152 *tp)
 		netif_err(tp, probe, dev, "Invalid ether addr %pM\n",
 			  sa.sa_data);
 		eth_hw_addr_random(dev);
+		eth_mac_from_system_serial(tp, dev->dev_addr);
 		ether_addr_copy(sa.sa_data, dev->dev_addr);
 		ret = rtl8152_set_mac_address(dev, &sa);
 		netif_info(tp, probe, dev, "Random ether addr %pM\n",
@@ -12894,7 +12914,7 @@ static int rtl8152_probe(struct usb_interface *intf,
 	/* usb_enable_autosuspend(udev); */
 
 	netif_info(tp, probe, netdev, "%s\n", DRIVER_VERSION);
-	netif_info(tp, probe, netdev, "%s\n", PATENTS);
+	/* netif_info(tp, probe, netdev, "%s\n", PATENTS); */
 
 #ifdef RTL8152_DEBUG
 	if (sysfs_create_group(&intf->dev.kobj, &rtk_attr_grp) < 0)
