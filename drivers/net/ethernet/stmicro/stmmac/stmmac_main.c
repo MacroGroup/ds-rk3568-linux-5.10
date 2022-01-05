@@ -51,6 +51,7 @@
 #include <linux/net_tstamp.h>
 #include "stmmac_ptp.h"
 #include "stmmac.h"
+#include "dwmac-rk-tool.h"
 #include <linux/reset.h>
 #include <linux/of_mdio.h>
 
@@ -1856,6 +1857,14 @@ static int stmmac_open(struct net_device *dev)
 	napi_enable(&priv->napi);
 	netif_start_queue(dev);
 
+#ifdef CONFIG_DWMAC_RK_AUTO_DELAYLINE
+	if (!priv->delayline_scanned) {
+		if (dwmac_rk_get_rgmii_delayline_from_vendor(priv))
+			schedule_delayed_work(&priv->scan_dwork, msecs_to_jiffies(6000));
+		priv->delayline_scanned = true;
+	}
+#endif
+
 	return 0;
 
 lpiirq_error:
@@ -2861,7 +2870,15 @@ static int phy_rtl8211f_led_fixup(struct phy_device *phydev)
     return 0;
 }
 
+#ifdef CONFIG_DWMAC_RK_AUTO_DELAYLINE
+static void stmmac_scan_delayline_dwork(struct work_struct *work)
+{
+	struct stmmac_priv *priv = container_of(work, struct stmmac_priv,
+						scan_dwork.work);
 
+	dwmac_rk_search_rgmii_delayline(priv);
+};
+#endif
 
 /**
  * stmmac_dvr_probe
@@ -3025,6 +3042,18 @@ int stmmac_dvr_probe(struct device *device,
  	if (ret)
         	 pr_warn("Cannot register 8211f PHY board fixup.\n");
 
+	ret = dwmac_rk_create_loopback_sysfs(device);
+	if (ret) {
+		netdev_err(priv->dev, "%s: ERROR %i create loopback sysfs\n",
+			   __func__, ret);
+		unregister_netdev(ndev);
+		goto error_netdev_register;
+	}
+
+#ifdef CONFIG_DWMAC_RK_AUTO_DELAYLINE
+	INIT_DELAYED_WORK(&priv->scan_dwork, stmmac_scan_delayline_dwork);
+#endif
+
 	return ret;
 
 error_netdev_register:
@@ -3072,6 +3101,7 @@ int stmmac_dvr_remove(struct device *dev)
 	    priv->pcs != STMMAC_PCS_RTBI)
 		stmmac_mdio_unregister(ndev);
 	mutex_destroy(&priv->lock);
+	dwmac_rk_remove_loopback_sysfs(dev);
 	free_netdev(ndev);
 
 	return 0;

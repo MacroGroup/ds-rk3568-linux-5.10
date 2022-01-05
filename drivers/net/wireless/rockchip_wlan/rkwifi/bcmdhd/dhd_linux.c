@@ -11723,6 +11723,7 @@ aoe_update_host_ipv4_table(dhd_pub_t *dhd_pub, u32 ipa, bool add, int idx)
 		return;
 	}
 
+
 	for (i = 0; i < MAX_IPV4_ENTRIES; i++) {
 		if (add && (ipv4_buf[i] == 0)) {
 				ipv4_buf[i] = ipa;

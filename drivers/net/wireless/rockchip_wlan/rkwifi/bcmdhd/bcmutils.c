@@ -1492,6 +1492,7 @@ bcm_inc_bytes(uchar *num, int num_bytes, uint8 amount)
 		num[i] += amount;
 		if (num[i] >= amount)
 			break;
+
 		amount = 1;
 	}
 }
