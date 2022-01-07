@@ -484,6 +484,14 @@ static int rkvenc_run(struct mpp_dev *mpp,
 	return 0;
 }
 
+static int rkvenc_1126_run(struct mpp_dev *mpp, struct mpp_task *mpp_task)
+{
+
+	mpp_iommu_flush_tlb(mpp->iommu_info);
+
+	return rkvenc_run(mpp, mpp_task);
+}
+
 static int rkvenc_irq(struct mpp_dev *mpp)
 {
 	mpp_debug_enter();
@@ -1394,6 +1402,20 @@ static struct mpp_dev_ops rkvenc_dev_ops = {
 	.dump_session = rkvenc_dump_session,
 };
 
+static struct mpp_dev_ops rkvenc_1126_dev_ops = {
+	.alloc_task = rkvenc_alloc_task,
+	.run = rkvenc_1126_run,
+	.irq = rkvenc_irq,
+	.isr = rkvenc_isr,
+	.finish = rkvenc_finish,
+	.result = rkvenc_result,
+	.free_task = rkvenc_free_task,
+	.ioctl = rkvenc_control,
+	.init_session = rkvenc_init_session,
+	.free_session = rkvenc_free_session,
+	.dump_session = rkvenc_dump_session,
+};
+
 static const struct mpp_dev_var rkvenc_v1_data = {
 	.device_type = MPP_DEVICE_RKVENC,
 	.hw_info = &rkvenc_hw_info,
@@ -1402,10 +1424,22 @@ static const struct mpp_dev_var rkvenc_v1_data = {
 	.dev_ops = &rkvenc_dev_ops,
 };
 
+static const struct mpp_dev_var rkvenc_1126_data = {
+	.device_type = MPP_DEVICE_RKVENC,
+	.hw_info = &rkvenc_hw_info,
+	.trans_info = trans_rk_rkvenc,
+	.hw_ops = &rkvenc_hw_ops,
+	.dev_ops = &rkvenc_1126_dev_ops,
+};
+
 static const struct of_device_id mpp_rkvenc_dt_match[] = {
 	{
 		.compatible = "rockchip,rkv-encoder-v1",
 		.data = &rkvenc_v1_data,
+	},
+	{
+		.compatible = "rockchip,rkv-encoder-rv1126",
+		.data = &rkvenc_1126_data,
 	},
 	{},
 };

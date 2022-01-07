@@ -7,6 +7,7 @@
 #include <media/videobuf2-vmalloc.h>   /* for ISP params */
 #include <linux/delay.h>
 #include <linux/rk-preisp.h>
+#include <linux/slab.h>
 #include "dev.h"
 #include "regs.h"
 #include "regs_v2x.h"
@@ -317,9 +318,9 @@ isp_dpcc_config(struct rkisp_isp_params_vdev *params_vdev,
 		rkisp_iowrite32(params_vdev, value, ISP_DPCC2_PDAF_POINT_0 + 4 * i);
 	}
 
-	rkisp_iowrite32(params_vdev, arg->pdaf_forward_med, ISP_DPCC0_BPT_ADDR);
-	rkisp_iowrite32(params_vdev, arg->pdaf_forward_med, ISP_DPCC1_BPT_ADDR);
-	rkisp_iowrite32(params_vdev, arg->pdaf_forward_med, ISP_DPCC2_BPT_ADDR);
+	rkisp_iowrite32(params_vdev, arg->pdaf_forward_med, ISP_DPCC0_PDAF_FORWARD_MED);
+	rkisp_iowrite32(params_vdev, arg->pdaf_forward_med, ISP_DPCC1_PDAF_FORWARD_MED);
+	rkisp_iowrite32(params_vdev, arg->pdaf_forward_med, ISP_DPCC2_PDAF_FORWARD_MED);
 }
 
 static void
@@ -955,10 +956,6 @@ static void
 isp_cproc_config(struct rkisp_isp_params_vdev *params_vdev,
 		 const struct isp2x_cproc_cfg *arg)
 {
-	struct isp2x_isp_other_cfg *cur_other_cfg =
-		&params_vdev->isp2x_params->others;
-	struct isp2x_ie_cfg *cur_ie_config = &cur_other_cfg->ie_cfg;
-	u32 effect = cur_ie_config->effect;
 	u32 quantization = params_vdev->quantization;
 
 	rkisp_iowrite32(params_vdev, arg->contrast, CPROC_CONTRAST);
@@ -966,8 +963,7 @@ isp_cproc_config(struct rkisp_isp_params_vdev *params_vdev,
 	rkisp_iowrite32(params_vdev, arg->sat, CPROC_SATURATION);
 	rkisp_iowrite32(params_vdev, arg->brightness, CPROC_BRIGHTNESS);
 
-	if (quantization != V4L2_QUANTIZATION_FULL_RANGE ||
-	    effect != V4L2_COLORFX_NONE) {
+	if (quantization != V4L2_QUANTIZATION_FULL_RANGE) {
 		isp_param_clear_bits(params_vdev, CPROC_CTRL,
 				     CIF_C_PROC_YOUT_FULL |
 				     CIF_C_PROC_YIN_FULL |
@@ -3126,10 +3122,6 @@ static void isp_hdrtmo_wait_first_line(struct rkisp_isp_params_vdev *params_vdev
 		else
 			break;
 	} while (retry-- > 0);
-
-	if (retry < 0)
-		dev_err(params_vdev->dev->dev, "hdr line_cnt(%d) < 1line\n",
-			line_cnt);
 }
 
 static void
@@ -4230,8 +4222,6 @@ static void
 rkisp_params_first_cfg_v2x(struct rkisp_isp_params_vdev *params_vdev)
 {
 	struct device *dev = params_vdev->dev->dev;
-	struct rkisp_isp_params_v2x_ops *ops =
-		(struct rkisp_isp_params_v2x_ops *)params_vdev->priv_ops;
 	struct rkisp_isp_params_val_v2x *priv_val =
 		(struct rkisp_isp_params_val_v2x *)params_vdev->priv_val;
 
@@ -4240,12 +4230,6 @@ rkisp_params_first_cfg_v2x(struct rkisp_isp_params_vdev *params_vdev)
 	if (!params_vdev->isp2x_params->module_cfg_update &&
 	    !params_vdev->isp2x_params->module_en_update)
 		dev_warn(dev, "can not get first iq setting in stream on\n");
-
-	/* set the  range */
-	if (params_vdev->quantization == V4L2_QUANTIZATION_FULL_RANGE)
-		ops->csm_config(params_vdev, true);
-	else
-		ops->csm_config(params_vdev, false);
 
 	priv_val->dhaz_en = 0;
 	priv_val->wdr_en = 0;

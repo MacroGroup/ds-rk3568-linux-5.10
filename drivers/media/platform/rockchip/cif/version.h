@@ -59,12 +59,14 @@
  *7. register cif sd itf when pipeline completed
  *v0.1.10
  *1. rv1126/rk356x support bt656/bt1120 multi channels function
-<<<<<<< HEAD   (d694f5 media: i2c: add camera driver sc401ai)
-=======
  *2. add dynamic cropping function
  *3. optimize dts config of cif's pipeline
  *4. register cif itf dev when clear unready subdev
->>>>>>> CHANGE (38eb6f media: platform: rockchip: cif: register cif itf dev when cl)
+ *5. mipi csi host add cru rst
+ *6. support wake up mode with mipi
+ *7. add keepint time to csi2 err for resetting
+ *8. mipi supports pdaf/embedded data
+ *9. mipi supports interlaced capture
  */
 
 #define RKCIF_DRIVER_VERSION RKCIF_API_VERSION

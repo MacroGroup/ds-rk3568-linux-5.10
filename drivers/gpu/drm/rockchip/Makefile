@@ -4,8 +4,12 @@
 # Direct Rendering Infrastructure (DRI) in XFree86 4.1.0 and higher.
 
 rockchipdrm-y := rockchip_drm_drv.o rockchip_drm_fb.o \
-		rockchip_drm_gem.o rockchip_drm_psr.o \
-		rockchip_drm_vop.o rockchip_vop_reg.o
+		rockchip_drm_gem.o
+
+rockchipdrm-$(CONFIG_ROCKCHIP_PSR) += rockchip_drm_psr.o
+
+rockchipdrm-$(CONFIG_ROCKCHIP_VOP) += rockchip_drm_vop.o rockchip_vop_reg.o
+
 rockchipdrm-$(CONFIG_DRM_FBDEV_EMULATION) += rockchip_drm_fbdev.o
 
 rockchipdrm-$(CONFIG_ROCKCHIP_ANALOGIX_DP) += analogix_dp-rockchip.o
@@ -21,3 +25,4 @@ rockchipdrm-$(CONFIG_ROCKCHIP_RGB) += rockchip_rgb.o
 obj-$(CONFIG_DRM_ROCKCHIP) += rockchipdrm.o
 
 obj-$(CONFIG_DRM_ROCKCHIP_RK618) += rk618/
+obj-$(CONFIG_DRM_ROCKCHIP_RK628) += rk628/

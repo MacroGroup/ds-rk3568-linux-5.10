@@ -920,6 +920,9 @@ uvc_function_bind(struct usb_configuration *c, struct usb_function *f)
 		uvc_ss_bulk_streaming_ep.bEndpointAddress = address;
 	}
 
+	if (opts->device_name)
+		uvc_en_us_strings[UVC_STRING_CONTROL_IDX].s = opts->device_name;
+
 	us = usb_gstrings_attach(cdev, uvc_function_strings,
 				 ARRAY_SIZE(uvc_en_us_strings));
 	if (IS_ERR(us)) {
@@ -998,6 +1001,12 @@ uvc_function_bind(struct usb_configuration *c, struct usb_function *f)
 		goto error;
 	}
 
+	uvc->video.async_wq = alloc_workqueue("uvcgvideo",
+					       WQ_UNBOUND | WQ_HIGHPRI,
+					       0);
+	if (!uvc->video.async_wq)
+		goto error;
+
 	/* Initialise video. */
 	ret = uvcg_video_init(&uvc->video);
 	if (ret < 0)
@@ -1034,6 +1043,13 @@ static void uvc_free_inst(struct usb_function_instance *f)
 	struct f_uvc_opts *opts = fi_to_f_uvc_opts(f);
 
 	mutex_destroy(&opts->lock);
+
+	if (opts->device_name_allocated) {
+		opts->device_name_allocated = false;
+		kfree(opts->device_name);
+		opts->device_name = NULL;
+	}
+
 	kfree(opts);
 }
 
@@ -1153,6 +1169,7 @@ static struct usb_function_instance *uvc_alloc_inst(void)
 	opts->streaming_interval = 1;
 	opts->streaming_maxpacket = 1024;
 	opts->uvc_num_request = UVC_NUM_REQUESTS;
+	opts->pm_qos_latency = 0;
 
 	ret = uvcg_attach_configfs(opts);
 	if (ret < 0) {
@@ -1185,6 +1202,9 @@ static void uvc_unbind(struct usb_configuration *c, struct usb_function *f)
 
 	usb_ep_free_request(cdev->gadget->ep0, uvc->control_req);
 	kfree(uvc->control_buf);
+
+	if (uvc->video.async_wq)
+		destroy_workqueue(uvc->video.async_wq);
 
 	usb_free_all_descriptors(f);
 }

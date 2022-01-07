@@ -13,6 +13,7 @@
 #include <linux/usb/gadget.h>
 #include <linux/usb/video.h>
 #include <linux/uvcinfo.h>
+#include <linux/pm_qos.h>
 
 #include <media/v4l2-dev.h>
 
@@ -171,13 +172,14 @@ uvc_video_complete(struct usb_ep *ep, struct usb_request *req)
 		printk(KERN_INFO "VS request completed with status %d.\n",
 			req->status);
 		uvcg_queue_cancel(queue, 0);
+		break;
 	}
 
 	spin_lock_irqsave(&video->req_lock, flags);
 	list_add_tail(&req->list, &video->req_free);
 	spin_unlock_irqrestore(&video->req_lock, flags);
 
-	schedule_work(&video->pump);
+	queue_work(video->async_wq, &video->pump);
 }
 
 static int
@@ -339,16 +341,19 @@ int uvcg_video_enable(struct uvc_video *video, int enable)
 	if (!enable) {
 		cancel_work_sync(&video->pump);
 		uvcg_queue_cancel(&video->queue, 0);
-
 		for (i = 0; i < opts->uvc_num_request; ++i)
 			if (video->req[i])
 				usb_ep_dequeue(video->ep, video->req[i]);
 
 		uvc_video_free_requests(video);
 		uvcg_queue_enable(&video->queue, 0);
+		if (pm_qos_request_active(&uvc->pm_qos))
+			pm_qos_remove_request(&uvc->pm_qos);
 		return 0;
 	}
 
+	pm_qos_add_request(&uvc->pm_qos, PM_QOS_CPU_DMA_LATENCY,
+			   opts->pm_qos_latency);
 	if ((ret = uvcg_queue_enable(&video->queue, 1)) < 0)
 		return ret;
 
@@ -361,7 +366,7 @@ int uvcg_video_enable(struct uvc_video *video, int enable)
 	} else
 		video->encode = uvc_video_encode_isoc;
 
-	schedule_work(&video->pump);
+	queue_work(video->async_wq, &video->pump);
 
 	return ret;
 }
