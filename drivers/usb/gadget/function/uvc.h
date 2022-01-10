@@ -14,6 +14,7 @@
 #include <linux/spinlock.h>
 #include <linux/usb/composite.h>
 #include <linux/videodev2.h>
+#include <linux/pm_qos.h>
 
 #include <media/v4l2-device.h>
 #include <media/v4l2-dev.h>
@@ -75,8 +76,8 @@ extern unsigned int uvc_gadget_trace_param;
 
 struct uvc_video {
 	struct usb_ep *ep;
-
 	struct work_struct pump;
+	struct workqueue_struct *async_wq;
 
 	/* Frame parameters */
 	u8 bpp;
@@ -117,6 +118,8 @@ struct uvc_device {
 	enum uvc_state state;
 	struct usb_function func;
 	struct uvc_video video;
+	/* for creating and issuing QoS requests */
+	struct pm_qos_request pm_qos;
 
 	/* Descriptors */
 	struct {

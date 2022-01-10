@@ -62,3 +62,4 @@ obj-$(CONFIG_UID_SYS_STATS)	+= uid_sys_stats.o
 obj-$(CONFIG_PIR_ASCHIP)	+= pir-aschip.o
 obj-$(CONFIG_DS18B20)		+= ds18b20.o
 obj-y				+= uvcinfo.o
+obj-$(CONFIG_RK803)		+= rk803.o

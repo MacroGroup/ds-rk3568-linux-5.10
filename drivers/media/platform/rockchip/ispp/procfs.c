@@ -50,7 +50,7 @@ static int ispp_show(struct seq_file *p, void *v)
 		stream = &dev->stream_vdev.stream[val];
 		if (!stream->streaming)
 			continue;
-		seq_printf(p, "%-10s %s Format:%c%c%c%c Size:%dx%d (frame:%d rate:%dms delay:%dms)\n",
+		seq_printf(p, "%-10s %s Format:%c%c%c%c Size:%dx%d (frame:%d rate:%dms delay:%dms frameloss:%d)\n",
 			   "Output",
 			   stream->vnode.vdev.name,
 			   stream->out_fmt.pixelformat,
@@ -61,15 +61,16 @@ static int ispp_show(struct seq_file *p, void *v)
 			   stream->out_fmt.height,
 			   stream->dbg.id,
 			   stream->dbg.interval / 1000 / 1000,
-			   stream->dbg.delay / 1000 / 1000);
+			   stream->dbg.delay / 1000 / 1000,
+			   stream->dbg.frameloss);
 	}
 
 	val = rkispp_read(dev, RKISPP_TNR_CORE_CTRL);
 	seq_printf(p, "%-10s %s(0x%x) (mode: %s) (global gain: %s) (frame:%d time:%dms %s) CNT:0x%x STATE:0x%x\n",
 		   "TNR",
 		   (val & 1) ? "ON" : "OFF", val,
-		   (val & SW_TNR_MODE_SHD) ? "3to1" : "2to1",
-		   (val & SW_TNR_GLB_GAIN_EN_SHD) ? "enable" : "disable",
+		   (val & SW_TNR_MODE) ? "3to1" : "2to1",
+		   (val & SW_TNR_GLB_GAIN_EN) ? "enable" : "disable",
 		   dev->stream_vdev.tnr.dbg.id,
 		   dev->stream_vdev.tnr.dbg.interval / 1000 / 1000,
 		   dev->stream_vdev.tnr.is_end ? "idle" : "working",

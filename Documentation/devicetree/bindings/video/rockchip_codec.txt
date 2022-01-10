@@ -15,11 +15,13 @@ Required properties:
 		"rockchip,rkv-decoder-v1",
 		"rockchip,rkv-decoder-rk3399",
 		"rockchip,rkv-decoder-rk3328",
+		"rockchip,rkv-decoder-rv1126",
 	Encoder should be one of following:
 		"rockchip,vpu-encoder-v1",
 		"rockchip,vpu-encoder-v2",
 		"rockchip,vpu-encoder-px30",
 		"rockchip,rkv-encoder-v1",
+		"rockchip,rkv-encoder-rv1126",
 		"rockchip,rkv-encoder-v2",
 		"rockchip,rkv-encoder-rv1108",
 		"rockchip,hevc-encoder-v22",
