@@ -41,7 +41,7 @@
 		};
 		port@1 {
 			csidphy0_out: endpoint@0 {
-				remote-endpoint = <&mipi_csi2_input>;
+				remote-endpoint = <&isp_in>;
 				data-lanes = <1 2>;
 			};
 		};
@@ -50,7 +50,11 @@
 
 &csi_dphy1 {
 	status = "okay";
+
 	ports {
+		#address-cells = <1>;
+		#size-cells = <0>;
+
 		port@0 {
 			csi_dphy1_input: endpoint@1 {
 				remote-endpoint = <&ucam_out1>;
@@ -58,8 +62,13 @@
 			};
 		};
 		port@1 {
+			reg = <1>;
+			#address-cells = <1>;
+			#size-cells = <0>;
+
 			csi_dphy1_output: endpoint@0 {
-				remote-endpoint = <&isp_in>;
+				reg = <0>;
+				remote-endpoint = <&mipi_csi2_input>;
 				data-lanes = <1 2>;
 			};
 		};
@@ -76,7 +85,7 @@
 	ports {
 		port@0 {
 			mipi_csi2_input: endpoint@1 {
-				remote-endpoint = <&csidphy0_out>;
+				remote-endpoint = <&csi_dphy1_output>;
 				data-lanes = <1 2>;
 			};
 		};
@@ -115,7 +124,7 @@
 	ports {
 		port@0 {
 			isp_in: endpoint@0 {
-				remote-endpoint = <&csi_dphy1_output>;
+				remote-endpoint = <&csidphy0_out>;
 			};
 		};
 	};

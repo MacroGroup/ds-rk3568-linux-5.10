@@ -1,0 +1,23 @@
+&rkvenc_opp_table {
+	opp-297000000 {
+		opp-hz = /bits/ 64 <297000000>;
+		opp-microvolt = <725000 725000 1000000>;
+		opp-microvolt-L0 = <750000 750000 1000000>;
+	};
+	opp-396000000 {
+		status = "disabled";
+		opp-hz = /bits/ 64 <396000000>;
+		opp-microvolt = <725000 725000 1000000>;
+		opp-microvolt-L0 = <775000 775000 1000000>;
+	};
+	opp-500000000 {
+		status = "disabled";
+		opp-hz = /bits/ 64 <500000000>;
+		opp-microvolt = <750000 750000 1000000>;
+	};
+	opp-594000000 {
+		status = "disabled";
+		opp-hz = /bits/ 64 <594000000>;
+		opp-microvolt = <825000 825000 1000000>;
+	};
+};
