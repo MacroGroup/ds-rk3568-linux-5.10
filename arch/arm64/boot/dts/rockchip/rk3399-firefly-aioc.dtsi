@@ -57,6 +57,20 @@
 		*/
 		reset-gpios = <&gpio4 30 GPIO_ACTIVE_LOW>; /* GPIO4_D6 */
 	};
+
+	adc-keys {
+		compatible = "adc-keys";
+		io-channels = <&saradc 1>;
+		io-channel-names = "buttons";
+		poll-interval = <300>;
+		keyup-threshold-microvolt = <1800000>;
+
+		esc-key {
+			linux,code = <KEY_ESC>;
+			label = "esc";
+			press-threshold-microvolt = <0>;
+		};
+	};
 };
 
 &gmac {
