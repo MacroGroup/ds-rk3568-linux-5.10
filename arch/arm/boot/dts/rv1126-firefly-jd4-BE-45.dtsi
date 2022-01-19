@@ -132,3 +132,7 @@
         };
 
 };
+
+&rkispp_vir2 {
+	status = "okay";
+};
