@@ -1,0 +1,47 @@
+/dts-v1/;
+#include "rk3399-roc-pc.dtsi"
+
+/ {
+	model = "Firefly roc-rk3399-pc";
+	compatible = "firefly,roc-rk3399-pc", "rockchip,rk3399";
+};
+
+&ov13850 {
+	status = "disabled";
+};
+
+&ov13850_1 {
+	status = "disabled";
+};
+
+&i2c1 {
+	XC7160b: XC7160b@1b{
+        status = "okay";
+        compatible = "firefly,xc7160";
+        reg = <0x1b>;
+        clocks = <&cru SCLK_CIF_OUT>;
+        clock-names = "xvclk";
+
+        reset-gpios = <&gpio0 8 GPIO_ACTIVE_HIGH>;	/*GPIO0_B0 MIP_RST*/
+		pwdn-gpios = <&gpio2 2 GPIO_ACTIVE_HIGH>;	/*GPIO2_A2 DVP_PDN0*/
+		pinctrl-names = "rockchip,camera_default", "rockchip,camera_sleep";
+
+        firefly,clkout-enabled-index = <0>;
+        rockchip,camera-module-index = <0>;
+        rockchip,camera-module-facing = "back";
+        rockchip,camera-module-name = "NC";
+        rockchip,camera-module-lens-name = "NC";
+        port {
+			xc7160b_out: endpoint {
+				remote-endpoint = <&mipi_in_ucam0>;
+                data-lanes = <1 2 3 4>;
+            };
+        };
+    };
+};
+
+&mipi_in_ucam0 {
+    reg = <1>;
+    remote-endpoint = <&xc7160b_out>;
+    data-lanes = <1 2 3 4>;
+};
