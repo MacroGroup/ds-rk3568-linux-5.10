@@ -131,6 +131,7 @@ struct gsl_ts {
 	struct work_struct work;
 	struct workqueue_struct *wq;
 	struct gsl_ts_data *dd;
+	spinlock_t irq_lock;
 	u8 *touch_data;
 	u8 device_id;
 	int irq;
@@ -144,8 +145,8 @@ struct gsl_ts {
 #if defined(CONFIG_HAS_EARLYSUSPEND)
 	struct early_suspend early_suspend;
 #endif
-	int screen_max_x;                                                                                                                                                                                                                       
-    int screen_max_y;
+	int screen_max_x;
+	int screen_max_y;
 };
 
 #ifdef GSL_DEBUG
@@ -165,6 +166,24 @@ static u16 y_old[MAX_CONTACTS + 1] = {0};
 static u16 x_new;
 static u16 y_new;
 static struct gsl_ts *gts;
+
+static void gsl_ts_irq_disable(struct gsl_ts *ts)
+{
+	unsigned long irqflags;
+
+	spin_lock_irqsave(&ts->irq_lock, irqflags);
+	disable_irq_nosync(ts->client->irq);
+	spin_unlock_irqrestore(&ts->irq_lock, irqflags);
+}
+
+static void gsl_ts_irq_enable(struct gsl_ts *ts)
+{
+	unsigned long irqflags = 0;
+
+	spin_lock_irqsave(&ts->irq_lock, irqflags);
+	enable_irq(ts->client->irq);
+	spin_unlock_irqrestore(&ts->irq_lock, irqflags);
+}
 
 static int gslX680_shutdown_low(void)
 {
@@ -781,7 +800,7 @@ static void gslX680_ts_worker(struct work_struct *work)
 	input_sync(ts->input);
 
 schedule:
-	enable_irq(ts->irq);
+	gsl_ts_irq_enable(ts);
 }
 
 extern void regulator_ctrl_vcc_tp(bool on);
@@ -792,7 +811,7 @@ static irqreturn_t gsl_ts_irq(int irq, void *dev_id)
 
 	print_info("========gslX680 Interrupt=========\n");
 
-	disable_irq_nosync(ts->irq);
+	gsl_ts_irq_disable(gts);
 	if (!work_pending(&ts->work))
 		queue_work(ts->wq, &ts->work);
 
@@ -892,7 +911,7 @@ static int rk_ts_early_suspend(struct tp_device *tp_d)
 	struct gsl_ts *ts = container_of(tp_d, struct gsl_ts, tp);
 	int i;
 
-	disable_irq_nosync(ts->irq);
+	gsl_ts_irq_disable(gts);
 	gslX680_shutdown_low();
 
 #ifdef SLEEP_CLEAR_POINT
@@ -938,7 +957,7 @@ static int rk_ts_early_resume(struct tp_device *tp_d)
 	#endif
 	input_sync(ts->input);
 #endif
-	enable_irq(ts->irq);
+	gsl_ts_irq_enable(ts);
 
 	return 0;
 }
@@ -1042,6 +1061,8 @@ static int gsl_ts_probe(struct i2c_client *client,
 #endif
 	init_chip(ts->client);
 	check_mem_data(ts->client);
+
+	spin_lock_init(&ts->irq_lock);
 
 	ts->irq = gpio_to_irq(ts->irq_pin);		/*If not defined in client*/
 	if (ts->irq) {
