@@ -711,7 +711,7 @@ static void gslX680_ts_worker(struct work_struct *work)
 
 	rc = gsl_ts_read(ts->client, 0x80, ts->touch_data, ts->dd->data_size);
 	if (rc < 0) {
-		dev_err(&ts->client->dev, "read failed\n");
+		/* dev_err(&ts->client->dev, "read failed\n"); */
 		goto schedule;
 	}
 
