@@ -51,7 +51,7 @@ fi
 
 LINUX_COMMIT=$(git log -1 | grep "commit" | awk -F ' ' '{print $2}')
 
-XML_PATH=`readlink -f ../.repo/manifest.xml`
+XML_PATH=$(readlink -f ../.repo/manifest.xml)
 XML_NAME=${XML_PATH##*/}
 
 UTS_VERSION="#$VERSION"
