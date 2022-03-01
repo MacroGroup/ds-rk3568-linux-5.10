@@ -114,6 +114,14 @@
 
 		rockchip,video-4k-freq = <1008000>;
 
+		clocks = <&cru PLL_NPLL>;
+		rockchip,avs-scale = <4>;
+		rockchip,avs-enable = <1>;
+		rockchip,max-volt = <1350000>;
+		rockchip,leakage-scaling-sel = <
+			0   254   13
+		>;
+
 		rockchip,leakage-voltage-sel = <
 			1   10    0
 			11  254   1
@@ -162,6 +170,20 @@
 			opp-microvolt = <1350000 1350000 1350000>;
 			opp-microvolt-L0 = <1350000 1350000 1350000>;
 			opp-microvolt-L1 = <1300000 1300000 1350000>;
+			clock-latency-ns = <40000>;
+		};
+		opp-1392000000 {
+			opp-hz = /bits/ 64 <1392000000>;
+			opp-microvolt = <1350000 1350000 1350000>;
+			opp-microvolt-L0 = <1350000 1350000 1350000>;
+			opp-microvolt-L1 = <1350000 1350000 1350000>;
+			clock-latency-ns = <40000>;
+		};
+		opp-1512000000 {
+			opp-hz = /bits/ 64 <1512000000>;
+			opp-microvolt = <1350000 1350000 1350000>;
+			opp-microvolt-L0 = <1350000 1350000 1350000>;
+			opp-microvolt-L1 = <1350000 1350000 1350000>;
 			clock-latency-ns = <40000>;
 		};
 	};
