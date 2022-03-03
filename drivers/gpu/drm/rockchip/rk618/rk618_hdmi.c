@@ -554,22 +554,6 @@ static void rk618_hdmi_set_polarity(struct rk618_hdmi *hdmi, int vic)
 	regmap_update_bits(hdmi->parent->regmap, RK618_MISC_CON, mask, val);
 }
 
-static void rk618_hdmi_pol_init(struct rk618_hdmi *hdmi, int pol)
-{
-	u32 val;
-
-	if (pol)
-		val = 0x0;
-	else
-		val = 0x20;
-	regmap_update_bits(hdmi->parent->regmap, RK618_MISC_CON,
-			   INT_ACTIVE_LOW, val);
-
-	regmap_update_bits(hdmi->parent->regmap,
-			   RK618_MISC_CON, HDMI_CLK_SEL_MASK,
-			   HDMI_CLK_SEL_VIDEO_INF0_CLK);
-}
-
 static inline void hdmi_modb(struct rk618_hdmi *hdmi, u16 offset,
 			     u32 msk, u32 val)
 {
@@ -655,6 +639,10 @@ static void rk618_hdmi_reset(struct rk618_hdmi *hdmi)
 {
 	u32 val;
 	u32 msk;
+
+	regmap_update_bits(hdmi->parent->regmap,
+			   RK618_MISC_CON, HDMI_CLK_SEL_MASK,
+			   HDMI_CLK_SEL_VIDEO_INF0_CLK);
 
 	hdmi_modb(hdmi, HDMI_SYS_CTRL, m_RST_DIGITAL, v_NOT_RST_DIGITAL);
 	usleep_range(100, 110);
@@ -931,18 +919,20 @@ static int rk618_hdmi_setup(struct rk618_hdmi *hdmi,
 	return 0;
 }
 
+static bool rk618_hdmi_hpd_detect(struct rk618_hdmi *hdmi)
+{
+	return !!(hdmi_readb(hdmi, HDMI_STATUS) & m_HOTPLUG);
+}
+
 static enum drm_connector_status
 rk618_hdmi_connector_detect(struct drm_connector *connector, bool force)
 {
 	struct rk618_hdmi *hdmi = connector_to_hdmi(connector);
-	int status;
+	bool status;
 
-	status = hdmi_readb(hdmi, HDMI_STATUS) & m_HOTPLUG;
+	status = rk618_hdmi_hpd_detect(hdmi);
 #ifdef CONFIG_SWITCH
-	if (status)
-		switch_set_state(&hdmi->switchdev, 1);
-	else
-		switch_set_state(&hdmi->switchdev, 0);
+	switch_set_state(&hdmi->switchdev, status);
 #endif
 
 	return status ? connector_status_connected :
@@ -962,7 +952,7 @@ static int rk618_hdmi_connector_get_modes(struct drm_connector *connector)
 	if (!hdmi->ddc)
 		return 0;
 
-	if ((hdmi_readb(hdmi, HDMI_STATUS) & m_HOTPLUG))
+	if (rk618_hdmi_hpd_detect(hdmi))
 		edid = drm_get_edid(connector, hdmi->ddc);
 
 	if (edid) {
@@ -1053,6 +1043,11 @@ static void rk618_hdmi_bridge_enable(struct drm_bridge *bridge)
 	struct rk618_hdmi *hdmi = bridge_to_hdmi(bridge);
 
 	clk_prepare_enable(hdmi->clock);
+
+	if (!rk618_hdmi_hpd_detect(hdmi)) {
+		rk618_hdmi_set_pwr_mode(hdmi, LOWER_PWR);
+		return;
+	}
 
 	rk618_hdmi_setup(hdmi, &hdmi->previous_mode);
 	rk618_hdmi_set_polarity(hdmi, hdmi->hdmi_data.vic);
@@ -1343,10 +1338,12 @@ static int rk618_hdmi_i2c_write(struct rk618_hdmi *hdmi, struct i2c_msg *msgs)
 	    ((msgs->addr != DDC_ADDR) && (msgs->addr != DDC_SEGMENT_ADDR)))
 		return -EINVAL;
 
-	if (msgs->addr == DDC_SEGMENT_ADDR)
-		hdmi->i2c->segment_addr = msgs->buf[0];
 	if (msgs->addr == DDC_ADDR)
 		hdmi->i2c->ddc_addr = msgs->buf[0];
+	if (msgs->addr == DDC_SEGMENT_ADDR) {
+		hdmi->i2c->segment_addr = msgs->buf[0];
+		return 0;
+	}
 
 	/* Set edid fifo first addr */
 	hdmi_writeb(hdmi, HDMI_EDID_FIFO_OFFSET, 0x00);
@@ -1368,6 +1365,9 @@ static int rk618_hdmi_i2c_xfer(struct i2c_adapter *adap,
 	int i, ret = 0;
 
 	mutex_lock(&i2c->lock);
+
+	hdmi->i2c->ddc_addr = 0;
+	hdmi->i2c->segment_addr = 0;
 
 	/* Clear the EDID interrupt flag and unmute the interrupt */
 	hdmi_writeb(hdmi, HDMI_INTERRUPT_MASK1, m_INT_EDID_READY);
@@ -1512,7 +1512,9 @@ static int rk618_hdmi_probe(struct platform_device *pdev)
 		return PTR_ERR(hdmi->clock);
 	}
 
-	rk618_hdmi_pol_init(hdmi, 0);
+	/* hpd io pull down */
+	regmap_write(rk618->regmap, RK618_IO_CON0, HDMI_IO_PULL_UP_DISABLE);
+
 	rk618_hdmi_reset(hdmi);
 
 	hdmi->ddc = rk618_hdmi_i2c_adapter(hdmi);
@@ -1540,7 +1542,7 @@ static int rk618_hdmi_probe(struct platform_device *pdev)
 
 	ret = devm_request_threaded_irq(dev, irq, NULL,
 					rk618_hdmi_irq,
-					IRQF_TRIGGER_FALLING | IRQF_ONESHOT,
+					IRQF_TRIGGER_HIGH | IRQF_ONESHOT,
 					dev_name(dev), hdmi);
 	if (ret) {
 		dev_err(dev, "failed to request hdmi irq: %d\n", ret);

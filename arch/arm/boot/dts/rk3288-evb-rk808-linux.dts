@@ -178,6 +178,17 @@
 		vin-supply = <&vcc_io>;
 	};
 
+	vcc_otg_vbus: otg-vbus-regulator {
+		compatible = "regulator-fixed";
+		gpio = <&gpio0 12 GPIO_ACTIVE_HIGH>;
+		pinctrl-names = "default";
+		pinctrl-0 = <&otg_vbus_drv>;
+		regulator-name = "vcc_otg_vbus";
+		regulator-min-microvolt = <5000000>;
+		regulator-max-microvolt = <5000000>;
+		enable-active-high;
+	};
+
 	vdd_log: vdd-logic {
 		compatible = "pwm-regulator";
 		rockchip,pwm_id = <1>;
@@ -199,7 +210,7 @@
 };
 
 &cif {
-	status = "okay";
+	status = "disabled";
 	port {
 		/* Parallel bus endpoint */
 		/* cif_para_in: endpoint {
@@ -222,7 +233,7 @@
 };
 
 &csi_host {
-	status = "okay";
+	status = "disabled";
 	ports {
 		#address-cells = <1>;
 		#size-cells = <0>;
@@ -264,6 +275,26 @@
 	pinctrl-0 = <&lcd_cs>;
 	power-supply = <&vcc_lcd>;
 	status = "okay";
+
+	display-timings {
+		native-mode = <&timing0>;
+
+		timing0: timing0 {
+			clock-frequency = <200000000>;
+			hactive = <1536>;
+			vactive = <2048>;
+			hfront-porch = <12>;
+			hsync-len = <16>;
+			hback-porch = <48>;
+			vfront-porch = <8>;
+			vsync-len = <4>;
+			vback-porch = <8>;
+			hsync-active = <0>;
+			vsync-active = <0>;
+			de-active = <0>;
+			pixelclk-active = <0>;
+		};
+	};
 };
 
 &edp_phy {
@@ -390,7 +421,7 @@
 				regulator-max-microvolt = <3300000>;
 				regulator-name = "vcc_wl";
 				regulator-state-mem {
-					regulator-off-in-suspend;
+					regulator-on-in-suspend;
 				};
 			};
 
@@ -544,7 +575,7 @@
 	};
 
 	gc2145: gc2145@3c {
-		status = "okay";
+		status = "disabled";
 		compatible = "galaxycore,gc2145";
 		reg = <0x3c>;
 		pinctrl-names = "default";
@@ -591,6 +622,9 @@
 		reg = <0x10>;
 		clocks = <&cru SCLK_VIP_OUT>;
 		clock-names = "xvclk";
+
+		pinctrl-names = "default";
+		pinctrl-0 = <&isp_mipi>;
 
 		reset-gpios = <&gpio7 21 GPIO_ACTIVE_HIGH>;
 		pwdn-gpios = <&gpio2 15 GPIO_ACTIVE_HIGH>;
@@ -640,7 +674,7 @@
 };
 
 &mipi_phy_tx1rx1 {
-	status = "okay";
+	status = "disabled";
 
 	ports {
 		#address-cells = <1>;
@@ -719,4 +753,14 @@
 			rockchip,pins = <8 0 RK_FUNC_GPIO &pcfg_pull_none>;
 		};
 	};
+
+	usb {
+		otg_vbus_drv: otg-vbus-drv {
+			rockchip,pins = <0 12 RK_FUNC_GPIO &pcfg_pull_none>;
+		};
+	};
+};
+
+&usb_otg {
+	vbus-supply = <&vcc_otg_vbus>;
 };

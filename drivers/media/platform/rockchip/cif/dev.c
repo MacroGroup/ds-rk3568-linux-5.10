@@ -203,8 +203,9 @@ err_stream_off:
 /***************************** media controller *******************************/
 static int rkcif_create_links(struct rkcif_device *dev)
 {
-	unsigned int s, pad, id, stream_num = 0;
 	int ret;
+	u32 flags;
+	unsigned int s, pad, id, stream_num = 0;
 
 	if (dev->chip_id == CHIP_RK1808_CIF)
 		stream_num = RKCIF_MULTI_STREAMS_NUM;
@@ -214,31 +215,53 @@ static int rkcif_create_links(struct rkcif_device *dev)
 	/* sensor links(or mipi-phy) */
 	for (s = 0; s < dev->num_sensors; ++s) {
 		struct rkcif_sensor_info *sensor = &dev->sensors[s];
+		struct media_entity *source_entity, *sink_entity;
 
 		for (pad = 0; pad < sensor->sd->entity.num_pads; pad++) {
 			if (sensor->sd->entity.pads[pad].flags &
-					MEDIA_PAD_FL_SOURCE) {
+				MEDIA_PAD_FL_SOURCE) {
 				if (pad == sensor->sd->entity.num_pads) {
 					dev_err(dev->dev,
 						"failed to find src pad for %s\n",
 						sensor->sd->name);
 
-					return -ENXIO;
+					break;
+				}
+
+				if ((sensor->mbus.type == V4L2_MBUS_BT656 ||
+				     sensor->mbus.type == V4L2_MBUS_PARALLEL) &&
+				    dev->chip_id == CHIP_RK1808_CIF) {
+					source_entity = &sensor->sd->entity;
+					sink_entity = &dev->stream[RKCIF_STREAM_DVP].vnode.vdev.entity;
+
+					ret = media_entity_create_link(source_entity,
+								       pad,
+								       sink_entity,
+								       0,
+								       MEDIA_LNK_FL_ENABLED);
+					if (ret)
+						dev_err(dev->dev, "failed to create link for %s\n",
+							sensor->sd->name);
+					break;
 				}
 
 				for (id = 0; id < stream_num; id++) {
-					ret = media_entity_create_link(&sensor->sd->entity,
+					source_entity = &sensor->sd->entity;
+					sink_entity = &dev->stream[id].vnode.vdev.entity;
+
+					(dev->chip_id != CHIP_RK1808_CIF) | (id == pad - 1) ?
+					(flags = MEDIA_LNK_FL_ENABLED) : (flags = 0);
+
+					ret = media_entity_create_link(source_entity,
 								       pad,
-								       &dev->stream[id].vnode.vdev.entity,
+								       sink_entity,
 								       0,
-								       (dev->chip_id != CHIP_RK1808_CIF) |
-								       (id == pad - 1) ?
-								       MEDIA_LNK_FL_ENABLED : 0);
+								       flags);
 					if (ret) {
 						dev_err(dev->dev,
 							"failed to create link for %s\n",
 							sensor->sd->name);
-						return ret;
+						break;
 					}
 				}
 			}
@@ -445,6 +468,17 @@ static const char * const rk3288_cif_rsts[] = {
 	"rst_cif",
 };
 
+static const char * const rk3328_cif_clks[] = {
+	"aclk_cif",
+	"hclk_cif",
+};
+
+static const char * const rk3328_cif_rsts[] = {
+	"rst_cif_a",
+	"rst_cif_p",
+	"rst_cif_h",
+};
+
 static const struct cif_match_data px30_cif_match_data = {
 	.chip_id = CHIP_PX30_CIF,
 	.clks = px30_cif_clks,
@@ -477,6 +511,14 @@ static const struct cif_match_data rk3288_cif_match_data = {
 	.rsts_num = ARRAY_SIZE(rk3288_cif_rsts),
 };
 
+static const struct cif_match_data rk3328_cif_match_data = {
+	.chip_id = CHIP_RK3328_CIF,
+	.clks = rk3328_cif_clks,
+	.clks_num = ARRAY_SIZE(rk3328_cif_clks),
+	.rsts = rk3328_cif_rsts,
+	.rsts_num = ARRAY_SIZE(rk3328_cif_rsts),
+};
+
 static const struct of_device_id rkcif_plat_of_match[] = {
 	{
 		.compatible = "rockchip,px30-cif",
@@ -493,6 +535,10 @@ static const struct of_device_id rkcif_plat_of_match[] = {
 	{
 		.compatible = "rockchip,rk3288-cif",
 		.data = &rk3288_cif_match_data,
+	},
+	{
+		.compatible = "rockchip,rk3328-cif",
+		.data = &rk3328_cif_match_data,
 	},
 	{},
 };

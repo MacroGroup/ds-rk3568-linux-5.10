@@ -123,9 +123,6 @@ static void rk618_lvds_bridge_enable(struct drm_bridge *bridge)
 	rk618_frc_dither_init(lvds->parent, lvds->bus_format);
 
 	switch (lvds->bus_format) {
-	case MEDIA_BUS_FMT_RGB666_1X7X3_JEIDA:
-		format = LVDS_FORMAT_JEIDA_18BIT;
-		break;
 	case MEDIA_BUS_FMT_RGB888_1X7X4_JEIDA:
 		format = LVDS_FORMAT_JEIDA_24BIT;
 		break;
@@ -231,6 +228,7 @@ static int rk618_lvds_probe(struct platform_device *pdev)
 
 	lvds->dev = dev;
 	lvds->parent = rk618;
+	lvds->regmap = rk618->regmap;
 	platform_set_drvdata(pdev, lvds);
 
 	ret = rk618_lvds_parse_dt(lvds);
@@ -238,10 +236,6 @@ static int rk618_lvds_probe(struct platform_device *pdev)
 		dev_err(dev, "failed to parse DT\n");
 		return ret;
 	}
-
-	lvds->regmap = dev_get_regmap(dev->parent, NULL);
-	if (!lvds->regmap)
-		return -ENODEV;
 
 	endpoint = of_graph_get_endpoint_by_regs(dev->of_node, 1, -1);
 	if (endpoint) {

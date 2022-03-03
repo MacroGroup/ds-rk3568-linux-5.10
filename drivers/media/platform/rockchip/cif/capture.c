@@ -33,6 +33,12 @@
 #define STREAM_PAD_SINK				0
 #define STREAM_PAD_SOURCE			1
 
+/*
+ * Round up height when allocate memory so that Rockchip encoder can
+ * use DMA buffer directly, though this may waste a bit of memory.
+ */
+#define MEMORY_ALIGN_ROUND_UP_HEIGHT		16
+
 /* Get xsubs and ysubs for fourcc formats
  *
  * @xsubs: horizontal color samples in a 4*4 matrix, for yuv
@@ -409,6 +415,9 @@ static unsigned char get_data_type(u32 pixelformat, u8 cmd_mode_en)
 		return 0x2b;
 	/* csi uyvy 422 */
 	case MEDIA_BUS_FMT_UYVY8_2X8:
+	case MEDIA_BUS_FMT_VYUY8_2X8:
+	case MEDIA_BUS_FMT_YUYV8_2X8:
+	case MEDIA_BUS_FMT_YVYU8_2X8:
 		return 0x1e;
 	case MEDIA_BUS_FMT_RGB888_1X24: {
 		if (cmd_mode_en) /* dsi command mode*/
@@ -733,6 +742,10 @@ static int rkcif_csi_channel_init(struct rkcif_stream *stream,
 		channel->crop_st_y = stream->crop.top;
 		channel->width = stream->crop.width;
 		channel->height = stream->crop.height;
+	} else {
+		channel->width = stream->pixm.width;
+		channel->height = stream->pixm.height;
+		channel->crop_en = 1;
 	}
 
 	fmt = find_output_fmt(stream, stream->pixm.pixelformat);
@@ -897,9 +910,11 @@ static int rkcif_queue_setup(struct vb2_queue *queue,
 
 	for (i = 0; i < cif_fmt->mplanes; i++) {
 		const struct v4l2_plane_pix_format *plane_fmt;
+		int h = round_up(pixm->height, MEMORY_ALIGN_ROUND_UP_HEIGHT);
 
 		plane_fmt = &pixm->plane_fmt[i];
-		sizes[i] = plane_fmt->sizeimage;
+		sizes[i] = plane_fmt->sizeimage / pixm->height * h;
+
 		alloc_ctxs[i] = dev->alloc_ctx;
 	}
 
@@ -1004,8 +1019,10 @@ static void rkcif_stop_streaming(struct vb2_queue *queue)
 	struct rkcif_vdev_node *node = &stream->vnode;
 	struct rkcif_device *dev = stream->cifdev;
 	struct v4l2_device *v4l2_dev = &dev->v4l2_dev;
-	struct rkcif_buffer *buf;
+	struct rkcif_buffer *buf = NULL;
 	int ret;
+
+	mutex_lock(&dev->stream_lock);
 
 	stream->stopping = true;
 
@@ -1024,21 +1041,16 @@ static void rkcif_stop_streaming(struct vb2_queue *queue)
 			 ret);
 
 	/* release buffers */
-	if (stream->curr_buf) {
-		list_add_tail(&stream->curr_buf->queue, &stream->buf_head);
-		stream->curr_buf = NULL;
-	}
-	if (stream->next_buf) {
-		list_add_tail(&stream->next_buf->queue, &stream->buf_head);
-		stream->next_buf = NULL;
-	}
-
-	if (stream->next_buf)
-		vb2_buffer_done(&stream->next_buf->vb.vb2_buf,
-				VB2_BUF_STATE_QUEUED);
 	if (stream->curr_buf)
-		vb2_buffer_done(&stream->curr_buf->vb.vb2_buf,
-				VB2_BUF_STATE_QUEUED);
+		list_add_tail(&stream->curr_buf->queue, &stream->buf_head);
+
+	if (stream->next_buf &&
+	    stream->next_buf != stream->curr_buf)
+		list_add_tail(&stream->next_buf->queue, &stream->buf_head);
+
+	stream->curr_buf = NULL;
+	stream->next_buf = NULL;
+
 	while (!list_empty(&stream->buf_head)) {
 		buf = list_first_entry(&stream->buf_head,
 				       struct rkcif_buffer, queue);
@@ -1054,6 +1066,8 @@ static void rkcif_stop_streaming(struct vb2_queue *queue)
 			 ret);
 	/* rkcif_soft_reset(dev, false); */
 	pm_runtime_put(dev->dev);
+
+	mutex_unlock(&dev->stream_lock);
 }
 
 /*
@@ -1337,6 +1351,8 @@ static int rkcif_start_streaming(struct vb2_queue *queue, unsigned int count)
 	/* struct v4l2_subdev *sd; */
 	int ret;
 
+	mutex_lock(&dev->stream_lock);
+
 	if (WARN_ON(stream->state != RKCIF_STATE_READY)) {
 		ret = -EBUSY;
 		v4l2_err(v4l2_dev, "stream in busy state\n");
@@ -1349,7 +1365,7 @@ static int rkcif_start_streaming(struct vb2_queue *queue, unsigned int count)
 			v4l2_err(v4l2_dev,
 				 "update sensor info failed %d\n",
 				 ret);
-			return ret;
+			goto out;
 		}
 	}
 
@@ -1402,7 +1418,7 @@ static int rkcif_start_streaming(struct vb2_queue *queue, unsigned int count)
 	}
 
 	v4l2_info(&dev->v4l2_dev, "%s successfully!\n", __func__);
-	return 0;
+	goto out;
 
 pipe_stream_off:
 	dev->pipe.set_stream(&dev->pipe, false);
@@ -1427,6 +1443,8 @@ destroy_buf:
 	}
 
 	rkcif_destroy_dummy_buf(stream);
+out:
+	mutex_unlock(&dev->stream_lock);
 	return ret;
 }
 
@@ -1594,11 +1612,17 @@ static int rkcif_fh_open(struct file *filp)
 	 * Because CRU would reset iommu too, so there's not chance
 	 * to reset cif once we hold buffers after buf queued
 	 */
-	if (cifdev->chip_id == CHIP_RK1808_CIF)
+	if (cifdev->chip_id == CHIP_RK1808_CIF) {
+		mutex_lock(&cifdev->stream_lock);
+		v4l2_info(&cifdev->v4l2_dev, "fh_cnt: %d\n",
+					atomic_read(&cifdev->fh_cnt));
+		if (!atomic_read(&cifdev->fh_cnt))
+			rkcif_soft_reset(cifdev, true);
 		atomic_inc(&cifdev->fh_cnt);
-	else
+		mutex_unlock(&cifdev->stream_lock);
+	} else {
 		rkcif_soft_reset(cifdev, true);
-
+	}
 	return v4l2_fh_open(filp);
 }
 
@@ -2179,7 +2203,7 @@ void rkcif_irq_pingpong(struct rkcif_device *cif_dev)
 		intstat = read_cif_reg(base, CIF_INTSTAT);
 		cif_frmst = read_cif_reg(base, CIF_FRAME_STATUS);
 		lastline = CIF_FETCH_Y_LAST_LINE(read_cif_reg(base, CIF_LAST_LINE));
-		lastpix = read_cif_reg(base, CIF_LAST_PIX);
+		lastpix =  CIF_FETCH_Y_LAST_LINE(read_cif_reg(base, CIF_LAST_PIX));
 		ctl = read_cif_reg(base, CIF_CTRL);
 
 		if (cif_dev->chip_id == CHIP_RK1808_CIF)

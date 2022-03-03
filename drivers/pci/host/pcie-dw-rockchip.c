@@ -106,6 +106,7 @@ struct reset_bulk_data	{
 #define PCIE_PHY_LINKUP			BIT(0)
 #define PCIE_DATA_LINKUP		BIT(1)
 
+#define PCIE_PL_ORDER_RULE_CTRL_OFF	0x8B4
 #define PCIE_MISC_CONTROL_1_OFF		0x8BC
 #define PCIE_DBI_RO_WR_EN		(0x1 << 0)
 
@@ -135,6 +136,7 @@ struct rk_pcie {
 	struct regmap			*usb_pcie_grf;
 	struct regmap			*pmu_grf;
 	struct dma_trx_obj		*dma_obj;
+	bool in_suspend;
 };
 
 struct rk_pcie_of_data {
@@ -404,11 +406,15 @@ static int rk_pcie_ep_inbound_atu(struct rk_pcie *rk_pcie,
 	int ret;
 	u32 free_win;
 
-	free_win = find_first_zero_bit(rk_pcie->ib_window_map,
-				       rk_pcie->num_ib_windows);
-	if (free_win >= rk_pcie->num_ib_windows) {
-		dev_err(rk_pcie->dev, "No free inbound window\n");
-		return -EINVAL;
+	if (rk_pcie->in_suspend) {
+		free_win = rk_pcie->bar_to_atu[bar];
+	} else {
+		free_win = find_first_zero_bit(rk_pcie->ib_window_map,
+					       rk_pcie->num_ib_windows);
+		if (free_win >= rk_pcie->num_ib_windows) {
+			dev_err(rk_pcie->dev, "No free inbound window\n");
+			return -EINVAL;
+		}
 	}
 
 	ret = rk_pcie_prog_inbound_atu(rk_pcie, free_win, bar, cpu_addr,
@@ -417,6 +423,10 @@ static int rk_pcie_ep_inbound_atu(struct rk_pcie *rk_pcie,
 		dev_err(rk_pcie->dev, "Failed to program IB window\n");
 		return ret;
 	}
+
+	if (rk_pcie->in_suspend)
+		return 0;
+
 	rk_pcie->bar_to_atu[bar] = free_win;
 	set_bit(free_win, rk_pcie->ib_window_map);
 
@@ -429,15 +439,23 @@ static int rk_pcie_ep_outbound_atu(struct rk_pcie *rk_pcie,
 {
 	u32 free_win;
 
-	free_win = find_first_zero_bit(rk_pcie->ob_window_map,
-				       rk_pcie->num_ob_windows);
-	if (free_win >= rk_pcie->num_ob_windows) {
-		dev_err(rk_pcie->dev, "No free outbound window\n");
-		return -EINVAL;
+	if (rk_pcie->in_suspend) {
+		free_win = find_first_bit(rk_pcie->ob_window_map,
+					  rk_pcie->num_ob_windows);
+	} else {
+		free_win = find_first_zero_bit(rk_pcie->ob_window_map,
+					       rk_pcie->num_ob_windows);
+		if (free_win >= rk_pcie->num_ob_windows) {
+			dev_err(rk_pcie->dev, "No free outbound window\n");
+			return -EINVAL;
+		}
 	}
 
 	rk_pcie_prog_outbound_atu(rk_pcie, free_win, PCIE_ATU_TYPE_MEM,
 				  phys_addr, pci_addr, size);
+
+	if (rk_pcie->in_suspend)
+		return 0;
 
 	set_bit(free_win, rk_pcie->ob_window_map);
 	rk_pcie->outbound_addr[free_win] = phys_addr;
@@ -734,6 +752,16 @@ static int rk_pcie_add_host(struct rk_pcie *rk_pcie,
 		return ret;
 	}
 
+	/*
+	 * Disable order rule for CPL can't pass halted P queue.
+	 * Need to check producer-consumer model.
+	 * Just for RK1808 platform.
+	 */
+	if (of_device_is_compatible(pdev->dev.of_node,
+				    "rockchip,rk1808-pcie"))
+		rk_pcie_writel_dbi(rk_pcie, PCIE_PL_ORDER_RULE_CTRL_OFF,
+				   0xff00);
+
 	return 0;
 }
 
@@ -903,6 +931,8 @@ static int rk_pcie_phy_init(struct rk_pcie *rk_pcie)
 		dev_err(dev, "fail to init phy, err %d\n", ret);
 		return ret;
 	}
+
+	phy_power_on(rk_pcie->phy);
 
 	return 0;
 }
@@ -1195,6 +1225,8 @@ static int rk_pcie_probe(struct platform_device *pdev)
 
 	rk_pcie_dbi_ro_wr_dis(rk_pcie);
 
+	device_init_wakeup(dev, true);
+
 	return 0;
 
 deinit_clk:
@@ -1222,10 +1254,15 @@ static int __maybe_unused rockchip_dw_pcie_suspend(struct device *dev)
 	rk_pcie_link_status_clear(rk_pcie);
 	rk_pcie_disable_ltssm(rk_pcie);
 
+	/* make sure assert phy success */
+	usleep_range(200, 300);
+
 	phy_power_off(rk_pcie->phy);
 	phy_exit(rk_pcie->phy);
 
 	clk_bulk_disable(rk_pcie->clk_cnt, rk_pcie->clks);
+
+	rk_pcie->in_suspend = true;
 
 	return 0;
 }
@@ -1241,11 +1278,21 @@ static int __maybe_unused rockchip_dw_pcie_resume(struct device *dev)
 		return ret;
 	}
 
+	ret = phy_set_mode(rk_pcie->phy, rk_pcie->phy_mode);
+	if (ret) {
+		dev_err(dev, "fail to set phy to mode %s, err %d\n",
+			(rk_pcie->phy_mode == PHY_MODE_PCIE_RC) ? "RC" : "EP",
+			ret);
+		return ret;
+	}
+
 	ret = phy_init(rk_pcie->phy);
 	if (ret < 0) {
 		dev_err(dev, "fail to init phy, err %d\n", ret);
 		return ret;
 	}
+
+	phy_power_on(rk_pcie->phy);
 
 	rk_pcie_dbi_ro_wr_en(rk_pcie);
 
@@ -1265,6 +1312,12 @@ static int __maybe_unused rockchip_dw_pcie_resume(struct device *dev)
 		return ret;
 	}
 
+	ret = rk_pcie_ep_atu_init(rk_pcie);
+	if (ret) {
+		dev_err(dev, "failed to init ep device\n");
+		return ret;
+	}
+
 	rk_pcie_ep_setup(rk_pcie);
 
 	/* hold link reset grant after link-up */
@@ -1273,6 +1326,8 @@ static int __maybe_unused rockchip_dw_pcie_resume(struct device *dev)
 		return ret;
 
 	rk_pcie_dbi_ro_wr_dis(rk_pcie);
+
+	rk_pcie->in_suspend = false;
 
 	return 0;
 }

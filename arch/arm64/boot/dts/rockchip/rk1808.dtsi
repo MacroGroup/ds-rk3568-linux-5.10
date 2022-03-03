@@ -21,6 +21,7 @@
 	#size-cells = <2>;
 
 	aliases {
+		ethernet0 = &gmac;
 		i2c0 = &i2c0;
 		i2c1 = &i2c1;
 		i2c2 = &i2c2;
@@ -58,7 +59,7 @@
 				compatible = "simple-power-model";
 				ref-leakage = <31>;
 				static-coefficient = <100000>;
-				ts = <59740 24105 (-245) 7>;
+				ts = <597400 241050 (-2450) 70>;
 				thermal-zone = "soc-thermal";
 			};
 		};
@@ -207,34 +208,34 @@
 
 	bus_soc: bus-soc {
 		compatible = "rockchip,rk1808-bus";
-		rockchip,busfreq-policy = "autocs";
+		rockchip,busfreq-policy = "smc";
 		soc-bus0 {
 			bus-id = <0>;
-			timer-us = <20>;
+			cfg-val = <0x1e0>;
 			enable-msk = <0x407f>;
 			status = "okay";
 		};
 		soc-bus1 {
 			bus-id = <1>;
-			timer-us = <200>;
+			cfg-val = <0x12c0>;
 			enable-msk = <0x41ff>;
 			status = "okay";
 		};
 		soc-bus2 {
 			bus-id = <2>;
-			timer-us = <200>;
+			cfg-val = <0x12c0>;
 			enable-msk = <0x4005>;
 			status = "okay";
 		};
 		soc-bus3 {
 			bus-id = <3>;
-			timer-us = <200>;
+			cfg-val = <0x12c0>;
 			enable-msk = <0x4001>;
 			status = "okay";
 		};
 		soc-bus4 {
 			bus-id = <4>;
-			timer-us = <200>;
+			cfg-val = <0x12c0>;
 			enable-msk = <0x4001>;
 			status = "disabled";
 		};
@@ -293,12 +294,10 @@
 		clock-frequency = <32768>;
 		clock-output-names = "xin32k";
 		#clock-cells = <0>;
-		pinctrl-names = "default";
-		pinctrl-0 = <&clkin_32k>;
 	};
 
 	pcie0: pcie@fc400000 {
-		compatible = "rockchip,rk1808-pcie-ep", "snps,dw-pcie";
+		compatible = "rockchip,rk1808-pcie", "snps,dw-pcie";
 		#address-cells = <3>;
 		#size-cells = <2>;
 		bus-range = <0x0 0x1f>;
@@ -645,15 +644,12 @@
 		#reset-cells = <1>;
 
 		assigned-clocks =
-			<&cru SCLK_32K_IOE>,
 			<&cru PLL_GPLL>, <&cru PLL_CPLL>,
 			<&cru PLL_PPLL>, <&cru ARMCLK>,
 			<&cru MSCLK_PERI>, <&cru LSCLK_PERI>,
 			<&cru HSCLK_BUS_PRE>, <&cru MSCLK_BUS_PRE>,
 			<&cru LSCLK_BUS_PRE>;
-		assigned-clock-parents = <&xin32k>;
 		assigned-clock-rates =
-			<32768>,
 			<1188000000>, <1000000000>,
 			<100000000>, <816000000>,
 			<200000000>, <100000000>,
@@ -694,9 +690,11 @@
 		assigned-clocks = <&cru SCLK_PCIEPHY_REF>;
 		assigned-clock-rates = <25000000>;
 		resets = <&cru SRST_USB3_OTG_A>, <&cru SRST_PCIEPHY_POR>,
-			 <&cru SRST_PCIEPHY_P>, <&cru SRST_PCIEPHY_PIPE>;
+			 <&cru SRST_PCIEPHY_P>, <&cru SRST_PCIEPHY_PIPE>,
+			 <&cru SRST_USB3PHY_GRF_P>;
 		reset-names = "otg-rst", "combphy-por",
-			      "combphy-apb", "combphy-pipe";
+			      "combphy-apb", "combphy-pipe",
+			      "usb3phy_grf_p";
 		rockchip,combphygrf = <&combphy_grf>;
 		rockchip,usbpciegrf = <&usb_pcie_grf>;
 		status = "disabled";
@@ -1389,36 +1387,36 @@
 
 		opp-192000000 {
 			opp-hz = /bits/ 64 <192000000>;
-			opp-microvolt = <750000>;
+			opp-microvolt = <800000>;
 		};
 		opp-324000000 {
 			opp-hz = /bits/ 64 <324000000>;
-			opp-microvolt = <750000>;
+			opp-microvolt = <800000>;
 		};
 		opp-450000000 {
 			opp-hz = /bits/ 64 <450000000>;
-			opp-microvolt = <750000>;
+			opp-microvolt = <800000>;
 		};
 		opp-528000000 {
 			opp-hz = /bits/ 64 <528000000>;
-			opp-microvolt = <750000>;
+			opp-microvolt = <800000>;
 		};
 		opp-664000000 {
 			opp-hz = /bits/ 64 <664000000>;
-			opp-microvolt = <750000>;
+			opp-microvolt = <800000>;
 		};
 		opp-784000000 {
 			opp-hz = /bits/ 64 <784000000>;
-			opp-microvolt = <750000>;
+			opp-microvolt = <800000>;
 		};
 		opp-924000000 {
 			opp-hz = /bits/ 64 <924000000>;
-			opp-microvolt = <750000>;
+			opp-microvolt = <800000>;
 		};
 		/* 1066M is only for ddr4 */
 		opp-1066000000 {
 			opp-hz = /bits/ 64 <1066000000>;
-			opp-microvolt = <775000>;
+			opp-microvolt = <800000>;
 			status = "disabled";
 		};
 	};
@@ -1431,7 +1429,6 @@
 		clocks = <&cru ACLK_RGA>, <&cru HCLK_RGA>, <&cru SCLK_RGA>;
 		clock-names = "aclk_rga", "hclk_rga", "clk_rga";
 		power-domains = <&power RK1808_PD_VIO>;
-		dma-coherent;
 		status = "disabled";
 	};
 
@@ -1703,7 +1700,7 @@
 			ref-leakage = <31>;
 			static-coefficient = <100000>;
 			dynamic-coefficient = <3080>;
-			ts = <8861 30312 (-500) 10>;
+			ts = <88610 303120 (-5000) 100>;
 			thermal-zone = "soc-thermal";
 		};
 	};
@@ -1750,10 +1747,10 @@
 		};
 		opp-792000000 {
 			opp-hz = /bits/ 64 <792000000>;
-			opp-microvolt = <825000 825000 880000>;
-			opp-microvolt-L0 = <825000 825000 880000>;
-			opp-microvolt-L1 = <800000 800000 880000>;
-			opp-microvolt-L2 = <775000 775000 880000>;
+			opp-microvolt = <850000 850000 880000>;
+			opp-microvolt-L0 = <850000 850000 880000>;
+			opp-microvolt-L1 = <825000 825000 880000>;
+			opp-microvolt-L2 = <800000 800000 880000>;
 		};
 	};
 

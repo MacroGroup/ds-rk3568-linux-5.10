@@ -56,6 +56,7 @@
 	#size-cells = <1>;
 
 	aliases {
+		ethernet0 = &gmac;
 		serial0 = &uart0;
 		serial1 = &uart1;
 		serial2 = &uart2;
@@ -117,26 +118,26 @@
 
 		opp-216000000 {
 			opp-hz = /bits/ 64 <216000000>;
-			opp-microvolt = <950000 950000 1425000>;
-			opp-microvolt-L0 = <950000 950000 1425000>;
+			opp-microvolt = <1000000 1000000 1425000>;
+			opp-microvolt-L0 = <1000000 1000000 1425000>;
 			opp-microvolt-L1 = <950000 950000 1425000>;
 			opp-microvolt-L2 = <950000 950000 1425000>;
 			clock-latency-ns = <40000>;
 		};
 		opp-408000000 {
 			opp-hz = /bits/ 64 <408000000>;
-			opp-microvolt = <950000 950000 1425000>;
-			opp-microvolt-L0 = <950000 950000 1425000>;
+			opp-microvolt = <1000000 1000000 1425000>;
+			opp-microvolt-L0 = <1000000 1000000 1425000>;
 			opp-microvolt-L1 = <950000 950000 1425000>;
 			opp-microvolt-L2 = <950000 950000 1425000>;
 			clock-latency-ns = <40000>;
 		};
 		opp-600000000 {
 			opp-hz = /bits/ 64 <600000000>;
-			opp-microvolt = <1075000 1075000 1425000>;
-			opp-microvolt-L0 = <1075000 1075000 1425000>;
-			opp-microvolt-L1 = <1025000 1025000 1425000>;
-			opp-microvolt-L2 = <975000 975000 1425000>;
+			opp-microvolt = <1150000 1150000 1425000>;
+			opp-microvolt-L0 = <11500000 1150000 1425000>;
+			opp-microvolt-L1 = <1100000 1100000 1425000>;
+			opp-microvolt-L2 = <1050000 1050000 1425000>;
 			clock-latency-ns = <40000>;
 		};
 		opp-696000000 {
@@ -158,8 +159,8 @@
 		};
 		opp-1008000000 {
 			opp-hz = /bits/ 64 <1008000000>;
-			opp-microvolt = <1325000 1325000 1425000>;
-			opp-microvolt-L0 = <1325000 1325000 1425000>;
+			opp-microvolt = <1350000 1350000 1425000>;
+			opp-microvolt-L0 = <1350000 1350000 1425000>;
 			opp-microvolt-L1 = <1275000 1275000 1425000>;
 			opp-microvolt-L2 = <1225000 1225000 1425000>;
 			clock-latency-ns = <40000>;
@@ -230,6 +231,7 @@
 			/*system status		freq(KHz)*/
 			SYS_STATUS_NORMAL	456000
 			SYS_STATUS_SUSPEND	200000
+			SYS_STATUS_REBOOT	396000
 		>;
 		auto-min-freq = <300000>;
 		auto-freq-en = <0>;
@@ -241,11 +243,11 @@
 
 		opp-200000000 {
 			opp-hz = /bits/ 64 <200000000>;
-			opp-microvolt = <950000>;
+			opp-microvolt = <1025000>;
 		};
 		opp-300000000 {
 			opp-hz = /bits/ 64 <300000000>;
-			opp-microvolt = <950000>;
+			opp-microvolt = <10250000>;
 		};
 		opp-396000000 {
 			opp-hz = /bits/ 64 <396000000>;
@@ -289,11 +291,6 @@
 					temperature = <90000>;
 					hysteresis = <2000>;
 					type = "passive";
-				};
-				soc_crit: soc-crit {
-					temperature = <115000>;
-					hysteresis = <2000>;
-					type = "critical";
 				};
 			};
 
@@ -1211,6 +1208,10 @@
 		};
 	};
 
+	rockchip_system_monitor: rockchip-system-monitor {
+		compatible = "rockchip,system-monitor";
+	};
+
 	pinctrl: pinctrl {
 		compatible = "rockchip,rk3128-pinctrl";
 		rockchip,grf = <&grf>;
@@ -1276,6 +1277,10 @@
 
 		pcfg_output_high: pcfg-output-high {
 			output-high;
+		};
+
+		pcfg_pull_up: pcfg-output-up {
+			bias-pull-up;
 		};
 
 		pcfg_pull_none: pcfg-pull-none {

@@ -2,6 +2,7 @@
 // Copyright (c) 2019 Fuzhou Rockchip Electronics Co., Ltd
 
 /dts-v1/;
+#include <dt-bindings/soc/rockchip-io-domain.h>
 #include <dt-bindings/gpio/gpio.h>
 #include <dt-bindings/pinctrl/rockchip.h>
 #include <dt-bindings/input/input.h>
@@ -824,6 +825,30 @@
 			};
 		};
 	};
+
+	imx327: imx327@1a {
+		compatible = "sony,imx327";
+		status = "okay";
+		reg = <0x1a>;
+		clocks = <&cru SCLK_CIF_OUT>;
+		clock-names = "xvclk";
+		/* conflict with csi-ctl-gpios */
+		reset-gpios = <&gpio4 26 GPIO_ACTIVE_HIGH>;
+		pwdn-gpios = <&gpio4 25 GPIO_ACTIVE_HIGH>;
+		pinctrl-names = "default";
+		pinctrl-0 = <&cif_clkout>;
+		rockchip,camera-module-index = <0>;
+		rockchip,camera-module-facing = "back";
+		rockchip,camera-module-name = "TongJu";
+		rockchip,camera-module-lens-name = "CHT842-MD";
+		port {
+			ucam_out2: endpoint {
+				remote-endpoint = <&mipi_in_ucam2>;
+				data-lanes = <1 2>;
+			};
+		};
+	};
+
 };
 
 &i2c4 {
@@ -871,6 +896,28 @@
 
 &io_domains {
 	status = "okay";
+	/*
+	 * If the uboot use rkdevelop branch, the io-domain is not set
+	 * during uboot phase, it will cause the io voltage is not suit for
+	 * the hardware,maybe will damage the io of rk3399, so we add
+	 * uboot-set value to make sure the value is same with the kernel,
+	 * ofcause you must make sure firstly the value here is suit for your
+	 * hardware. The available value is defined in
+	 * include/dt-bindings/soc/rockchip-io-domain.h, they are
+	 * also list here for more convenient configuration:
+	 * bt656-supply: RK3399_BT656_VDD_1V8 or RK3399_BT656_VDD_3V3
+	 * audio-supply: RK3399_AUDIO_VDD_1V8 or RK3399_AUDIO_VDD_3V3
+	 * gpio1830-supply: RK3399_GPIO1833_VDD_1V8 or RK3399_GPIO1833_VDD_3V3
+	 * sdmmc-supply: don't need to configure because the voltage
+	 *                       is set in source code during runtime.
+	 * NOTE:
+	 * 1. The value in uboot-set must be enclosed in "()", otherwise will
+	 *     cause compile error.
+	 * 2. The uboot-set configuration must be cooperated with submit
+	 *     in u-boot.
+	 */
+	uboot-set = <(RK3399_BT656_VDD_1V8 | RK3399_AUDIO_VDD_1V8 |
+				RK3399_GPIO1833_VDD_3V3)>;
 	bt656-supply = <&vcca_1v8>;
 	audio-supply = <&vcca_1v8>;
 	sdmmc-supply = <&vccio_sd>;
@@ -935,6 +982,11 @@
 				remote-endpoint = <&ucam_out0>;
 				data-lanes = <1 2>;
 			};
+			mipi_in_ucam2: endpoint@2 {
+				reg = <2>;
+				remote-endpoint = <&ucam_out2>;
+				data-lanes = <1 2>;
+			};
 		};
 
 		port@1 {
@@ -960,6 +1012,18 @@
 
 &pmu_io_domains {
 	status = "okay";
+	/*
+	 * If the uboot use rkdevelop branch, the pmu_io_domain is not set
+	 * during uboot phase, it will cause the io voltage is not suit for
+	 * the hardware,maybe will damage the io of rk3399, so we add
+	 * uboot-set value to make sure the value is same with the kernel,
+	 * ofcause you must make sure firstly the value here is suit for your
+	 * hardware. The available value is defined in
+	 * include/dt-bindings/soc/rockchip-io-domain.h, they are
+	 * also list here for more convenient configuration:
+	 * pmu1830-supply: RK3399_PMU1830_VDD_1V8 or RK3399_PMU1830_VDD_3V0
+	 */
+	uboot-set = <RK3399_PMU1830_VDD_1V8>;
 	pmu1830-supply = <&vcc_1v8>;
 };
 
@@ -973,7 +1037,8 @@
 
 &rkisp1_0 {
 	status = "okay";
-
+	assigned-clocks = <&cru PLL_NPLL>, <&cru SCLK_CIF_OUT_SRC>, <&cru SCLK_CIF_OUT>;
+	assigned-clock-rates = <594000000>, <594000000>, <37125000>;
 	port {
 		#address-cells = <1>;
 		#size-cells = <0>;

@@ -41,6 +41,10 @@
 	};
 };
 
+&acodec {
+	rockchip,adc-grps-route = <3 0 1 2>;
+};
+
 &acodec_sound {
 	status = "disabled";
 };
@@ -52,7 +56,6 @@
 &i2s_2ch_0 {
 	status = "okay";
 	#sound-dai-cells = <0>;
-	rockchip,clk-trcm = <1>;
 };
 
 &pdm_8ch {

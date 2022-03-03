@@ -200,6 +200,7 @@ static inline unsigned int cpufreq_quick_get_max(unsigned int cpu)
 	return 0;
 }
 static inline void disable_cpufreq(void) { }
+static inline void cpufreq_update_policy(unsigned int cpu) { }
 #endif
 
 /*********************************************************************
@@ -523,6 +524,13 @@ extern struct cpufreq_governor cpufreq_gov_sched;
 #elif defined(CONFIG_CPU_FREQ_DEFAULT_GOV_SCHEDUTIL)
 extern struct cpufreq_governor cpufreq_gov_schedutil;
 #define CPUFREQ_DEFAULT_GOVERNOR	(&cpufreq_gov_schedutil)
+#endif
+#if defined(CONFIG_ARCH_ROCKCHIP) && defined(CONFIG_CPU_FREQ_GOV_INTERACTIVE)
+void cpufreq_task_boost(int cpu, unsigned long util);
+#else
+static inline void cpufreq_task_boost(int cpu, unsigned long util)
+{
+}
 #endif
 
 static inline void cpufreq_policy_apply_limits(struct cpufreq_policy *policy)
