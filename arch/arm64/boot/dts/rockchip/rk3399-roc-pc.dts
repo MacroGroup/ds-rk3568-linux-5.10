@@ -4,4 +4,59 @@
 / {
 	model = "Firefly roc-rk3399-pc";
 	compatible = "firefly,roc-rk3399-pc", "rockchip,rk3399";
+
+	usb_charge: usb-charge {
+		compatible = "usb-ext-charge";
+		status = "disabled";
+		io-channels = <&saradc 0>;
+		extcon = <&fusb0>;
+		pinctrl-names = "default";
+		pinctrl-0 = <&vcc_chargen_h &bat_int_h &cur_ctl_h &poe_det_h>;
+	    bat-int = <&gpio2 28 IRQ_TYPE_EDGE_RISING>;
+		charge-en-gpios = <&gpio0 1 GPIO_ACTIVE_HIGH>;
+		cur-ctl-gpios = <&gpio3 26 GPIO_ACTIVE_HIGH>;
+		poe-state-gpios = <&gpio0 12 GPIO_ACTIVE_HIGH>;
+		//cap-led-gpios = <&gpio0 13 GPIO_ACTIVE_HIGH>;
+	};
+};
+
+
+&i2c7 {
+	mp8859: mp8859@66 {
+		compatible = "mps,mp8859";
+		reg = <0x66>;
+		status = "okay";
+		extcon = <&fusb0>;
+		max-input-voltage = <15000000>;
+		max-input-current = <3000000>;
+		//charge-en-gpios =<&gpio0 1 GPIO_ACTIVE_HIGH>;
+		//pinctrl-names = "default";
+		//pinctrl-0 = <&vcc_chargen_h>;
+		//mp,register-power-supply;
+
+		regulators {
+			sys_12v: mp8859_dcdc1 {
+				regulator-name = "sys_12v";
+				regulator-min-microvolt = <12300000>;
+				regulator-max-microvolt = <12300000>;
+				regulator-ramp-delay = <8000>;
+				//regulator-always-on;
+				//regulator-boot-on;
+			};
+		};
+	};
+};
+
+
+&fusb0 {
+	compatible = "fairchild,fusb302";
+	reg = <0x22>;
+	//charge-dev = <&mp8859>;
+	power-dev = <&mp8859>;
+	pinctrl-names = "default";
+	//pinctrl-0 = <&fusb0_int &vcc_chargen_h>;
+	pinctrl-0 = <&fusb0_int>;
+	int-n-gpios = <&gpio1 2 GPIO_ACTIVE_HIGH>;
+	//charge-en-gpios = <&gpio0 1 GPIO_ACTIVE_HIGH>;
+	status = "okay";
 };
