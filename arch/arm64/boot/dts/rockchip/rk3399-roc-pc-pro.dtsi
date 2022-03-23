@@ -169,3 +169,7 @@
 	status = "disabled";
 };
 */
+
+&pcie0 {
+	/delete-property/ vpcie3v3-supply;
+};
