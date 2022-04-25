@@ -112,15 +112,25 @@
 #define NODE_SIZE		(sizeof(unsigned int))
 #define PCIE_DMA_ACK_BLOCK_SIZE		(NODE_SIZE * 8)
 
-#define PCIE_DMA_BUF_SIZE	SZ_1M
+#ifdef CONFIG_PCIE_RK1808_OPTIMIZATION
+#define PCIE_DMA_BUF_SIZE	SZ_128K
+#else
+#define PCIE_DMA_BUF_SIZE      SZ_1M
+#endif
 #define PCIE_DMA_BUF_CNT	8
 #define PCIE_DMA_RD_BUF_SIZE	(PCIE_DMA_BUF_SIZE * PCIE_DMA_BUF_CNT)
 #define PCIE_DMA_WR_BUF_SIZE	(PCIE_DMA_BUF_SIZE * PCIE_DMA_BUF_CNT)
 #define PCIE_DMA_ACK_BASE	(PCIE_DMA_RD_BUF_SIZE + PCIE_DMA_WR_BUF_SIZE)
 
-#define PCIE_DMA_SET_DATA_CHECK_POS	(SZ_1M - 0x4)
-#define PCIE_DMA_SET_LOCAL_IDX_POS	(SZ_1M - 0x8)
-#define PCIE_DMA_SET_BUF_SIZE_POS	(SZ_1M - 0xc)
+#ifdef CONFIG_PCIE_RK1808_OPTIMIZATION
+#define PCIE_DMA_SET_DATA_CHECK_POS	(PCIE_DMA_BUF_SIZE - 0x4)
+#define PCIE_DMA_SET_LOCAL_IDX_POS	(PCIE_DMA_BUF_SIZE - 0x8)
+#define PCIE_DMA_SET_BUF_SIZE_POS	(PCIE_DMA_BUF_SIZE - 0xc)
+#else
+#define PCIE_DMA_SET_DATA_CHECK_POS    (SZ_1M - 0x4)
+#define PCIE_DMA_SET_LOCAL_IDX_POS     (SZ_1M - 0x8)
+#define PCIE_DMA_SET_BUF_SIZE_POS      (SZ_1M - 0xc)
+#endif
 
 #define PCIE_DMA_DATA_CHECK		0x12345678
 #define PCIE_DMA_DATA_ACK_CHECK		0xdeadbeef
@@ -171,7 +181,11 @@ static void rk_pcie_prepare_dma(struct dma_trx_obj *obj,
 		writel(local_idx, virt + PCIE_DMA_SET_LOCAL_IDX_POS);
 		writel(buf_size, virt + PCIE_DMA_SET_BUF_SIZE_POS);
 
+#ifdef CONFIG_PCIE_RK1808_OPTIMIZATION
+		buf_size = PCIE_DMA_BUF_SIZE;
+#else
 		buf_size = SZ_1M;
+#endif
 		break;
 	case PCIE_DMA_DATA_RCV_ACK:
 		table = obj->table[PCIE_DMA_DATA_RCV_ACK_TABLE_OFFSET + idx];

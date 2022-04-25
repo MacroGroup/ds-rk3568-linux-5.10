@@ -199,4 +199,15 @@ config PCIE_ROCKCHIP
 	  There is 1 internal PCIe port available to support GEN2 with
 	  4 slots.
 
+config PCIE_RK1808_OPTIMIZATION
+	bool "Optimize the transmission speed of RK1808 using PCIE bus"
+	depends on PCIE_ROCKCHIP
+	help
+	  Reduce the DMA BUF of PCIE from the original 1M to 128K
+	  to optimize the transmission speed of RK1808 using PCIE bus.
+	  As a result, the inference speed of the NPU RK1808 integrated
+	  in the RK339PRO is increased by 60%, and the continuous reading
+	  and writing speed of small files using the PCIE interface will increase,
+	  but the reading and writing speed of large files will decrease.
+
 endmenu
