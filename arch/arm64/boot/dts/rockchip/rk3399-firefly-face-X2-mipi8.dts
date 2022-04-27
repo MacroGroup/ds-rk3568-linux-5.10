@@ -135,6 +135,61 @@
 &dsi {
 	status = "okay";
 	rockchip,lane-rate = <500>;
+
+    panel@1 {
+        compatible = "simple-panel-dsi";
+        reg = <0>;
+        backlight = <&backlight>;
+        power-supply = <&vcc_lcd>;
+        enable-gpios = <&gpio1 24 GPIO_ACTIVE_HIGH>;
+        reset-gpios = <&gpio2 28 GPIO_ACTIVE_LOW>;
+
+        dsi,flags = <(MIPI_DSI_MODE_VIDEO_BURST | MIPI_DSI_MODE_VIDEO | MIPI_DSI_MODE_LPM )>;
+        dsi,format = <MIPI_DSI_FMT_RGB888>;
+        bus-format = <MEDIA_BUS_FMT_RGB666_1X18>;
+        dsi,lanes = <4>;
+
+        // init-delay-ms = <20>;
+        // reset-delay-ms = <6>;
+        prepare-delay-ms = <6>;
+        enable-delay-ms = <35>;
+        unprepare-delay-ms = <0>;
+        disable-delay-ms = <20>;
+        size,width = <120>;
+        size,height = <170>;
+        status = "okay";
+
+
+        panel-init-sequence = [
+            05 78 01 11
+            05 05 01 29
+        ];
+
+		panel-exit-sequence = [
+            05 05 01 28
+            05 78 01 10
+		];
+
+		display-timings {
+			native-mode = <&timing1>;
+			timing1: timing1 {
+                clock-frequency = <76000000>;//<80000000>;
+                hactive = <800>;//<768>;
+                vactive = <1280>;
+                hsync-len = <14>;   //20, 50
+                hback-porch = <25>; //50, 56
+                hfront-porch = <25>;//50, 30
+                vsync-len = <8>;
+                vback-porch = <32>;
+                vfront-porch = <184>;
+                hsync-active = <0>;
+                vsync-active = <0>;
+                de-active = <0>;
+                pixelclk-active = <0>;
+            };
+		};
+	};
+
 	panel@0 {
 		compatible = "simple-panel-dsi";
 		reg = <0>;
@@ -156,7 +211,7 @@
         disable-delay-ms = <20>;
         size,width = <120>;
         size,height = <170>;
-        status = "okay";
+        status = "disabled";
 
         panel-init-sequence = [
             15 00 02 E0 00
