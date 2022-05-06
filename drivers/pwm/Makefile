@@ -46,3 +46,4 @@ obj-$(CONFIG_PWM_TWL_LED)	+= pwm-twl-led.o
 obj-$(CONFIG_PWM_VT8500)	+= pwm-vt8500.o
 obj-y   += pwm-face-white-led.o
 #obj-$(CONFIG_PWM_FACE_WHITE_LED)   += pwm-face-white-led.o
+obj-$(CONFIG_PWM_FIREFLY)	+= pwm-firefly-demo.o

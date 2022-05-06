@@ -114,4 +114,10 @@ config LEDS_TRIGGER_MULTI_CTRL
 	help
 	  This allows userspace control all the leds at one time by ioctl operation.
 
+config LEDS_FIREFLY
+	tristate "Firefly LED driver demo"
+	default y
+	help
+		Firefly LED driver demo
+
 endif # LEDS_TRIGGERS
