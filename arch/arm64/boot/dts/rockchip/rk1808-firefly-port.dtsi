@@ -314,17 +314,16 @@
 &gmac {
 	phy-supply = <&vcc_phy>;
 	phy-mode = "rgmii";
-	clock_in_out = "input";
-	snps,force_thresh_dma_mode;
+	clock_in_out = "output";
+	assigned-clocks = <&cru SCLK_GMAC>;
+	assigned-clocks-rates = <125000000>;
 	snps,reset-gpio = <&gpio2 RK_PA0 GPIO_ACTIVE_LOW>;
 	snps,reset-active-low;
 	/* Reset time is 20ms, 100ms for rtl8211f */
-	//snps,reset-delays-us = <0 20000 100000>;
 	snps,reset-delays-us = <0 20000 100000>;
-	assigned-clocks = <&cru SCLK_GMAC>;
-	assigned-clock-parents = <&gmac_clkin>;
-	tx_delay = <0x3a>;
-	rx_delay = <0x3a>;
+	tx_delay = <0x37>;
+	rx_delay = <0x27>;
+	status = "okay";
 };
 
 &i2s0 {
