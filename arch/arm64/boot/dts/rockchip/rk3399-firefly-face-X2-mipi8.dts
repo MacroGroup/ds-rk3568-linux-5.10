@@ -70,6 +70,21 @@
     /delete-node/es8323@10;
 };
 
+&i2c4 {
+    focaltech1: focaltech@38 {
+		status = "okay";
+		compatible = "focaltech,fts";
+		reg = <0x38>;
+		//focaltech,power-gpio = <&pca9555 PCA_IO0_7 GPIO_ACTIVE_HIGH>;
+		focaltech,irq-gpio = <&gpio4 28 IRQ_TYPE_LEVEL_LOW>;
+		focaltech,reset-gpio = <&gpio4 21 GPIO_ACTIVE_LOW>;
+		focaltech,have-key = <0>;
+		focaltech,key-number = <3>;
+		focaltech,display-coords =  <0 0 800 1280>;// x_min. y_min, x_max, y_max
+		focaltech,max-touch-number = <5>;
+    };
+};
+
 &i2c7 {
 	es8323: es8323@11 {
         compatible = "everest,es8323";
@@ -139,6 +154,9 @@
     panel@1 {
         compatible = "simple-panel-dsi";
         reg = <0>;
+		// num = <1>;
+		id = [00 00 00];
+		id-reg = <0x04>;
         backlight = <&backlight>;
         power-supply = <&vcc_lcd>;
         enable-gpios = <&gpio1 24 GPIO_ACTIVE_HIGH>;
@@ -193,6 +211,9 @@
 	panel@0 {
 		compatible = "simple-panel-dsi";
 		reg = <0>;
+		// num = <0>;
+		id = [93 66 ff];
+		id-reg = <0x04>;
 		backlight = <&backlight>;
 		power-supply = <&vcc_lcd>;
 		enable-gpios = <&gpio1 24 GPIO_ACTIVE_HIGH>;
@@ -211,7 +232,7 @@
         disable-delay-ms = <20>;
         size,width = <120>;
         size,height = <170>;
-        status = "disabled";
+        status = "okay";
 
         panel-init-sequence = [
             15 00 02 E0 00
