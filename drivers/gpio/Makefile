@@ -124,3 +124,4 @@ obj-$(CONFIG_GPIO_WIEGAND_SEND)		+= gpio-wiegand-send.o
 obj-$(CONFIG_GPIO_WIEGAND_RECEIVE)	+= gpio-wiegand-receive.o
 obj-$(CONFIG_GPIO_RADAR)	+= gpio-radar.o
 obj-$(CONFIG_GPIO_ADB_SELECT)  += gpio-adb-select.o
+obj-$(CONFIG_GPIO_FIREFLY)	+= gpio-firefly.o
