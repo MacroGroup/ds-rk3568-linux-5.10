@@ -58,6 +58,11 @@ struct panel_cmds {
 	int cmd_cnt;
 };
 
+struct panel_id {
+	u8 *buf;
+	int len;
+};
+
 struct panel_desc {
 	const struct drm_display_mode *modes;
 	unsigned int num_modes;
@@ -65,6 +70,8 @@ struct panel_desc {
 	unsigned int num_timings;
 
 	unsigned int bpc;
+
+	struct panel_id *id;
 
 	struct {
 		unsigned int width;
@@ -800,17 +807,65 @@ static int panel_simple_probe(struct device *dev, const struct panel_desc *desc)
 	struct panel_simple *panel;
 	struct panel_desc *of_desc;
 	const char *cmd_type;
+	const void *data;
+	char *cmdline;
+	char panel_id[10];
 	u32 val;
-	int err;
+	int err, i, len;
 
 	panel = devm_kzalloc(dev, sizeof(*panel), GFP_KERNEL);
 	if (!panel)
 		return -ENOMEM;
 
+	cmdline = kstrdup(strstr(saved_command_line, "dsi.panel_id="), GFP_KERNEL);
+	if (!cmdline) {
+		dev_err(dev, "failed to get panel id from cmdline\n");
+		return -EPERM;
+	}
+
+	cmdline += strlen("dsi.panel_id=");
+	len = strlen(cmdline);
+	for (i = 0; i < len; i++) {
+		if (cmdline[i] == ' ') {
+			cmdline[i] = '\0';
+			break;
+		}
+	}
+
 	if (!desc)
 		of_desc = devm_kzalloc(dev, sizeof(*of_desc), GFP_KERNEL);
 	else
 		of_desc = devm_kmemdup(dev, desc, sizeof(*of_desc), GFP_KERNEL);
+
+	data = of_get_property(dev->of_node, "id",
+			       &len);
+	if (data) {
+		of_desc->id = devm_kzalloc(dev,
+					   sizeof(*of_desc->id),
+					   GFP_KERNEL);
+		if (!of_desc->id)
+			return -ENOMEM;
+		of_desc->id->buf = devm_kzalloc(dev,
+						sizeof(u8) * len,
+						GFP_KERNEL);
+		if (!of_desc->id->buf)
+			return -ENOMEM;
+		memcpy(of_desc->id->buf, data, len);
+		of_desc->id->len = len;
+
+		snprintf(panel_id, ARRAY_SIZE(panel_id),
+					"0x%x%x%x", of_desc->id->buf[0],
+					of_desc->id->buf[1], of_desc->id->buf[2]);
+		dev_info(dev, "probe id: %s\n", panel_id);
+	} else {
+		dev_err(dev, "failed to get id\n");
+		return -EPERM;
+	}
+
+	if (strcmp(cmdline, panel_id)) {
+		dev_err(dev, "failed to match id\n");
+		return -EPERM;
+	}
 
 	if (!of_property_read_u32(dev->of_node, "bus-format", &val))
 		of_desc->bus_format = val;
