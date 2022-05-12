@@ -1684,6 +1684,37 @@ static int fts_ts_probe_entry(struct fts_ts_data *ts_data)
     int ret = 0;
     int pdata_size = sizeof(struct fts_ts_platform_data);
 
+/* Compatible with 2 different touch screens,
+   the screen with ID 0x9366ff is pasted the old touch screen,
+   so it does not need to be initialized*/
+#define FIREFLY_FACE_X2
+#if defined(FIREFLY_FACE_X2)
+    char *cmdline;
+    int len, i;
+
+    cmdline = kstrdup(strstr(saved_command_line, "dsi.panel_id="), GFP_KERNEL);
+    if (!cmdline) {
+            dev_err(dev, "failed to get panel id from cmdline\n");
+            return -EPERM;
+    }
+
+    cmdline += strlen("dsi.panel_id=");
+    len = strlen(cmdline);
+    for (i = 0; i < len; i++) {
+            if (cmdline[i] == ' ') {
+                    cmdline[i] = '\0';
+                    break;
+            }
+    }
+
+    if (!strcmp(cmdline, "0x9366ff")) {
+        FTS_ERROR("firefly: FTS do not support panel screens with ID %s \n", cmdline);
+        return -ENODEV;
+    } else {
+        FTS_INFO("firefly: FTS do support panel screens with ID %s \n", cmdline);
+    }
+#endif
+
     FTS_FUNC_ENTER();
     FTS_INFO("%s", FTS_DRIVER_VERSION);
     ts_data->pdata = kzalloc(pdata_size, GFP_KERNEL);
@@ -2068,7 +2099,7 @@ static int tp_ctrl_open(struct inode *inode, struct file *filp)
 }
 
 static  int tp_ctrl_release(struct inode *inode, struct file *filp)
-{  
+{
       return 0;
 }
 
@@ -2076,7 +2107,7 @@ static  ssize_t tp_ctrl_read(struct file *filp, char __user *buf, size_t count,l
 {
       char kbuf[5] = {0};
       int ret, wrinten;
-      
+
       if (*f_pos)
               return 0;
 
@@ -2088,15 +2119,15 @@ static  ssize_t tp_ctrl_read(struct file *filp, char __user *buf, size_t count,l
       {
               wrinten = snprintf(kbuf, 5, "%s\r\n", "1");
       }
-      
+
       if(clear_user(buf, count))
       {
               printk(KERN_ERR "clear error\n");
               return -EIO;
       }
-      
+
       ret = copy_to_user(buf, kbuf, wrinten);
-      if (ret != 0) 
+      if (ret != 0)
       {
               printk(KERN_ERR "copy error\n");
               return -EIO;
@@ -2120,14 +2151,14 @@ static  ssize_t tp_ctrl_write(struct file *filp, const char __user *buf, size_t 
     }
       switch(demoBuffer[0])
       {
-              case '0':      
+              case '0':
                     if(true == tp_status){
                         fts_ts_suspend(fts_data->dev);
                         tp_status = false;
                     }
                     break;
-              case '1':       
-                    if(false == tp_status){                                               
+              case '1':
+                    if(false == tp_status){
                         fts_ts_resume(fts_data->dev);
                         tp_status = true;
                     }
