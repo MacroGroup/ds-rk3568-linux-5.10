@@ -1,12 +1,11 @@
 /dts-v1/;
 
-#include "rk3399-roc-pc-pro.dtsi"
+#include "rk3399-roc-pc-plus.dtsi"
 
 / {
-	model = "Firefly roc-rk3399-pc PLUS";
+	model = "Firefly ROC-RK3399-PC-PLUS and ROC-RK3399-PC-Pro";
 	compatible = "firefly,roc-rk3399-pc", "rockchip,rk3399";
 };
-
 
 &ov13850 {
 	status = "disabled";
