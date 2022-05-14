@@ -520,6 +520,11 @@
 	};
 };
 
+
+&dmc {
+	center-supply = <&vdd_center>;
+};
+
 &i2c4 {
 	status = "okay";
 	i2c-scl-rising-time-ns = <475>;
