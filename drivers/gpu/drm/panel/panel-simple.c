@@ -807,20 +807,26 @@ static int panel_simple_probe(struct device *dev, const struct panel_desc *desc)
 	struct panel_simple *panel;
 	struct panel_desc *of_desc;
 	const char *cmd_type;
+	u32 val;
+	int err;
+
+/*	@board: FIREFLY_FACE_X2
+
+	Compatible with 2 different touch screens,
+    the screen with ID 0x9366ff is pasted the old touch screen,
+    so it does not need to be initialized.
+*/
+#define FIREFLY_FACE_X2
+#if defined(FIREFLY_FACE_X2)
 	const void *data;
 	char *cmdline;
 	char panel_id[10];
-	u32 val;
-	int err, i, len;
-
-	panel = devm_kzalloc(dev, sizeof(*panel), GFP_KERNEL);
-	if (!panel)
-		return -ENOMEM;
+	int i, len;
 
 	cmdline = kstrdup(strstr(saved_command_line, "dsi.panel_id="), GFP_KERNEL);
 	if (!cmdline) {
 		dev_err(dev, "failed to get panel id from cmdline\n");
-		return -EPERM;
+		goto normal_probe;
 	}
 
 	cmdline += strlen("dsi.panel_id=");
@@ -844,12 +850,12 @@ static int panel_simple_probe(struct device *dev, const struct panel_desc *desc)
 					   sizeof(*of_desc->id),
 					   GFP_KERNEL);
 		if (!of_desc->id)
-			return -ENOMEM;
+			goto normal_probe;
 		of_desc->id->buf = devm_kzalloc(dev,
 						sizeof(u8) * len,
 						GFP_KERNEL);
 		if (!of_desc->id->buf)
-			return -ENOMEM;
+			goto normal_probe;
 		memcpy(of_desc->id->buf, data, len);
 		of_desc->id->len = len;
 
@@ -859,12 +865,27 @@ static int panel_simple_probe(struct device *dev, const struct panel_desc *desc)
 		dev_info(dev, "probe id: %s\n", panel_id);
 	} else {
 		dev_err(dev, "failed to get id\n");
-		return -EPERM;
+		goto normal_probe;
 	}
 
 	if (strcmp(cmdline, panel_id)) {
 		dev_err(dev, "failed to match id\n");
-		return -EPERM;
+		return -ENOMEM;
+	}
+
+normal_probe:
+#endif
+
+	panel = devm_kzalloc(dev, sizeof(*panel), GFP_KERNEL);
+	if (!panel)
+		return -ENOMEM;
+
+	if (!of_desc)
+	{
+		if (!desc)
+			of_desc = devm_kzalloc(dev, sizeof(*of_desc), GFP_KERNEL);
+		else
+			of_desc = devm_kmemdup(dev, desc, sizeof(*of_desc), GFP_KERNEL);
 	}
 
 	if (!of_property_read_u32(dev->of_node, "bus-format", &val))
