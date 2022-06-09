@@ -22,6 +22,7 @@ static int rk_led_test_remove(struct platform_device *pdev)
 }
 
 static const struct of_device_id rk_led_test_match[] = {
+    { .compatible = "firefly,rk3399-led" },
     { .compatible = "firefly,rk356x-led" },
     {},
 };

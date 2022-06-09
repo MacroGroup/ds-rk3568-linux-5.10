@@ -91,6 +91,7 @@ static int firefly_gpio_probe(struct platform_device *pdev)
 }
 
 static struct of_device_id firefly_match_table[] = {
+        { .compatible = "firefly,rk3399-gpio",},
         { .compatible = "firefly,rk356x-gpio",},
         {},
 };

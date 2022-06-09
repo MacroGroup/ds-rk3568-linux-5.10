@@ -92,6 +92,7 @@ static int firefly_adc_remove(struct platform_device *pdev)
 }
 
 static const struct of_device_id firefly_adc_match[] = {
+    { .compatible = "firefly,rk3399-adc" },
     { .compatible = "firefly,rk356x-adc" },
     {},
 };

@@ -172,6 +172,7 @@ static int firefly_pwm_remove(struct platform_device *pdev)
 }
 
 static const struct of_device_id firefly_pwm_dt_ids[] = {
+        { .compatible = "firefly,rk3399-pwm"},
         { .compatible = "firefly,rk356x-pwm"},
         {  }
 };
