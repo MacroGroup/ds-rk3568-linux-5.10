@@ -41,6 +41,7 @@
  */
 
 #include "rk3399-firefly-core.dtsi"
+#include "rk3399-firefly-demo.dtsi"
 #include <dt-bindings/input/input.h>
 
 / {
