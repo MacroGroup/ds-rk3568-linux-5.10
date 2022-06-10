@@ -2,6 +2,7 @@
 #include "rk3399.dtsi"
 #include "rk3399-opp.dtsi"
 #include "rk3399-linux.dtsi"
+#include "rk3399-firefly-demo.dtsi"
 #include <dt-bindings/input/input.h>
 #include <dt-bindings/display/media-bus-format.h>
 //#include "include/uapi/drm/drm_mode.h"
