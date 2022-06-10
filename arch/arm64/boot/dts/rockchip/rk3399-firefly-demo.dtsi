@@ -48,6 +48,6 @@
        };
 };
 
-&spidev0 {
-    status = "disabled";
-};
+//&spidev0 {
+//    status = "disabled";
+//};
