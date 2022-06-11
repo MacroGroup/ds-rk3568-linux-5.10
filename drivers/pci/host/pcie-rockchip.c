@@ -560,7 +560,8 @@ static int rockchip_pcie_init_port(struct rockchip_pcie *rockchip)
 	u32 status;
 	int timeouts = 500;
 
-	gpiod_set_value(rockchip->ep_gpio, 0);
+	if (!strstr(saved_command_line, "storagemedia=nvme"))
+		gpiod_set_value(rockchip->ep_gpio, 0);
 
 	err = reset_control_assert(rockchip->aclk_rst);
 	if (err) {
