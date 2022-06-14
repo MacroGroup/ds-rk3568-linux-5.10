@@ -53,6 +53,7 @@ struct rk_priv_data {
 	const struct rk_gmac_ops *ops;
 
 	bool clk_enabled;
+	bool clk_alway_enable;
 	bool clock_input;
 	bool integrated_phy;
 
@@ -1311,6 +1312,7 @@ static int gmac_clk_enable(struct rk_priv_data *bsp_priv, bool enable)
 {
 	int phy_iface = bsp_priv->phy_iface;
 
+	enable = (bsp_priv->clk_alway_enable == true) ? 1 : enable;
 	if (enable) {
 		if (!bsp_priv->clk_enabled) {
 			if (phy_iface == PHY_INTERFACE_MODE_RMII) {
@@ -1426,6 +1428,18 @@ static struct rk_priv_data *rk_gmac_setup(struct platform_device *pdev,
 		}
 		dev_err(dev, "no regulator found\n");
 		bsp_priv->regulator = NULL;
+	}
+
+	ret = of_property_read_string(dev->of_node, "clk_alway_enable", &strings);
+	if (ret) {
+		dev_err(dev, "Can not read property: clk_alway_enable.\n");
+		bsp_priv->clk_alway_enable = false;
+	} else {
+		dev_info(dev, "clk is always enabled and will not be disabled.\n");
+		if (!strcmp(strings, "true"))
+			bsp_priv->clk_alway_enable = true;
+		else
+			bsp_priv->clk_alway_enable = false;
 	}
 
 	ret = of_property_read_string(dev->of_node, "clock_in_out", &strings);
