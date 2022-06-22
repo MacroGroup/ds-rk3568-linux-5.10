@@ -307,6 +307,15 @@
 	max-link-speed = <2>;
 };
 
+&pcie_phy {
+    status = "okay";
+};
+
+&vcc3v3_pcie {
+    status = "okay";
+    gpio = <&gpio1 4 GPIO_ACTIVE_HIGH>;
+};
+
 &i2c4 {
 	status = "disabled";
 };
