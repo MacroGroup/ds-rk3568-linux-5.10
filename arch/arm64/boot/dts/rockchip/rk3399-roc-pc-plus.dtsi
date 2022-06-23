@@ -193,6 +193,12 @@
 
 };
 
+
+&vcc5v0_host {
+	/delete-property/ regulator-always-on;
+};
+
+
 /*
 &fusb0 {
 	status = "disabled";
