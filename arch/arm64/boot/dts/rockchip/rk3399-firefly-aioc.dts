@@ -43,4 +43,33 @@
 / {
 	model = "AIO-3399C Board (Linux Opensource)";
 	compatible = "rockchip,rk3399-firefly", "rockchip,rk3399";
+
+	vcc5v0_HUB_EN: vcc5v0-HUB-EN-regulator {
+		compatible = "regulator-fixed";
+		enable-active-high;
+		gpio = <&gpio1 0 0>;
+		pinctrl-names = "default";
+		pinctrl-0 = <&USB30_HUB_EN_vbus_drv>;
+		regulator-name = "vcc5v0_HUB_EN";
+		regulator-always-on;
+	};
+};
+
+
+&vcc5v0_host {
+	gpio = <&gpio4 29 0>;
+	/delete-property/ regulator-always-on;
+};
+
+&host_vbus_drv {
+   rockchip,pins = <4 29 0 &pcfg_pull_none>;
+};
+
+
+&pinctrl {
+	usb3 {
+		USB30_HUB_EN_vbus_drv: USB30-HUB-EN-vbus-drv {
+			rockchip,pins = <1 0 0 &pcfg_pull_none>;//pcfg_pull_none
+		};
+	};
 };

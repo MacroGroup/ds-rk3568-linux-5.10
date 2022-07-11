@@ -71,6 +71,25 @@
 			press-threshold-microvolt = <0>;
 		};
 	};
+
+	vcc5v0_HUB_EN: vcc5v0-HUB-EN-regulator {
+		compatible = "regulator-fixed";
+		enable-active-high;
+		gpio = <&gpio1 0 0>;
+		pinctrl-names = "default";
+		pinctrl-0 = <&USB20_HUB_EN_vbus_drv>;
+		regulator-name = "vcc5v0_HUB_EN";
+		regulator-always-on;
+	};
+};
+
+&vcc5v0_host {
+	gpio = <&gpio4 29 0>;
+	/delete-property/ regulator-always-on;
+};
+
+&host_vbus_drv {
+   rockchip,pins = <4 29 0 &pcfg_pull_none>;
 };
 
 &gmac {
@@ -171,11 +190,16 @@
 	pinctrl-names = "default";
 	pinctrl-0 = <&host_hub_vcc>;
 
+	usb20_HUB {
+		USB20_HUB_EN_vbus_drv: USB30-HUB-EN-vbus-drv {
+			rockchip,pins = <1 0 0 &pcfg_pull_none>;//pcfg_pull_none
+		};
+	};
+
 	host-hub-vcc {
 		host_hub_vcc: host-hub-vcc {
 			rockchip,pins = <1 23 RK_FUNC_GPIO &pcfg_output_high>,
-				<2 4 RK_FUNC_GPIO &pcfg_output_high>,
-				<4 29 RK_FUNC_GPIO &pcfg_output_high>;
+				<2 4 RK_FUNC_GPIO &pcfg_output_high>;
 		};
 	};
 
