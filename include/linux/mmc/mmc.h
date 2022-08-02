@@ -24,6 +24,9 @@
 #ifndef LINUX_MMC_MMC_H
 #define LINUX_MMC_MMC_H
 
+
+#define EXT_CSD_FW_VER 254 /* RO 8bytes*/
+
 /* Standard MMC commands (4.1)           type  argument     response */
    /* class 1 */
 #define MMC_GO_IDLE_STATE         0   /* bc                          */

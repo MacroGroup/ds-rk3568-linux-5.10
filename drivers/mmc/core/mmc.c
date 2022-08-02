@@ -613,6 +613,7 @@ static int mmc_read_ext_csd(struct mmc_card *card)
 {
 	u8 *ext_csd;
 	int err;
+	int i=0;
 
 	if (!mmc_can_ext_csd(card))
 		return 0;
@@ -643,6 +644,10 @@ static int mmc_read_ext_csd(struct mmc_card *card)
 	}
 
 	err = mmc_decode_ext_csd(card, ext_csd);
+
+	for(i=0; i<8; i++)
+		card->ext_csd.raw_fw_version[i]=ext_csd[EXT_CSD_FW_VER + i];
+
 	kfree(ext_csd);
 	return err;
 }
@@ -720,6 +725,16 @@ static int mmc_compare_ext_csds(struct mmc_card *card, unsigned bus_width)
 	return err;
 }
 
+MMC_DEV_ATTR(ecsdrev,"%08x%08x%08x%08x%08x%08x%08x%08x",
+card->ext_csd.raw_fw_version[0],
+card->ext_csd.raw_fw_version[1],
+card->ext_csd.raw_fw_version[2],
+card->ext_csd.raw_fw_version[3],
+card->ext_csd.raw_fw_version[4],
+card->ext_csd.raw_fw_version[5],
+card->ext_csd.raw_fw_version[6],
+card->ext_csd.raw_fw_version[7]);
+
 MMC_DEV_ATTR(cid, "%08x%08x%08x%08x\n", card->raw_cid[0], card->raw_cid[1],
 	card->raw_cid[2], card->raw_cid[3]);
 MMC_DEV_ATTR(csd, "%08x%08x%08x%08x\n", card->raw_csd[0], card->raw_csd[1],
@@ -779,6 +794,7 @@ static ssize_t mmc_dsr_show(struct device *dev,
 static DEVICE_ATTR(dsr, S_IRUGO, mmc_dsr_show, NULL);
 
 static struct attribute *mmc_std_attrs[] = {
+	&dev_attr_ecsdrev.attr,
 	&dev_attr_cid.attr,
 	&dev_attr_csd.attr,
 	&dev_attr_date.attr,

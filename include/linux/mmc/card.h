@@ -58,6 +58,7 @@ struct mmc_ext_csd {
 	u8			max_packed_writes;
 	u8			max_packed_reads;
 	u8			packed_event_en;
+	u8			raw_fw_version[8]; /*254 - 8bytes*/
 	unsigned int		part_time;		/* Units: ms */
 	unsigned int		sa_timeout;		/* Units: 100ns */
 	unsigned int		generic_cmd6_time;	/* Units: 10ms */
