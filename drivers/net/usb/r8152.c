@@ -31,6 +31,8 @@
 #include <linux/acpi.h>
 #include "compatibility.h"
 
+#include <asm/system_info.h>
+
 /* Version Information */
 #define DRIVER_VERSION "v2.16.1 (2022/04/12)"
 #define DRIVER_AUTHOR "Realtek nic sw <nic_swsd@realtek.com>"
@@ -40,6 +42,8 @@
 #define PATENTS		"This product is covered by one or more of the " \
 			"following patents:\n" \
 			"\t\tUS6,570,884, US6,115,776, and US6,327,625.\n"
+
+#define USE_CPUSERIAL_MACADDR
 
 #define R8152_PHY_ID		32
 
@@ -1569,6 +1573,24 @@ out:
 	return ret;
 }
 
+static int eth_mac_from_system_serial(struct r8152 *tp, u8 *addr)
+{
+	struct net_device *dev = tp->netdev;
+
+	if (system_serial_low != 0 && system_serial_high != 0) {
+		addr[0] = (system_serial_high >> 24) & 0xfe;/* clear multicast bit */
+		addr[1] = (system_serial_high >> 16) | 0x02;/* set local assignment bit (IEEE802) */
+		addr[2] = system_serial_low >> 24;
+		addr[3] = system_serial_low >> 16;
+		addr[4] = system_serial_low >> 8;
+		addr[5] = system_serial_low;
+		netif_info(tp, probe, dev, "Create an ether addr [%x:%x:%x:%x:%x:%x] from system serial number\n",
+			   addr[0], addr[1], addr[2], addr[3], addr[4], addr[5]);
+
+	}
+	return 0;
+}
+
 static int determine_ethernet_addr(struct r8152 *tp, struct sockaddr *sa)
 {
 	struct net_device *dev = tp->netdev;
@@ -1596,6 +1618,9 @@ static int determine_ethernet_addr(struct r8152 *tp, struct sockaddr *sa)
 		netif_err(tp, probe, dev, "Invalid ether addr %pM\n",
 			  sa->sa_data);
 		eth_hw_addr_random(dev);
+#ifdef USE_CPUSERIAL_MACADDR
+		eth_mac_from_system_serial(tp, dev->dev_addr);
+#endif
 		ether_addr_copy(sa->sa_data, dev->dev_addr);
 		netif_info(tp, probe, dev, "Random ether addr %pM\n",
 			   sa->sa_data);
