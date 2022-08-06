@@ -15,7 +15,7 @@
 
 #include "himax_ic_HX83102.h"
 #include "himax_modular.h"
-
+#include <linux/ktime.h>
 static void hx83102_chip_init(void)
 {
 	(*kp_private_ts)->chip_cell_type = CHIP_IS_IN_CELL;
@@ -160,9 +160,9 @@ static void hx83102_pin_reset(void)
 {
 	I("%s: Now reset the Touch chip.\n", __func__);
 	kp_himax_rst_gpio_set((*kp_private_ts)->rst_gpio, 0);
-	msleep(20);
+	msleep(600);
 	kp_himax_rst_gpio_set((*kp_private_ts)->rst_gpio, 1);
-	msleep(50);
+	msleep(1000);
 }
 #endif
 
@@ -1422,19 +1422,22 @@ static int hx83102d_0f_overlay(int ovl_type, int mode)
 
 static bool hx83102e_read_event_stack(uint8_t *buf, uint8_t length)
 {
-	struct timespec t_start = {0}, t_end = {0}, t_delta = {0};
+	struct timespec64 t_start, t_end, t_delta;
 	int len = length;
 	int i2c_speed = 0;
 
 	if ((*kp_private_ts)->debug_log_level & BIT(2))
-		getnstimeofday(&t_start);
-
+		ktime_get_real_ts64(&t_start);
 	kp_himax_bus_read((*kp_pfw_op)->addr_event_addr[0], buf, length,
 			HIMAX_I2C_RETRY_TIMES);
 
 	if ((*kp_private_ts)->debug_log_level & BIT(2)) {
-		getnstimeofday(&t_end);
-		t_delta.tv_nsec = (t_end.tv_sec * 1000000000 + t_end.tv_nsec) - (t_start.tv_sec * 1000000000 + t_start.tv_nsec); /*ns*/
+		ktime_get_real_ts64(&t_end);
+		t_delta.tv_nsec = (t_end.tv_sec * 1000000000 + t_end.tv_nsec)
+					- (t_start.tv_sec
+					* 1000000000
+					+ t_start.tv_nsec); /*ns*/
+
 		i2c_speed = (len * 9 * 1000000
 			/ (int)t_delta.tv_nsec) * 13 / 10;
 		(*kp_private_ts)->bus_speed = (int)i2c_speed;

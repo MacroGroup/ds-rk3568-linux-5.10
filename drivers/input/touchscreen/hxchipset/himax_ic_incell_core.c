@@ -446,9 +446,8 @@ static void himax_mcu_sense_on(uint8_t FlashMode)
 
 			ret = himax_bus_write(pic_op->adr_i2c_psw_lb[0],
 					tmp_data, 1, HIMAX_I2C_RETRY_TIMES);
-			if (ret < 0) {
+			if (ret < 0)
 				E("%s: i2c access fail!\n", __func__);
-			}
 
 				ret = himax_bus_write(pic_op->adr_i2c_psw_ub[0],
 					tmp_data, 1, HIMAX_I2C_RETRY_TIMES);
@@ -1591,7 +1590,7 @@ END:
 static bool himax_mcu_read_event_stack(uint8_t *buf, uint8_t length)
 {
 	uint8_t cmd[DATA_LEN_4];
-	struct timespec t_start = {0}, t_end = {0}, t_delta = {0};
+	struct timespec64 t_start, t_end, t_delta;
 	int len = length;
 	int i2c_speed = 0;
 	int ret = 0;
@@ -1606,14 +1605,15 @@ static bool himax_mcu_read_event_stack(uint8_t *buf, uint8_t length)
 		return 0;
 	}
 	if (private_ts->debug_log_level & BIT(2))
-		getnstimeofday(&t_start);
+		ktime_get_real_ts64(&t_start);
 
 	himax_bus_read(pfw_op->addr_event_addr[0], buf, length,
 			HIMAX_I2C_RETRY_TIMES);
 
 	if (private_ts->debug_log_level & BIT(2)) {
-		getnstimeofday(&t_end);
-		t_delta.tv_nsec = (t_end.tv_sec * 1000000000 + t_end.tv_nsec) - (t_start.tv_sec * 1000000000 + t_start.tv_nsec);
+		ktime_get_real_ts64(&t_end);
+		t_delta.tv_nsec = (t_end.tv_sec * 1000000000 + t_end.tv_nsec)
+			- (t_start.tv_sec * 1000000000 + t_start.tv_nsec);
 
 		i2c_speed = (len * 9 * 1000000
 			/ (int)t_delta.tv_nsec) * 13 / 10;
@@ -2479,7 +2479,7 @@ static void himax_mcu_touch_information(void)
 	ic_data->HX_MAX_PT = FIX_HX_MAX_PT;
 	ic_data->HX_XY_REVERSE = FIX_HX_XY_REVERSE;
 	ic_data->HX_INT_IS_EDGE = FIX_HX_INT_IS_EDGE;
-	ic_data->HX_PEN_FUNC = FIX_HX_PEN_FUNC;
+    ic_data->HX_PEN_FUNC = FIX_HX_PEN_FUNC;
 #endif
 	g_core_fp.fp_ic_id_read();
 	I("%s:HX_RX_NUM =%d,HX_TX_NUM =%d,HX_MAX_PT=%d\n", __func__,
