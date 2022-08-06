@@ -16,7 +16,7 @@
 #ifndef HIMAX_COMMON_H
 #define HIMAX_COMMON_H
 
-#include <asm/segment.h>
+//#include <asm/segment.h>
 
 #include <linux/uaccess.h>
 #include <linux/atomic.h>
@@ -44,7 +44,7 @@
 	#include <linux/of_gpio.h>
 #endif
 
-#define HIMAX_DRIVER_VER "2.0.0.51_BOE10.1_01"
+#define HIMAX_DRIVER_VER "2.0.0.51_BOE10.1_03"
 
 #define FLASH_DUMP_FILE "/sdcard/HX_Flash_Dump.bin"
 
@@ -259,8 +259,8 @@ enum fix_touch_info {
 	FIX_HX_INT_IS_EDGE = true,
 	FIX_HX_PEN_FUNC = false,
 #if defined(HX_TP_PROC_2T2R)
-	FIX_HX_RX_NUM_2 = 0,
-	FIX_HX_TX_NUM_2 = 0,
+	FIX_HX_RX_NUM_2 = 36,
+	FIX_HX_TX_NUM_2 = 22,
 #endif
 };
 #endif

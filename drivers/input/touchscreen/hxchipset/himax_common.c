@@ -215,7 +215,7 @@ static int gest_width, gest_height, gest_mid_x, gest_mid_y;
 static int hx_gesture_coor[16];
 #endif
 
-int g_ts_dbg = 0;
+int g_ts_dbg;
 EXPORT_SYMBOL(g_ts_dbg);
 
 /* File node for Selftest, SMWP and HSEN - Start*/
@@ -1954,9 +1954,7 @@ static int himax_err_ctrl(struct himax_ts_data *ts,
 
 	ts_status = himax_checksum_cal(ts, buf, ts_path, ts_status);
 	if (ts_status == HX_CHKSUM_FAIL) {
-               ts_status = HX_REPORT_DATA;
-               goto END_FUNCTION;
-               //goto CHK_FAIL;
+		goto CHK_FAIL;
 	} else {
 #if defined(HX_ESD_RECOVERY)
 		/* continuous N times record, not total N times. */
@@ -1965,6 +1963,7 @@ static int himax_err_ctrl(struct himax_ts_data *ts,
 		goto END_FUNCTION;
 	}
 
+CHK_FAIL:
 #if defined(HX_ESD_RECOVERY)
 	ts_status = himax_ts_event_check(ts, buf, ts_path, ts_status);
 #endif
@@ -2328,7 +2327,7 @@ static void himax_finger_report(struct himax_ts_data *ts)
 			input_report_abs(ts->input_dev, ABS_MT_PRESSURE,
 					g_target_report_data->w[i]);
 #else
-			input_report_abs(ts->input_dev, ABS_MT_TRACKING_ID, i + 1);
+			input_report_abs(ts->input_dev, ABS_MT_TRACKING_ID, i);
 #endif
 			input_report_abs(ts->input_dev, ABS_MT_POSITION_X,
 					g_target_report_data->x[i]);

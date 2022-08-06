@@ -2170,7 +2170,7 @@ static int himax_chip_self_test(struct seq_file *s, void *v)
 	}
 
 	fs = get_fs();
-	set_fs(get_ds());
+	set_fs(KERNEL_DS);
 
 	hx_print_ic_id();
 	if (file_w_flag) {

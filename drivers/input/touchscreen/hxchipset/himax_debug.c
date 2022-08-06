@@ -642,13 +642,13 @@ static ssize_t himax_proc_register_write(char *buf, size_t len)
 
 			byte_length = count - 1;
 			if (strcmp(HX_85XX_H_SERIES_PWON,
-				private_ts->chip_name) == 0 && cfg_flag == 0) {
+				private_ts->chip_name) == 0 && cfg_flag == 0){
 				cfg_flag = 2;
 				g_core_fp.fp_register_write(reg_cmd,
 					byte_length, &w_data[0], cfg_flag);
-			}
 
-		}
+			}
+        }
 		break;
 		};
 	}
@@ -880,12 +880,12 @@ void himax_log_touch_event(struct himax_ts_data *ts, int start)
 void himax_log_touch_int_devation(int touched)
 {
 	if (touched == HX_FINGER_ON) {
-		getnstimeofday(&timeStart);
+		ktime_get_real_ts64(&timeStart);
 		/* I(" Irq start time = %ld.%06ld s\n",
 		 * timeStart.tv_sec, timeStart.tv_nsec/1000);
 		 */
 	} else if (touched == HX_FINGER_LEAVE) {
-		getnstimeofday(&timeEnd);
+		ktime_get_real_ts64(&timeEnd);
 		timeDelta.tv_nsec =
 		  (timeEnd.tv_sec * 1000000000 + timeEnd.tv_nsec) -
 		  (timeStart.tv_sec * 1000000000 + timeStart.tv_nsec);
