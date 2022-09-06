@@ -637,7 +637,8 @@ static int device_pca953x_init(struct pca953x_chip *chip, u32 invert, struct che
 	ret = pca953x_read_regs(chip, PCA953X_OUTPUT, chip->reg_output);
 	if (ret)
 	{
-		dev_info(firefly->dev,"%s: error PCA953X_OUTPUT: %d !!!\n", __func__, ret);
+		//dev_info(firefly->dev,"%s: error PCA953X_OUTPUT: %d !!!\n", __func__, ret);
+
 		goto out;
 	}
 
@@ -645,7 +646,7 @@ static int device_pca953x_init(struct pca953x_chip *chip, u32 invert, struct che
 			       chip->reg_direction);
 	if (ret)
 	{
-		dev_info(firefly->dev,"%s: error PCA953X_DIRECTION: %d !!!\n", __func__, ret);
+		//dev_info(firefly->dev,"%s: error PCA953X_DIRECTION: %d !!!\n", __func__, ret);
 		goto out;
 	}
 
