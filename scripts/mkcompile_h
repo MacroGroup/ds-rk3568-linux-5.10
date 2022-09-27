@@ -53,6 +53,11 @@ else
 	LINUX_COMPILE_HOST=$KBUILD_BUILD_HOST
 fi
 
+LINUX_COMMIT=$(git log --pretty=format:%h -1)
+
+XML_PATH=$(readlink -f ../.repo/manifest.xml)
+XML_NAME=$(basename $XML_PATH .xml)
+
 UTS_VERSION="#$VERSION"
 CONFIG_FLAGS=""
 if [ -n "$SMP" ] ; then CONFIG_FLAGS="SMP"; fi
@@ -75,6 +80,10 @@ UTS_TRUNCATE="cut -b -$UTS_LEN"
 
   echo \#define LINUX_COMPILE_BY \"`echo $LINUX_COMPILE_BY | $UTS_TRUNCATE`\"
   echo \#define LINUX_COMPILE_HOST \"`echo $LINUX_COMPILE_HOST | $UTS_TRUNCATE`\"
+
+  printf '#define LINUX_COMMIT "%s"\n' "kernel commit id: $LINUX_COMMIT"
+
+  printf '#define XML_NAME "%s"\n' "sdk version: $XML_NAME"
 
   echo \#define LINUX_COMPILER \"`$CC -v 2>&1 | grep ' version '`\"
 ) > .tmpcompile
