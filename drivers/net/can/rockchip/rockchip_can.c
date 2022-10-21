@@ -321,9 +321,7 @@ static void rockchip_can_rx(struct net_device *ndev)
 	struct net_device_stats *stats = &ndev->stats;
 	struct can_frame *cf;
 	struct sk_buff *skb;
-	canid_t id;
 	u8 fi;
-	u32 data1 = 0, data2 = 0;
 
 	/* create zero'ed CAN frame buffer */
 	skb = alloc_can_skb(ndev, &cf);
@@ -332,31 +330,31 @@ static void rockchip_can_rx(struct net_device *ndev)
 
 	fi = readl(rcan->base + CAN_RX_FRM_INFO);
 	cf->can_dlc = get_can_dlc(fi & CAN_DLC_MASK);
-	id = readl(rcan->base + CAN_RX_ID);
+	cf->can_id = readl(rcan->base + CAN_RX_ID);
 	if (fi & CAN_EFF)
-		id |= CAN_EFF_FLAG;
+		cf->can_id |= CAN_EFF_FLAG;
 
 	/* remote frame ? */
 	if (fi & CAN_RTR) {
-		id |= CAN_RTR_FLAG;
+		cf->can_id |= CAN_RTR_FLAG;
 	} else {
-		data1 = readl(rcan->base + CAN_RX_DATA1);
-		data2 = readl(rcan->base + CAN_RX_DATA2);
+		*(u32 *)(cf->data + 0) = readl(rcan->base + CAN_RX_DATA1);
+		*(u32 *)(cf->data + 4) = readl(rcan->base + CAN_RX_DATA2);
 	}
-
-	cf->can_id = id;
-	*(__le32 *)(cf->data + 0) = cpu_to_le32(data1);
-	*(__le32 *)(cf->data + 4) = cpu_to_le32(data2);
 
 	stats->rx_packets++;
 	stats->rx_bytes += cf->can_dlc;
 	netif_rx(skb);
 
 	can_led_event(ndev, CAN_LED_EVENT_RX);
+}
 
-	netdev_dbg(ndev, "%s can_id:0x%08x fi: 0x%08x dlc: %d data: 0x%08x 0x%08x\n",
-		   __func__, cf->can_id, fi, cf->can_dlc,
-		   data1, data2);
+static void rockchip_can_clean_rx_info(struct rockchip_can *rcan)
+{
+	readl(rcan->base + CAN_RX_FRM_INFO);
+	readl(rcan->base + CAN_RX_ID);
+	readl(rcan->base + CAN_RX_DATA1);
+	readl(rcan->base + CAN_RX_DATA2);
 }
 
 static int rockchip_can_err(struct net_device *ndev, u8 isr)
@@ -495,6 +493,7 @@ static irqreturn_t rockchip_can_interrupt(int irq, void *dev_id)
 	u8 isr;
 
 	isr = readl(rcan->base + CAN_INT);
+	writel(isr, rcan->base + CAN_INT);
 	if (isr & TX_FINISH) {
 		/* transmission complete interrupt */
 		stats->tx_bytes += readl(rcan->base + CAN_TX_FRM_INFO) &
@@ -510,13 +509,12 @@ static irqreturn_t rockchip_can_interrupt(int irq, void *dev_id)
 		rockchip_can_rx(ndev);
 
 	if (isr & err_int) {
+		rockchip_can_clean_rx_info(rcan);
 		/* error interrupt */
 		if (rockchip_can_err(ndev, isr))
 			netdev_err(ndev, "can't allocate buffer - clearing pending interrupts\n");
 	}
 
-	writel(isr, rcan->base + CAN_INT);
-	netdev_dbg(ndev, "isr: 0x%x\n", isr);
 	return	IRQ_HANDLED;
 }
 
