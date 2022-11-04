@@ -3,6 +3,8 @@
 #include "rk3399-firefly-port.dtsi"
 #include <dt-bindings/sensor-dev.h>
 
+#define PCA955_I2C_CLK 100000
+
 / {
 	model = "CS-R1-3399JD4-MAIN Board (Linux Opensource)";
 	compatible = "rockchip,rk3399-firefly", "rockchip,rk3399";
@@ -55,6 +57,17 @@
 		regulator-name = "usb_net";
 		regulator-always-on;
 		status = "okay";
+	};
+
+	pca9555_rst: pca9555-rst {
+		compatible = "regulator-fixed";
+		enable-active-low;
+		gpio = <&gpio2 3 GPIO_ACTIVE_LOW>;
+		pinctrl-names = "default";
+		pinctrl-0 = <&pca9555_rst_pin>;
+		regulator-name = "pca5555_rst";
+		regulator-always-on;
+		status = "disabled";
 	};
 
 	leds {
@@ -165,52 +178,52 @@
 		//子板的Recovery 按键
 
 		RECOVER_IN1 {
-			gpios = <&gpio2 1 GPIO_ACTIVE_LOW>;	//RECOVER_IN1		GPIO2_A1	64+1		=65
+			gpios = <&sub_core_pca9555 PCA_IO0_0 GPIO_ACTIVE_LOW>;	//RECOVER_IN1	PCA9555	IO_00
 			default-state = "off";
 		};
 
 		RECOVER_IN2 {
-			gpios = <&gpio2 26 GPIO_ACTIVE_LOW>;	//RECOVER_IN2		GPIO2_D2	64+24+2		=90
+			gpios = <&sub_core_pca9555 PCA_IO0_1 GPIO_ACTIVE_LOW>;	//RECOVER_IN2	PCA9555	IO_01
 			default-state = "off";
 		};
 
 		RECOVER_IN3 {
-			gpios = <&gpio2 8 GPIO_ACTIVE_LOW>;	//RECOVER_IN3		GPIO2_B0	64+8		=72
+			gpios = <&sub_core_pca9555 PCA_IO0_2 GPIO_ACTIVE_LOW>;	//RECOVER_IN3	PCA9555	IO_02
 			default-state = "off";
 		};
 
 		RECOVER_IN4 {
-			gpios = <&gpio2 0 GPIO_ACTIVE_LOW>;	//RECOVER_IN4		GPIO2_A0	64+0		=64
+			gpios = <&sub_core_pca9555 PCA_IO0_3 GPIO_ACTIVE_LOW>;	//RECOVER_IN4	PCA9555	IO_03
 			default-state = "off";
 		};
 
 		RECOVER_IN5 {
-			gpios = <&gpio2 18 GPIO_ACTIVE_LOW>;	//RECOVER_IN5		GPIO2_C2	64+18		=82
+			gpios = <&sub_core_pca9555 PCA_IO0_4 GPIO_ACTIVE_LOW>;	//RECOVER_IN5	PCA9555	IO_04
 			default-state = "off";
 		};
 
 		RECOVER_IN6 {
-			gpios = <&gpio4 9 GPIO_ACTIVE_LOW>;	//RECOVER_IN6		GPIO4_B1	128+8+1		=137
+			gpios = <&sub_core_pca9555 PCA_IO0_5 GPIO_ACTIVE_LOW>;	//RECOVER_IN6	PCA9555	IO_05
 			default-state = "off";
 		};
 
 		RECOVER_IN7 {
-			gpios = <&gpio2 19 GPIO_ACTIVE_LOW>;	//RECOVER_IN7		GPIO2_C3	64+16+3		=83
+			gpios = <&sub_core_pca9555 PCA_IO1_0 GPIO_ACTIVE_LOW>;	//RECOVER_IN7	PCA9555	IO_10
 			default-state = "off";
 		};
 
 		RECOVER_IN8 {
-			gpios = <&gpio4 24 GPIO_ACTIVE_LOW>;	//RECOVER_IN8		GPIO4_D0	128+24+0	=152
+			gpios = <&sub_core_pca9555 PCA_IO1_1 GPIO_ACTIVE_LOW>;	//RECOVER_IN8	PCA9555	IO_11
 			default-state = "off";
 		};
 
 		RECOVER_IN9 {
-			gpios = <&gpio2 7 GPIO_ACTIVE_LOW>;	//RECOVER_IN9		GPIO2_A7	64+7		=71
+			gpios = <&sub_core_pca9555 PCA_IO1_2 GPIO_ACTIVE_LOW>;	//RECOVER_IN9	PCA9555	IO_12
 			default-state = "off";
 		};
 
 		RECOVER_IN10 {
-			gpios = <&gpio4 8 GPIO_ACTIVE_LOW>;	//RECOVER_IN10	GPIO4_B0	128+8		=136
+			gpios = <&sub_core_pca9555 PCA_IO1_3 GPIO_ACTIVE_LOW>;	//RECOVER_IN10	PCA9555	IO_13
 			default-state = "off";
 		};
 	};
@@ -414,6 +427,23 @@
 	i2c-scl-falling-time-ns = <15>;
 };
 
+&i2c6 {
+	status = "disabled";
+	i2c-scl-rising-time-ns = <300>;
+	i2c-scl-falling-time-ns = <15>;
+	clock-frequency = <PCA955_I2C_CLK>;
+
+	sub_core_pca9555: gpio@27 {
+		status = "disabled";
+		compatible = "nxp,pca9555";
+		reg = <0x27>;
+		gpio-controller;
+		#gpio-cells = <2>;
+		gpio-group-num = <250>;
+		label = "sub";
+	};
+};
+
 &vcca1v8_codec {
 	regulator-min-microvolt = <900000>;
 	regulator-max-microvolt = <900000>;
@@ -527,6 +557,12 @@
 	hym8563 {
 		rtc_int: rtc-int {
 			rockchip,pins = <RK_GPIO3 31 RK_FUNC_GPIO &pcfg_pull_up>;
+		};
+	};
+
+	pca9555 {
+		pca9555_rst_pin: pca9555-rst-pin {
+			rockchip,pins = <RK_GPIO2 3 RK_FUNC_GPIO &pcfg_pull_up>;
 		};
 	};
 
