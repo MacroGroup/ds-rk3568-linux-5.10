@@ -58,6 +58,7 @@
 };
 
 &gmac {
+	/delete-property/ snps,force_thresh_dma_mode;
 	tx_delay = <0x2F>;
 	rx_delay = <0x1E>;
 };
