@@ -1,0 +1,490 @@
+/*
+ * Copyright (c) 2016 Fuzhou Rockchip Electronics Co., Ltd
+ *
+ * This file is dual-licensed: you can use it either under the terms
+ * of the GPL or the X11 license, at your option. Note that this dual
+ * licensing only applies to this file, and not this project as a
+ * whole.
+ *
+ *  a) This file is free software; you can redistribute it and/or
+ *     modify it under the terms of the GNU General Public License as
+ *     published by the Free Software Foundation; either version 2 of the
+ *     License, or (at your option) any later version.
+ *
+ *     This file is distributed in the hope that it will be useful,
+ *     but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *     GNU General Public License for more details.
+ *
+ * Or, alternatively,
+ *
+ *  b) Permission is hereby granted, free of charge, to any person
+ *     obtaining a copy of this software and associated documentation
+ *     files (the "Software"), to deal in the Software without
+ *     restriction, including without limitation the rights to use,
+ *     copy, modify, merge, publish, distribute, sublicense, and/or
+ *     sell copies of the Software, and to permit persons to whom the
+ *     Software is furnished to do so, subject to the following
+ *     conditions:
+ *
+ *     The above copyright notice and this permission notice shall be
+ *     included in all copies or substantial portions of the Software.
+ *
+ *     THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ *     EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ *     OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ *     NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ *     HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ *     WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ *     FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ *     OTHER DEALINGS IN THE SOFTWARE.
+ */
+
+/dts-v1/;
+#include "rk3399pro-firefly-port.dtsi"
+#include "rk3399pro-firefly-pcie.dtsi"
+#include <dt-bindings/display/media-bus-format.h>
+
+/ {
+	model = "AIO-3399ProC Board 10.1 MIPI-M101014-BE45 (Linux Opensource)";
+	compatible = "rockchip,rk3399pro-firefly-aioc", "rockchip,rk3399pro";
+
+	usbacm_video_control: usbacm-video-control {
+		compatible = "rockchip,usbacm-video-control";
+		status = "disabled";
+	};
+
+	/delete-node/ vcc5v0-typec;
+	mcp251x_clk: mcp251x-clk {
+		compatible = "fixed-clock";
+		#clock-cells = <0>;
+		clock-frequency = <8000000>;        //MCP2515_CAN模块的晶振为8MHz
+	};
+
+	vcc_hub: vcc-hub-regulator {
+			compatible = "regulator-fixed";
+			enable-active-high;
+			regulator-always-on;
+			regulator-boot-on;
+			gpio = <&gpio2 RK_PA4 GPIO_ACTIVE_HIGH>;
+			pinctrl-names = "default";
+			pinctrl-0 = <&hub_drv>;
+			regulator-name = "vcc_hub";
+	};
+};
+
+
+&i2c1 {
+	status = "okay";
+	i2c-scl-rising-time-ns = <300>;
+	i2c-scl-falling-time-ns = <15>;
+
+	/delete-node/ ov13850@36;
+	/delete-node/ ov13850@46;
+
+	//cam0
+	XC6130: XC6130@46 {
+		status = "okay";
+		compatible = "firefly,xc7022";
+		reg = <0x23>;
+		reset-gpios = <&gpio2 6 GPIO_ACTIVE_HIGH>;
+		pinctrl-names = "default";
+		pinctrl-0 = <&xc6130_reset_pin>;
+
+		port {
+			ucam_out0: endpoint {
+				remote-endpoint = <&mipi_in_ucam0>;
+				data-lanes = <1 2>;
+			};
+		};
+	};
+
+	//cam1
+	XC7022: XC7022@36 {
+		status = "okay";
+		compatible = "firefly,xc7022";
+		reg = <0x1b>;
+		reset-gpios = <&gpio2 1 GPIO_ACTIVE_HIGH>;
+		pinctrl-names = "default";
+		pinctrl-0 = <&xc7022_reset_pin>;
+
+		port {
+			ucam_out1: endpoint {
+				remote-endpoint = <&mipi_in_ucam1>;
+				data-lanes = <1 2>;
+			};
+		};
+	};
+};
+
+&cif_isp1 {
+    status = "okay";
+};
+
+&dp_sound {
+	status = "okay";
+};
+
+&hdmi_sound {
+	status = "okay";
+};
+
+&spdif {
+	status = "okay";
+};
+
+&hdmi_in_vopl {
+	status = "disabled";
+};
+
+&hdmi_in_vopb {
+	status = "okay";
+};
+
+&dp_in_vopb {
+	status = "disabled";
+};
+
+&dp_in_vopl {
+	status = "okay";
+};
+
+&route_dsi {
+	status = "okay";
+	connect = <&vopl_out_dsi>;
+};
+
+&route_hdmi {
+	status = "disabled";
+	connect = <&vopb_out_hdmi>;
+	logo,mode = "center";
+};
+
+&vopb {
+	assigned-clocks = <&cru DCLK_VOP0_DIV>;
+	assigned-clock-parents = <&cru PLL_VPLL>;
+};
+&vopl {
+	assigned-clocks = <&cru DCLK_VOP1_DIV>;
+	assigned-clock-parents = <&cru PLL_CPLL>;
+};
+
+// DP
+&i2c8 {
+	status = "okay";
+};
+
+&fusb0 {
+	status = "okay";
+};
+
+&vcc5v0_host {
+	gpio = <&gpio2 RK_PA2 GPIO_ACTIVE_HIGH>;
+};
+
+&cdn_dp {
+	status = "okay";
+	extcon = <&fusb0>;
+	phys = <&tcphy0_dp>;
+};
+
+// mipi csi
+/*
+&ov13850 {
+	status = "disabled";
+};
+
+&ov13850_1 {
+	status = "disabled";
+};
+*/
+
+&vcc_mipi {
+	status = "disabled";
+};
+
+&dvdd_1v2 {
+	status = "disabled";
+};
+
+&rkisp1_0 {
+	status = "okay";
+};
+
+&mipi_dphy_rx0 {
+	status = "okay";
+};
+
+&isp0_mmu {
+	status = "okay";
+};
+
+&rkisp1_1 {
+	status = "okay";
+};
+
+&mipi_dphy_tx1rx1 {
+	status = "okay";
+};
+
+&isp1_mmu {
+	status = "okay";
+};
+
+&i2c4 {
+	status = "okay";
+	i2c-scl-rising-time-ns = <345>;
+	i2c-scl-falling-time-ns = <11>;
+};
+
+&i2c7 {
+    status = "okay";
+
+	hxchipset@48{
+        status = "okay";
+        compatible = "himax,hxcommon";
+        reg = <0x48>;
+
+        himax,rst-gpio =  <&gpio4 RK_PD2 GPIO_ACTIVE_HIGH>;
+        himax,irq-gpio = <&gpio4 RK_PD0 IRQ_TYPE_LEVEL_LOW>;
+        //himax,3v3-gpio = <&gpio0 RK_PB4 GPIO_ACTIVE_HIGH>;
+        //himax,pon-gpio = <&gpio0 RK_PB4 GPIO_ACTIVE_HIGH>;
+
+        himax,panel-coords = <0 800 0 1280>;      //触摸范围
+        himax,display-coords = <0 800 0 1280>;    //分辨率
+        report_type = <1>;
+    };
+};
+
+// LED
+&power_led {
+	gpios = <&gpio0 RK_PB1 GPIO_ACTIVE_HIGH>;
+};
+
+&led_power {
+	rockchip,pins = <0 RK_PB1 RK_FUNC_GPIO &pcfg_pull_none>;
+};
+
+&pcie0 {
+	/delete-property/ gpio;
+};
+
+&vcc3v3_3g {
+	gpio = <&gpio3 RK_PD6 GPIO_ACTIVE_HIGH>;
+};
+
+&pcie_3g_drv {
+	rockchip,pins = <3 RK_PD6 RK_FUNC_GPIO &pcfg_pull_up>;
+};
+
+/* spi to uart */
+&uart4 {
+	status = "disabled";
+};
+
+&spi1 {
+	status = "okay";
+	max-freq = <48000000>;
+	dev-port = <0>;
+
+	spi_wk2@00{
+		status = "okay";
+		compatible = "firefly,spi-wk2xxx";
+		reg = <0x00>;
+		spi-max-frequency = <10000000>;
+		reset-gpio = <&gpio2 RK_PA0 GPIO_ACTIVE_HIGH>;
+		irq-gpio = <&gpio3 RK_PB2 IRQ_TYPE_EDGE_FALLING>;
+		cs-gpio = <&gpio1 RK_PB2 GPIO_ACTIVE_HIGH>;
+	};
+};
+
+&spi2 {
+	status = "okay";
+
+	spi_wk2xxx@00{
+		status = "disabled";
+	};
+
+	mcp2515: can@00 {
+		status = "okay";
+		compatible = "microchip,mcp2515";
+		reg = <0x00>;
+		clocks = <&mcp251x_clk>;
+		interrupt-parent = <&gpio0>;
+		interrupts = <1 IRQ_TYPE_EDGE_FALLING>;
+		spi-max-frequency = <24000000>;
+		pinctrl-names = "default";
+		pinctrl-0 = <&can0_pins>;
+		poll_mode = <0>;
+		enable_dma = <1>;
+	};
+};
+
+&rk809_codec {
+	hp-det = <&gpio0 RK_PB5 GPIO_ACTIVE_HIGH>;
+	spk-ctl = <&gpio2 RK_PA5 GPIO_ACTIVE_HIGH>;
+	hp-ctl-gpios = <&gpio3 RK_PD7 GPIO_ACTIVE_HIGH>;
+	io-channels = <0>;
+};
+
+&spk_ctl_gpio {
+	rockchip,pins = <2 RK_PA5 RK_FUNC_GPIO &pcfg_pull_up_20ma>;
+};
+
+
+&vdd1v5_dvp {
+	regulator-min-microvolt = <3300000>;
+	regulator-max-microvolt = <3300000>;
+};
+
+&i2c4 {
+	status = "okay";
+
+	wdt_pc9202: wdt-pc9202@3c {
+		status = "okay";
+		compatible = "firefly,pc9202";
+		reg = <0x3c>;
+	};
+};
+
+&pinctrl {
+	hub {
+		hub_drv: hub-drv {
+			rockchip,pins =
+				<2 RK_PA4 RK_FUNC_GPIO &pcfg_pull_up>;
+		};
+	};
+
+	can0 {
+		can0_pins: can0-pins {
+			rockchip,pins =
+				<0 RK_PA1 RK_FUNC_GPIO &pcfg_pull_none>;
+		};
+	};
+
+	usb2 {
+		host_vbus_drv: host-vbus-drv {
+			rockchip,pins =
+				<2 RK_PA2 RK_FUNC_GPIO &pcfg_pull_none>;
+		};
+	};
+
+	camera-pins{
+		xc7022_reset_pin: xc7022-reset-pin {
+			rockchip,pins = 
+                <2 1 RK_FUNC_GPIO &pcfg_pull_none>;
+		};
+
+		xc6130_reset_pin: xc6130-reset-pin {
+			rockchip,pins = 
+                <2 6 RK_FUNC_GPIO &pcfg_pull_none>;
+		};
+	};
+};
+
+&pwm1 {
+    status = "okay";
+};
+
+&backlight {
+    status = "okay";
+    pwms = <&pwm1 0 50000 1>; 
+    enable-gpios = <&gpio4 RK_PD5 GPIO_ACTIVE_HIGH>;
+    brightness-levels = <
+         60  60  60  61  61  61  62  62
+         62  63  63  63  64  64  64  65
+         65  65  66  66  66  67  67  67
+         68  68  68  69  69  69  70  70
+         70  71  71  71  72  72  72  73
+         73  73  74  74  74  75  75  75
+         76  76  76  77  77  77  78  78
+         78  79  79  79  80  80  80  81
+         81  81  82  82  82  83  83  83
+         84  84  84  85  85  85  86  86
+         86  87  87  87  88  88  88  89
+         89  89  90  91  92  93  94  95
+         96  97  98  99 100 101 102 103
+        104 105 106 107 108 109 110 111
+        112 113 114 115 116 117 118 119
+        120 121 122 123 124 125 126 127
+        128 129 130 131 132 133 134 135
+        136 137 138 139 140 141 142 143
+        144 145 146 147 148 149 150 151
+        152 153 154 155 156 157 158 159
+        160 161 162 163 164 165 166 167
+        168 169 170 171 172 173 174 175
+        176 177 178 179 180 181 182 183
+        184 185 186 187 188 189 190 191
+        192 193 194 195 196 197 198 199
+        200 201 202 203 204 205 206 207
+        208 209 210 211 212 213 214 215
+        216 217 218 219 220 221 222 223
+        224 225 226 227 228 229 230 231
+        232 233 234 235 236 237 238 239
+        240 241 242 243 244 245 246 247
+        248 249 250 251 252 253 254 255
+    >;
+    default-brightness-level = <200>;
+    polarity = <1>;
+};
+
+&dsi {
+	status = "okay";
+
+	panel@0 {
+		compatible = "simple-panel-dsi";
+		reg = <0>;
+		backlight = <&backlight>;
+		//power-supply = <&vcc_lcd>;
+		enable-gpios = <&gpio4 RK_PD1 GPIO_ACTIVE_HIGH>;
+		reset-gpios = <&gpio1 RK_PA1 GPIO_ACTIVE_LOW>;
+		dsi,flags = <(MIPI_DSI_MODE_VIDEO | MIPI_DSI_MODE_VIDEO_BURST | MIPI_DSI_MODE_LPM | MIPI_DSI_MODE_EOT_PACKET)>;
+		dsi,format = <MIPI_DSI_FMT_RGB888>;
+		bus-format = <MEDIA_BUS_FMT_RGB666_1X18>;
+		dsi,lanes = <4>;
+
+		enable-delay-ms = <35>;
+		prepare-delay-ms = <6>;
+		reset-delay-ms = <25>;
+		init-delay-ms = <55>;
+		unprepare-delay-ms = <0>;
+		disable-delay-ms = <20>;
+		size,width = <120>;
+		size,height = <170>;
+
+		status = "okay";
+
+		//width-mm = <135>;
+		//height-mm = <217>;
+
+        panel-init-sequence = [
+			05 78 01 11
+			05 32 01 29
+		];
+
+		panel-exit-sequence = [
+			05 05 01 28
+			05 78 01 10
+		];
+
+		display-timings {
+			native-mode = <&timing1>;
+
+			timing1: timing1 {
+				clock-frequency = <72600000>;//<80000000>;
+				hactive = <800>;//<768>;
+				vactive = <1280>;
+				hsync-len = <14>;   //20, 50,10
+				hback-porch = <26>; //50, 56,10
+				hfront-porch = <32>;//50, 30,180
+				vsync-len = <8>;//4
+				vback-porch = <20>;//4
+				vfront-porch = <80>;//8
+				hsync-active = <0>;
+				vsync-active = <0>;
+				de-active = <0>;
+				pixelclk-active = <0>;
+			};
+		};
+	};
+};
