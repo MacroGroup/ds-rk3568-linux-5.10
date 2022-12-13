@@ -131,8 +131,8 @@
 
 &gmac {
 	status = "okay";
-	tx_delay = <0x34>;
-	rx_delay = <0x28>;
+	tx_delay = <0x36>;
+	rx_delay = <0x26>;
 
 };
 
