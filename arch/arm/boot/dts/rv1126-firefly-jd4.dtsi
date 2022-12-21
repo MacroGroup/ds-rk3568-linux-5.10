@@ -9,7 +9,7 @@
 	/delete-node/ vdd-vepu;
 	
 	chosen {
-		bootargs = "earlycon=uart8250,mmio32,0xff570000 console=ttyFIQ0 ro root=PARTLABEL=rootfs rootfstype=ext4 rootwait overlayroot=device:dev=PARTLABEL=userdata,fstype=ext4,mkfs=1 cgroup_enable=memory swapaccount=1 snd_aloop.index=7";
+		bootargs = "earlycon=uart8250,mmio32,0xff570000 console=ttyFIQ0 ro root=PARTLABEL=rootfs rootfstype=ext4 rootwait overlayroot=device:dev=PARTLABEL=userdata,fstype=ext4,mkfs=1 cgroup_enable=memory swapaccount=1 snd_aloop.index=7 net.ifnames=0";
 	};
 
 	vdd_logic: vdd-logic {
