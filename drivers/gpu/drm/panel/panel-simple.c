@@ -816,8 +816,8 @@ static int panel_simple_probe(struct device *dev, const struct panel_desc *desc)
     the screen with ID 0x9366ff is pasted the old touch screen,
     so it does not need to be initialized.
 */
-#define FIREFLY_FACE_X2
-#if defined(FIREFLY_FACE_X2)
+//#define FIREFLY_FACE_X2
+#if defined(CONFIG_FIREFLY_FACE_X2)
 	const void *data;
 	char *cmdline;
 	char panel_id[10];
