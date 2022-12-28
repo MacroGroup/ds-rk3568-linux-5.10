@@ -77,51 +77,61 @@
 		RESET_SUB1 {
 			gpios = <&gpio3 24 GPIO_ACTIVE_HIGH>;	//GPIO3_D0 96+24
 			default-state = "off";
+			retain-state-shutdown;
 		};
 
 		RESET_SUB2 {
 			gpios = <&gpio3 27 GPIO_ACTIVE_HIGH>;	//GPIO3_D3 96+24+3
 			default-state = "off";
+			retain-state-shutdown;
 		};
 
 		RESET_SUB3 {
 			gpios = <&gpio3 29 GPIO_ACTIVE_HIGH>;	//GPIO3_D5 96+24+5
 			default-state = "off";
+			retain-state-shutdown;
 		};
 
 		RESET_SUB4 {
 			gpios = <&gpio0 4 GPIO_ACTIVE_HIGH>;	//GPIO0_A4 0+4
 			default-state = "off";
+			retain-state-shutdown;
 		};
 
 		RESET_SUB5 {
 			gpios = <&gpio0 6 GPIO_ACTIVE_HIGH>;	//GPIO0_A6 0+6
 			default-state = "off";
+			retain-state-shutdown;
 		};
 
 		RESET_SUB6 {
 			gpios = <&gpio2 23 GPIO_ACTIVE_HIGH>;	//GPIO2_C7 32*2+16+7
 			default-state = "off";
+			retain-state-shutdown;
 		};
 
 		RESET_SUB7 {
 			gpios = <&gpio2 21 GPIO_ACTIVE_HIGH>;	//GPIO2_C5 32*2+16+5
 			default-state = "off";
+			retain-state-shutdown;
 		};
 
 		RESET_SUB8 {
 			gpios = <&gpio2 22 GPIO_ACTIVE_HIGH>;	//GPIO2_C6 32*2+16+6
 			default-state = "off";
+			retain-state-shutdown;
 		};
 
 		RESET_SUB9 {
 			gpios = <&gpio3 30 GPIO_ACTIVE_HIGH>;	//GPIO3_D6 32*2+24+6
 			default-state = "off";
+			retain-state-shutdown;
 		};
 
 		RESET_SUB10 {
 			gpios = <&gpio2 20 GPIO_ACTIVE_HIGH>;	//GPIO2_C4 32*2+16+4
 			default-state = "off";
+			retain-state-shutdown;
 		};
 
 		//SPI FLASH的电源脚
@@ -180,51 +190,61 @@
 		RECOVER_IN1 {
 			gpios = <&sub_core_pca9555 PCA_IO0_0 GPIO_ACTIVE_LOW>;	//RECOVER_IN1	PCA9555	IO_00
 			default-state = "off";
+			retain-state-shutdown;
 		};
 
 		RECOVER_IN2 {
 			gpios = <&sub_core_pca9555 PCA_IO0_1 GPIO_ACTIVE_LOW>;	//RECOVER_IN2	PCA9555	IO_01
 			default-state = "off";
+			retain-state-shutdown;
 		};
 
 		RECOVER_IN3 {
 			gpios = <&sub_core_pca9555 PCA_IO0_2 GPIO_ACTIVE_LOW>;	//RECOVER_IN3	PCA9555	IO_02
 			default-state = "off";
+			retain-state-shutdown;
 		};
 
 		RECOVER_IN4 {
 			gpios = <&sub_core_pca9555 PCA_IO0_3 GPIO_ACTIVE_LOW>;	//RECOVER_IN4	PCA9555	IO_03
 			default-state = "off";
+			retain-state-shutdown;
 		};
 
 		RECOVER_IN5 {
 			gpios = <&sub_core_pca9555 PCA_IO0_4 GPIO_ACTIVE_LOW>;	//RECOVER_IN5	PCA9555	IO_04
 			default-state = "off";
+			retain-state-shutdown;
 		};
 
 		RECOVER_IN6 {
 			gpios = <&sub_core_pca9555 PCA_IO0_5 GPIO_ACTIVE_LOW>;	//RECOVER_IN6	PCA9555	IO_05
 			default-state = "off";
+			retain-state-shutdown;
 		};
 
 		RECOVER_IN7 {
 			gpios = <&sub_core_pca9555 PCA_IO1_0 GPIO_ACTIVE_LOW>;	//RECOVER_IN7	PCA9555	IO_10
 			default-state = "off";
+			retain-state-shutdown;
 		};
 
 		RECOVER_IN8 {
 			gpios = <&sub_core_pca9555 PCA_IO1_1 GPIO_ACTIVE_LOW>;	//RECOVER_IN8	PCA9555	IO_11
 			default-state = "off";
+			retain-state-shutdown;
 		};
 
 		RECOVER_IN9 {
 			gpios = <&sub_core_pca9555 PCA_IO1_2 GPIO_ACTIVE_LOW>;	//RECOVER_IN9	PCA9555	IO_12
 			default-state = "off";
+			retain-state-shutdown;
 		};
 
 		RECOVER_IN10 {
 			gpios = <&sub_core_pca9555 PCA_IO1_3 GPIO_ACTIVE_LOW>;	//RECOVER_IN10	PCA9555	IO_13
 			default-state = "off";
+			retain-state-shutdown;
 		};
 	};
 
