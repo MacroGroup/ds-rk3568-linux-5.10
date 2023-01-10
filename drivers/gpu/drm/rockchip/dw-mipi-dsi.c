@@ -295,6 +295,8 @@ struct dw_mipi_dsi {
 	u32 format;
 	struct drm_display_mode mode;
 
+	unsigned dsi1_only:1; /* firefly dsi1 only */
+
 	const struct dw_mipi_dsi_plat_data *pdata;
 };
 
@@ -1724,6 +1726,11 @@ static int dw_mipi_dsi_bind(struct device *dev, struct device *master,
 	struct dw_mipi_dsi *dsi = dev_get_drvdata(dev);
 	int ret;
 
+	if (dsi->dsi1_only) {
+		if (IS_DSI0(dsi))
+			return 0;
+	}
+
 	dsi->panel = of_drm_find_panel(dsi->client);
 	if (!dsi->panel) {
 		dsi->bridge = of_drm_find_bridge(dsi->client);
@@ -2011,6 +2018,11 @@ static int dw_mipi_dsi_probe(struct platform_device *pdev)
 	if (IS_ERR(dsi->rst)) {
 		dev_err(dev, "failed to get reset control\n");
 		return PTR_ERR(dsi->rst);
+	}
+
+	dsi->dsi1_only = of_property_read_bool(np, "firefly,dsi1-only");
+	if (dsi->dsi1_only) {
+		dev_err(dev, "failed to get firefly dsi1 only output\n");
 	}
 
 	ret = mipi_dphy_attach(dsi);
