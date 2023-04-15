@@ -140,6 +140,70 @@
 	leds {
 		compatible = "gpio-leds";
 
+		SUB01_BM_SYS_EN {
+			label = "SUB01_BM_SYS_EN";
+			gpios = <&gpio4 RK_PD0 GPIO_ACTIVE_HIGH>;
+			default-state = "on";
+			retain-state-shutdown;
+        };
+
+		SUB02_BM_SYS_EN {
+			label = "SUB02_BM_SYS_EN";
+			gpios = <&gpio2 RK_PD2 GPIO_ACTIVE_HIGH>;
+			default-state = "on";
+			retain-state-shutdown;
+        };
+
+		SUB03_BM_SYS_EN {
+			label = "SUB03_BM_SYS_EN";
+			gpios = <&gpio2 RK_PC3 GPIO_ACTIVE_HIGH>;
+			default-state = "on";
+			retain-state-shutdown;
+        };
+
+		SUB04_BM_SYS_EN {
+			label = "SUB04_BM_SYS_EN";
+			gpios = <&gpio2 RK_PC2 GPIO_ACTIVE_HIGH>;
+			default-state = "on";
+			retain-state-shutdown;
+        };
+
+		SUB05_BM_SYS_EN {
+			label = "SUB05_BM_SYS_EN";
+			gpios = <&gpio2 RK_PD1 GPIO_ACTIVE_HIGH>;
+			default-state = "on";
+			retain-state-shutdown;
+        };
+
+		SUB06_BM_SYS_EN {
+			label = "SUB06_BM_SYS_EN";
+			gpios = <&gpio2 RK_PD0 GPIO_ACTIVE_HIGH>;
+			default-state = "on";
+			retain-state-shutdown;
+        };
+
+		SUB07_BM_SYS_EN {
+			label = "SUB07_BM_SYS_EN";
+			gpios = <&gpio2 RK_PC5 GPIO_ACTIVE_HIGH>;
+			default-state = "on";
+			retain-state-shutdown;
+        };
+
+		SUB08_BM_SYS_EN {
+			label = "SUB08_BM_SYS_EN";
+			gpios = <&gpio2 RK_PC4 GPIO_ACTIVE_HIGH>;
+			default-state = "on";
+			retain-state-shutdown;
+        };
+
+		SUB09_BM_SYS_EN {
+			label = "SUB09_BM_SYS_EN";
+			gpios = <&gpio2 RK_PC7 GPIO_ACTIVE_HIGH>;
+			default-state = "on";
+			retain-state-shutdown;
+        };
+
+
 		HUB20_PWR_EN {
 			//BMC LED
 			gpios = <&gpio0 8 GPIO_ACTIVE_HIGH>;	//GPIO0_B0
