@@ -284,7 +284,7 @@ static int pc9202_wdt_probe(struct i2c_client *client,
 	// 创建设备节点
 	dev = device_create(cls, NULL, MKDEV(major, 0), NULL, "wdt_crl");
 
-	wd_en_gpio = devm_gpiod_get_optional(&client->dev, "wd-en", GPIOD_ASIS);
+	wd_en_gpio = devm_gpiod_get_optional(&client->dev, "sw", GPIOD_ASIS);
 
 	if (IS_ERR(wd_en_gpio)) {
 		ret = PTR_ERR(wd_en_gpio);
