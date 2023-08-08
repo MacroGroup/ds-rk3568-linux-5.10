@@ -1,4 +1,3 @@
-# SPDX-License-Identifier: GPL-2.0
 #
 # Makefile for kernel SPI drivers.
 #
@@ -136,3 +135,5 @@ obj-$(CONFIG_SPI_AMD)			+= spi-amd.o
 # SPI slave protocol handlers
 obj-$(CONFIG_SPI_SLAVE_TIME)		+= spi-slave-time.o
 obj-$(CONFIG_SPI_SLAVE_SYSTEM_CONTROL)	+= spi-slave-system-control.o
+obj-$(CONFIG_SPI_WK2XXX)            += spi-wk2xxx.o
+spi-wk2xxx-objs                     := spi-wk2xxx
