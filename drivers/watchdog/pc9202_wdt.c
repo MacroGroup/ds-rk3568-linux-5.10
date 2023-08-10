@@ -257,7 +257,7 @@ static int pc9202_wdt_probe(struct i2c_client *client,
 	i2c_set_clientdata(client,pEnc);
 	the_sw2001 = pEnc;
 
-	for (retry_count = 0; retry_count < 100; retry_count++) {
+	for (retry_count = 0; retry_count < 3; retry_count++) {
 	    ret = iReadByte(SW2001_REG_WDT_CTRL, &reg_value);
 	    if(0 != ret) {
 		printk("====== i2c detect failed watchdog init err: 0x%x ======\n", reg_value);
