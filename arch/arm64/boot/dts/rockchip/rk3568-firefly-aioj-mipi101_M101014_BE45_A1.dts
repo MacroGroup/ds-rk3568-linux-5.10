@@ -45,7 +45,7 @@
     };
 
     backlight_0: backlight-0 {
-        status = "okay";
+        status = "disabled";
         compatible = "pwm-backlight";
         pwms = <&pwm4 0 50000 1>;
         brightness-levels = <
@@ -86,7 +86,7 @@
     };
 
     backlight_1: backlight-1 {
-        status = "disabled";
+        status = "okay";
         compatible = "pwm-backlight";
         enable-gpios = <&gpio2 RK_PC1 GPIO_ACTIVE_HIGH>; // bl enable for mipi_dsi1 40pin interface
         pwms = <&pwm5 0 50000 1>;
@@ -134,20 +134,20 @@
 };
 
 &pwm5 {
-	status = "disabled";
+	status = "okay";
 };
 
 &route_dsi0 {
-    status = "okay";
-    connect = <&vp0_out_dsi0>;
+    status = "disabled";
+    connect = <&vp1_out_dsi0>;
 };
 
 &video_phy0 {
-    status = "okay";
+    status = "disabled";
 };
 
 &dsi0_in_vp0 {
-    status = "okay";
+    status = "disabled";
 };
 
 &dsi0_in_vp1 {
@@ -155,12 +155,12 @@
 };
 
 &route_dsi1 {
-    status = "disabled";
+    status = "okay";
     connect = <&vp1_out_dsi1>;
 };
 
 &video_phy1 {
-    status = "disabled";
+    status = "okay";
 };
 
 &dsi1_in_vp0 {
@@ -168,7 +168,7 @@
 };
 
 &dsi1_in_vp1 {
-    status = "disabled";
+    status = "okay";
 };
 
 &hdmi {
@@ -197,10 +197,10 @@
  * when dsi0 is enabled
  */
 &dsi0 {
-    status = "okay";
+    status = "disabled";
     //rockchip,lane-rate = <1000>;
     dsi0_panel: panel@0 {
-        status = "okay";
+        status = "disabled";
         compatible = "simple-panel-dsi";
         reg = <0>;
         backlight = <&backlight_0>;
@@ -284,10 +284,10 @@
  * when dsi1 is enabled
  */
 &dsi1 {
-    status = "disabled";
+    status = "okay";
     //rockchip,lane-rate = <1000>;
     dsi1_panel: panel@0 {
-        status = "disabled";
+        status = "okay";
         compatible = "simple-panel-dsi";
         reg = <0>;
         backlight = <&backlight_1>;
@@ -369,7 +369,7 @@
 
 &i2c1 {
     hxchipset@48{
-        status = "okay";
+        status = "disabled";
         compatible = "himax,hxcommon";
         reg = <0x48>;
 
@@ -386,7 +386,7 @@
 
 &i2c4 {
     hxchipset@48{
-        status = "disabled";
+        status = "okay";
         compatible = "himax,hxcommon";
         reg = <0x48>;
 
