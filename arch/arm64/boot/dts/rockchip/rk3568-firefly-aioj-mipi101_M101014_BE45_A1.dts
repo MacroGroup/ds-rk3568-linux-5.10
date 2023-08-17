@@ -21,16 +21,6 @@
     model = "AIO-3568J MIPI (Linux)";
     compatible = "rockchip,rk3568-firefly-aioj", "rockchip,rk3568";
 
-    vcc1v8_lcd0_power: vcc1v8-lcd0-power-regulator {
-        compatible = "regulator-fixed";
-        enable-active-high;
-        gpio = <&gpio4 RK_PC5 GPIO_ACTIVE_HIGH>;
-        pinctrl-names = "default";
-        pinctrl-0 = <&vcc1v8_lcd0_bl_en>;
-        regulator-name = "vcc1v8_lcd0_bl_en";
-        regulator-always-on;
-    };
-
     vcc1v8_lcd1_power: vcc1v8-lcd1-power-regulator {
         compatible = "regulator-fixed";
         enable-active-high;
@@ -45,8 +35,9 @@
     };
 
     backlight_0: backlight-0 {
-        status = "disabled";
+        status = "okay";
         compatible = "pwm-backlight";
+        enable-gpios = <&gpio4 RK_PC5 GPIO_ACTIVE_HIGH>; 
         pwms = <&pwm4 0 50000 1>;
         brightness-levels = <
              60  60  60  61  61  61  62  62
@@ -86,7 +77,7 @@
     };
 
     backlight_1: backlight-1 {
-        status = "okay";
+        status = "disabled";
         compatible = "pwm-backlight";
         enable-gpios = <&gpio2 RK_PC1 GPIO_ACTIVE_HIGH>; // bl enable for mipi_dsi1 40pin interface
         pwms = <&pwm5 0 50000 1>;
@@ -134,20 +125,20 @@
 };
 
 &pwm5 {
-	status = "okay";
+	status = "disabled";
 };
 
 &route_dsi0 {
-    status = "disabled";
-    connect = <&vp1_out_dsi0>;
+    status = "okay";
+    connect = <&vp0_out_dsi0>;
 };
 
 &video_phy0 {
-    status = "disabled";
+    status = "okay";
 };
 
 &dsi0_in_vp0 {
-    status = "disabled";
+    status = "okay";
 };
 
 &dsi0_in_vp1 {
@@ -155,12 +146,12 @@
 };
 
 &route_dsi1 {
-    status = "okay";
+    status = "disabled";
     connect = <&vp1_out_dsi1>;
 };
 
 &video_phy1 {
-    status = "okay";
+    status = "disabled";
 };
 
 &dsi1_in_vp0 {
@@ -168,11 +159,11 @@
 };
 
 &dsi1_in_vp1 {
-    status = "okay";
+    status = "disabled";
 };
 
 &hdmi {
-	status = "disabeld";
+	status = "disabled";
 };
 
 &hdmi_in_vp0 {
@@ -185,22 +176,22 @@
 
 &route_hdmi {
     status = "disabled";
-    connect = <&vp1_out_hdmi>;
+    connect = <&vp0_out_hdmi>;
 };
 
 &hdmi_sound {
-	status = "okay";
+	status = "disabled";
 };
 
 /*
- * mipi_dphy0 needs to be enabled
+ * video_phy0 needs to be enabled
  * when dsi0 is enabled
  */
 &dsi0 {
-    status = "disabled";
+    status = "okay";
     //rockchip,lane-rate = <1000>;
     dsi0_panel: panel@0 {
-        status = "disabled";
+        status = "okay";
         compatible = "simple-panel-dsi";
         reg = <0>;
         backlight = <&backlight_0>;
@@ -280,14 +271,14 @@
 };
 
 /*
- * mipi_dphy1 needs to be enabled
+ * video_phy1 needs to be enabled
  * when dsi1 is enabled
  */
 &dsi1 {
-    status = "okay";
+    status = "disabled";
     //rockchip,lane-rate = <1000>;
     dsi1_panel: panel@0 {
-        status = "okay";
+        status = "disabled";
         compatible = "simple-panel-dsi";
         reg = <0>;
         backlight = <&backlight_1>;
@@ -369,7 +360,7 @@
 
 &i2c1 {
     hxchipset@48{
-        status = "disabled";
+        status = "okay";
         compatible = "himax,hxcommon";
         reg = <0x48>;
 
@@ -386,7 +377,7 @@
 
 &i2c4 {
     hxchipset@48{
-        status = "okay";
+        status = "disabled";
         compatible = "himax,hxcommon";
         reg = <0x48>;
 
