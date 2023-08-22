@@ -2419,6 +2419,13 @@ config VIDEO_SGM3784
 	help
 	  This is a driver for the sgm3784 dual flash controllers. It controls
 	  flash, torch LEDs.
+
+config VIDEO_XC7160
+    tristate "Firefly XC7160_SC8238 support."
+    depends on VIDEO_V4L2 && I2C
+    help
+        Driver for sv-taysh camera.
+
 endmenu
 
 endif # VIDEO_V4L2
