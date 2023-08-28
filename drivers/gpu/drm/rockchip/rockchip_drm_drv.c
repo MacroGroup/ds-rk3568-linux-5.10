@@ -125,6 +125,7 @@ void drm_mode_convert_to_split_mode(struct drm_display_mode *mode)
 	hbp = mode->htotal - mode->hsync_end;
 
 	mode->clock *= 2;
+	mode->crtc_clock *= 2;
 	mode->hdisplay = hactive * 2;
 	mode->hsync_start = mode->hdisplay + hfp * 2;
 	mode->hsync_end = mode->hsync_start + hsync * 2;
@@ -143,6 +144,7 @@ void drm_mode_convert_to_origin_mode(struct drm_display_mode *mode)
 	hbp = mode->htotal - mode->hsync_end;
 
 	mode->clock /= 2;
+	mode->crtc_clock /= 2;
 	mode->hdisplay = hactive / 2;
 	mode->hsync_start = mode->hdisplay + hfp / 2;
 	mode->hsync_end = mode->hsync_start + hsync / 2;
@@ -1289,6 +1291,12 @@ static void rockchip_drm_debugfs_init(struct drm_minor *minor)
 }
 #endif
 
+static const struct drm_prop_enum_list split_area[] = {
+	{ ROCKCHIP_DRM_SPLIT_UNSET, "UNSET" },
+	{ ROCKCHIP_DRM_SPLIT_LEFT_SIDE, "LEFT" },
+	{ ROCKCHIP_DRM_SPLIT_RIGHT_SIDE, "RIGHT" },
+};
+
 static int rockchip_drm_create_properties(struct drm_device *dev)
 {
 	struct drm_property *prop;
@@ -1323,6 +1331,11 @@ static int rockchip_drm_create_properties(struct drm_device *dev)
 	if (!prop)
 		return -ENOMEM;
 	private->connector_id_prop = prop;
+
+	prop = drm_property_create_enum(dev, DRM_MODE_PROP_ENUM, "SPLIT_AREA",
+					split_area,
+					ARRAY_SIZE(split_area));
+	private->split_area_prop = prop;
 
 	prop = drm_property_create_object(dev,
 					  DRM_MODE_PROP_ATOMIC | DRM_MODE_PROP_IMMUTABLE,
