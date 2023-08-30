@@ -146,6 +146,7 @@ struct gc2093 {
 	const struct gc2093_mode *cur_mode;
 
 	u32		module_index;
+	u32     clkout_enabled_index;
 	const char      *module_facing;
 	const char      *module_name;
 	const char      *len_name;
@@ -720,17 +721,19 @@ static int __gc2093_power_on(struct gc2093 *gc2093)
 	int ret;
 	struct device *dev = gc2093->dev;
 
-	ret = clk_set_rate(gc2093->xvclk, GC2093_XVCLK_FREQ);
-	if (ret < 0)
-		dev_warn(dev, "Failed to set xvclk rate\n");
+	if (gc2093->clkout_enabled_index) {
+		ret = clk_set_rate(gc2093->xvclk, GC2093_XVCLK_FREQ);
+		if (ret < 0)
+			dev_warn(dev, "Failed to set xvclk rate\n");
 
-	if (clk_get_rate(gc2093->xvclk) != GC2093_XVCLK_FREQ)
-		dev_warn(dev, "xvclk mismatched, modes are based on 27MHz\n");
+		if (clk_get_rate(gc2093->xvclk) != GC2093_XVCLK_FREQ)
+			dev_warn(dev, "xvclk mismatched, modes are based on 27MHz\n");
 
-	ret = clk_prepare_enable(gc2093->xvclk);
-	if (ret < 0) {
-		dev_err(dev, "Failed to enable xvclk\n");
-		return ret;
+		ret = clk_prepare_enable(gc2093->xvclk);
+		if (ret < 0) {
+			dev_err(dev, "Failed to enable xvclk\n");
+			return ret;
+		}
 	}
 
 	if (gc2093->is_thunderboot)
@@ -743,27 +746,29 @@ static int __gc2093_power_on(struct gc2093 *gc2093)
 	}
 
 	if (!IS_ERR(gc2093->reset_gpio))
-		gpiod_direction_output(gc2093->reset_gpio, 1);
+		gpiod_set_value_cansleep(gc2093->reset_gpio, 1);
 
 	usleep_range(1000, 2000);
 
 	if (!IS_ERR(gc2093->pwdn_gpio))
-		gpiod_direction_output(gc2093->pwdn_gpio, 1);
+		gpiod_set_value_cansleep(gc2093->pwdn_gpio, 1);
 	if (!IS_ERR(gc2093->reset_gpio))
-		gpiod_direction_output(gc2093->reset_gpio, 0);
+		gpiod_set_value_cansleep(gc2093->reset_gpio, 0);
 
 	usleep_range(10000, 20000);
 
 	return 0;
 
 disable_clk:
-	clk_disable_unprepare(gc2093->xvclk);
+	if (gc2093->clkout_enabled_index)
+		clk_disable_unprepare(gc2093->xvclk);
 	return ret;
 }
 
 static void __gc2093_power_off(struct gc2093 *gc2093)
 {
-	clk_disable_unprepare(gc2093->xvclk);
+	if (gc2093->clkout_enabled_index)
+		clk_disable_unprepare(gc2093->xvclk);
 	if (gc2093->is_thunderboot) {
 		if (gc2093->is_first_streamoff) {
 			gc2093->is_thunderboot = false;
@@ -774,9 +779,9 @@ static void __gc2093_power_off(struct gc2093 *gc2093)
 	}
 
 	if (!IS_ERR(gc2093->reset_gpio))
-		gpiod_direction_output(gc2093->reset_gpio, 1);
+		gpiod_set_value_cansleep(gc2093->reset_gpio, 1);
 	if (!IS_ERR(gc2093->pwdn_gpio))
-		gpiod_direction_output(gc2093->pwdn_gpio, 0);
+		gpiod_set_value_cansleep(gc2093->pwdn_gpio, 0);
 
 	regulator_bulk_disable(GC2093_NUM_SUPPLIES, gc2093->supplies);
 }
@@ -1150,7 +1155,9 @@ static int gc2093_g_frame_interval(struct v4l2_subdev *sd,
 	struct gc2093 *gc2093 = to_gc2093(sd);
 	const struct gc2093_mode *mode = gc2093->cur_mode;
 
+	mutex_lock(&gc2093->lock);
 	fi->interval = mode->max_fps;
+	mutex_unlock(&gc2093->lock);
 
 	return 0;
 }
@@ -1440,18 +1447,25 @@ static int gc2093_probe(struct i2c_client *client,
 	}
 
 	gc2093->is_thunderboot = IS_ENABLED(CONFIG_VIDEO_ROCKCHIP_THUNDER_BOOT_ISP);
-
-	gc2093->xvclk = devm_clk_get(gc2093->dev, "xvclk");
-	if (IS_ERR(gc2093->xvclk)) {
-		dev_err(gc2093->dev, "Failed to get xvclk\n");
-		return -EINVAL;
+	ret = of_property_read_u32(node, "firefly,clkout-enabled-index", &gc2093->clkout_enabled_index);
+	if (ret) {
+		dev_err(dev, "could not get firefly,clkout-enabled-index, default output xvclk\n");
+		gc2093->clkout_enabled_index = 1;
 	}
 
-	gc2093->reset_gpio = devm_gpiod_get(dev, "reset", GPIOD_ASIS);
+	if (gc2093->clkout_enabled_index) {
+		gc2093->xvclk = devm_clk_get(gc2093->dev, "xvclk");
+		if (IS_ERR(gc2093->xvclk)) {
+			dev_err(gc2093->dev, "Failed to get xvclk\n");
+			return -EINVAL;
+		}
+	}
+
+	gc2093->reset_gpio = devm_gpiod_get(dev, "reset", GPIOD_OUT_LOW);
 	if (IS_ERR(gc2093->reset_gpio))
 		dev_warn(dev, "Failed to get reset-gpios\n");
 
-	gc2093->pwdn_gpio = devm_gpiod_get(dev, "pwdn", GPIOD_ASIS);
+	gc2093->pwdn_gpio = devm_gpiod_get(dev, "pwdn", GPIOD_OUT_HIGH);
 	if (IS_ERR(gc2093->pwdn_gpio))
 		dev_warn(dev, "Failed to get pwdn-gpios\n");
 

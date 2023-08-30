@@ -143,6 +143,7 @@ struct gc2053 {
 	unsigned int        pixel_rate;
 
 	u32         module_index;
+	u32         clkout_enabled_index;
 	const char      *module_facing;
 	const char      *module_name;
 	const char      *len_name;
@@ -742,15 +743,17 @@ static int __gc2053_power_on(struct gc2053 *gc2053)
 			dev_err(dev, "could not set pins\n");
 	}
 
-	ret = clk_set_rate(gc2053->xvclk, GC2053_XVCLK_FREQ);
-	if (ret < 0)
-		dev_warn(dev, "Failed to set xvclk rate (24MHz)\n");
-	if (clk_get_rate(gc2053->xvclk) != GC2053_XVCLK_FREQ)
-		dev_warn(dev, "xvclk mismatched, modes are based on 24MHz\n");
-	ret = clk_prepare_enable(gc2053->xvclk);
-	if (ret < 0) {
-		dev_err(dev, "Failed to enable xvclk\n");
-		return ret;
+	if (gc2053->clkout_enabled_index){
+		ret = clk_set_rate(gc2053->xvclk, GC2053_XVCLK_FREQ);
+		if (ret < 0)
+			dev_warn(dev, "Failed to set xvclk rate (24MHz)\n");
+		if (clk_get_rate(gc2053->xvclk) != GC2053_XVCLK_FREQ)
+			dev_warn(dev, "xvclk mismatched, modes are based on 24MHz\n");
+		ret = clk_prepare_enable(gc2053->xvclk);
+		if (ret < 0) {
+			dev_err(dev, "Failed to enable xvclk\n");
+			return ret;
+		}
 	}
 
 	ret = regulator_bulk_enable(GC2053_NUM_SUPPLIES, gc2053->supplies);
@@ -778,7 +781,8 @@ static int __gc2053_power_on(struct gc2053 *gc2053)
 	return 0;
 
 disable_clk:
-	clk_disable_unprepare(gc2053->xvclk);
+	if (gc2053->clkout_enabled_index)
+		clk_disable_unprepare(gc2053->xvclk);
 	return ret;
 }
 
@@ -789,7 +793,8 @@ static void __gc2053_power_off(struct gc2053 *gc2053)
 
 	if (!IS_ERR(gc2053->pwdn_gpio))
 		gpiod_set_value_cansleep(gc2053->pwdn_gpio, 1);
-	clk_disable_unprepare(gc2053->xvclk);
+	if (gc2053->clkout_enabled_index)
+		clk_disable_unprepare(gc2053->xvclk);
 
 	if (!IS_ERR(gc2053->reset_gpio))
 		gpiod_set_value_cansleep(gc2053->reset_gpio, 1);
@@ -941,6 +946,9 @@ static long gc2053_ioctl(struct v4l2_subdev *sd, unsigned int cmd, void *arg)
 		hdr_cfg->esp.mode = HDR_NORMAL_VC;
 		hdr_cfg->hdr_mode = gc2053->cur_mode->hdr_mode;
 		break;
+	case RKMODULE_SET_HDR_CFG:
+	case RKMODULE_SET_CONVERSION_GAIN:
+		break;
 	case RKMODULE_GET_MODULE_INFO:
 		gc2053_get_module_inf(gc2053, (struct rkmodule_inf *)arg);
 		break;
@@ -986,6 +994,7 @@ static long gc2053_compat_ioctl32(struct v4l2_subdev *sd,
 	struct rkmodule_lsc_cfg *lsc_cfg;
 	struct rkmodule_hdr_cfg *hdr;
 	long ret = 0;
+	u32 cg = 0;
 	u32 stream = 0;
 	u32 sync_mode;
 
@@ -1065,6 +1074,11 @@ static long gc2053_compat_ioctl32(struct v4l2_subdev *sd,
 		ret = gc2053_ioctl(sd, cmd, hdr);
 		kfree(hdr);
 		break;
+	case RKMODULE_SET_CONVERSION_GAIN:
+		ret = copy_from_user(&cg, up, sizeof(cg));
+		if (!ret)
+			ret = gc2053_ioctl(sd, cmd, &cg);
+		break;
 	case RKMODULE_SET_QUICK_STREAM:
 		if (copy_from_user(&stream, up, sizeof(u32)))
 			return -EFAULT;
@@ -1136,7 +1150,9 @@ static int gc2053_g_frame_interval(struct v4l2_subdev *sd,
 	struct gc2053 *gc2053 = to_gc2053(sd);
 	const struct gc2053_mode *mode = gc2053->cur_mode;
 
+	mutex_lock(&gc2053->mutex);
 	fi->interval = mode->max_fps;
+	mutex_unlock(&gc2053->mutex);
 
 	return 0;
 }
@@ -1432,10 +1448,18 @@ static int gc2053_probe(struct i2c_client *client,
 			gc2053->sync_mode = SLAVE_MODE;
 	}
 
-	gc2053->xvclk = devm_clk_get(&client->dev, "xvclk");
-	if (IS_ERR(gc2053->xvclk)) {
-		dev_err(&client->dev, "Failed to get xvclk\n");
-		return -EINVAL;
+	ret = of_property_read_u32(node, "firefly,clkout-enabled-index", &gc2053->clkout_enabled_index);
+	if (ret) {
+		dev_err(dev, "could not get firefly,clkout-enabled-index, default output xvclk\n");
+		gc2053->clkout_enabled_index = 1;
+	}
+
+	if (gc2053->clkout_enabled_index){
+		gc2053->xvclk = devm_clk_get(&client->dev, "xvclk");
+		if (IS_ERR(gc2053->xvclk)) {
+			dev_err(&client->dev, "Failed to get xvclk\n");
+			return -EINVAL;
+		}
 	}
 
 	gc2053->reset_gpio = devm_gpiod_get(dev, "reset", GPIOD_OUT_LOW);
