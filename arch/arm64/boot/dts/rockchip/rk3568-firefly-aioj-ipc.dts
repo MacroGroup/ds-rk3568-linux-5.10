@@ -116,6 +116,9 @@
         backlight = <&backlight>;
 		power-supply = <&vcc1v8_lcd1_power>;
 
+		ddc-i2c-bus = <&i2c4>;
+		det-addr = <0x48>;
+
         enable-gpios = <&pca9555 PCA_IO0_7 GPIO_ACTIVE_HIGH>;
 	    reset-gpios = <&gpio4 RK_PC6 GPIO_ACTIVE_LOW>;
 

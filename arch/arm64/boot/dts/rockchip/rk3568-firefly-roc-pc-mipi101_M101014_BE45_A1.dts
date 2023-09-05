@@ -18,7 +18,7 @@
 #include "rk3568-firefly-roc-pc-cam-8ms1m.dtsi"
 
 / {
-    model = "Firefly RK3568-ROC-PC MIPI (Linux)";
+    model = "Firefly RK3568-ROC-PC MIPI + HDMI (Linux)";
     compatible = "rockchip,rk3568-firefly-roc-pc", "rockchip,rk3568";
 
     vcc1v8_lcd0_power: vcc1v8-lcd0-power-regulator {
@@ -42,7 +42,7 @@
     };
 
     backlight_0: backlight-0 {
-        status = "okay";
+        status = "disabled";
         compatible = "pwm-backlight";
         pwms = <&pwm4 0 50000 1>;
         brightness-levels = <
@@ -83,7 +83,7 @@
     };
 
     backlight_1: backlight-1 {
-        status = "disabled";
+        status = "okay";
         compatible = "pwm-backlight";
         pwms = <&pwm5 0 50000 1>;
         brightness-levels = <
@@ -126,24 +126,24 @@
 };
 
 &pwm4 {
-	status = "okay";
-};
-
-&pwm5 {
 	status = "disabled";
 };
 
+&pwm5 {
+	status = "okay";
+};
+
 &route_dsi0 {
-    status = "okay";
+    status = "disabled";
     connect = <&vp0_out_dsi0>;
 };
 
 &video_phy0 {
-    status = "okay";
+    status = "disabled";
 };
 
 &dsi0_in_vp0 {
-    status = "okay";
+    status = "disabled";
 };
 
 &dsi0_in_vp1 {
@@ -151,12 +151,12 @@
 };
 
 &route_dsi1 {
-    status = "disabled";
+    status = "okay";
     connect = <&vp1_out_dsi1>;
 };
 
 &video_phy1 {
-    status = "disabled";
+    status = "okay";
 };
 
 &dsi1_in_vp0 {
@@ -164,23 +164,28 @@
 };
 
 &dsi1_in_vp1 {
-    status = "disabled";
+    status = "okay";
 };
 
 &hdmi {
-	status = "disabled";
+	status = "okay";
 };
 
 &hdmi_in_vp0 {
-	status = "disabled";
+	status = "okay";
 };
 
 &hdmi_in_vp1 {
 	status = "disabled";
 };
 
+&route_hdmi {
+	status = "okay";
+	connect = <&vp0_out_hdmi>;
+};
+
 &hdmi_sound {
-	status = "disabled";
+	status = "okay";
 };
 
 /*
@@ -188,13 +193,16 @@
  * when dsi0 is enabled
  */
 &dsi0 {
-    status = "okay";
+    status = "disabled";
     //rockchip,lane-rate = <1000>;
     dsi0_panel: panel@0 {
-        status = "okay";
+        status = "disabled";
         compatible = "simple-panel-dsi";
         reg = <0>;
         backlight = <&backlight_0>;
+
+		ddc-i2c-bus = <&i2c1>;
+		det-addr = <0x48>;
 
         enable-gpios = <&gpio0 RK_PC7 GPIO_ACTIVE_HIGH>;
 	    reset-gpios = <&gpio3 RK_PB5 GPIO_ACTIVE_LOW>;
@@ -275,13 +283,16 @@
  * when dsi1 is enabled
  */
 &dsi1 {
-    status = "disabled";
+    status = "okay";
     //rockchip,lane-rate = <1000>;
     dsi1_panel: panel@0 {
-        status = "disabled";
+        status = "okay";
         compatible = "simple-panel-dsi";
         reg = <0>;
         backlight = <&backlight_1>;
+
+		ddc-i2c-bus = <&i2c5>;
+		det-addr = <0x48>;
 
         enable-gpios = <&gpio0 RK_PC5 GPIO_ACTIVE_HIGH>;
 	    reset-gpios = <&gpio3 RK_PB6 GPIO_ACTIVE_LOW>;
@@ -359,7 +370,7 @@
 
 &i2c1 {
     hxchipset@48{
-        status = "okay";
+        status = "disabled";
         compatible = "himax,hxcommon";
         reg = <0x48>;
 
@@ -376,7 +387,7 @@
 
 &i2c5 {
     hxchipset@48{
-        status = "disabled";
+        status = "okay";
         compatible = "himax,hxcommon";
         reg = <0x48>;
 
@@ -403,3 +414,12 @@
 	};
 };
 
+&vp0 {
+	rockchip,plane-mask = <(1 << ROCKCHIP_VOP2_CLUSTER0 | 1 << ROCKCHIP_VOP2_ESMART0 | 1 << ROCKCHIP_VOP2_SMART0)>;
+	rockchip,primary-plane = <ROCKCHIP_VOP2_SMART0>;
+};
+
+&vp1 {
+	rockchip,plane-mask = <(1 << ROCKCHIP_VOP2_CLUSTER1 | 1 << ROCKCHIP_VOP2_ESMART1 | 1 << ROCKCHIP_VOP2_SMART1)>;
+	rockchip,primary-plane = <ROCKCHIP_VOP2_SMART1>;
+};
