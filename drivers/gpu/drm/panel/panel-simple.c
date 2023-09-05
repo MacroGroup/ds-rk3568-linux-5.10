@@ -111,6 +111,7 @@ struct panel_simple {
 	bool enabled;
 	bool power_invert;
 	bool soft_hpd;
+	u32 det_addr;
 
 	const struct panel_desc *desc;
 
@@ -700,6 +701,29 @@ static void panel_simple_detect_dev_work(struct work_struct *work)
 	schedule_delayed_work(&p->detect_dev_work, msecs_to_jiffies(3000));
 }
 
+static void panel_simple_detect_dsi_work(struct work_struct *work)
+{
+	struct panel_simple *p = container_of(work, struct panel_simple, detect_dev_work.work);
+	int ret = 0;
+
+	if (!p->ddc)
+		return;
+
+	ret = i2c_smbus_xfer(p->ddc, p->det_addr, 0, I2C_SMBUS_WRITE, 0,
+			     I2C_SMBUS_QUICK, NULL);
+	printk("Firefly: panel_simple_detect_dsi_work: i2c ret %d\n", ret);
+
+	if (ret == 0){
+		if(panel_simple_handle_connector_status(p, "on")){
+			printk("panel_simple_handle_connector_status set on failed");
+		}
+	} else {
+		if(panel_simple_handle_connector_status(p, "off")){
+			printk("panel_simple_handle_connector_status set off failed");
+		}
+	}
+}
+
 static int panel_simple_get_modes(struct drm_panel *panel)
 {
 	struct panel_simple *p = to_panel_simple(panel);
@@ -867,6 +891,7 @@ static int panel_simple_probe(struct device *dev, const struct panel_desc *desc)
 	}
 
 	panel->soft_hpd = of_property_read_bool(dev->of_node, "soft-hpd");
+	of_property_read_u32(dev->of_node, "det-addr", &panel->det_addr);
 
 	drm_panel_init(&panel->base);
 	panel->base.dev = dev;
@@ -880,6 +905,9 @@ static int panel_simple_probe(struct device *dev, const struct panel_desc *desc)
 
 	if (panel->soft_hpd) {
 		INIT_DELAYED_WORK(&panel->detect_dev_work, panel_simple_detect_dev_work);
+		schedule_delayed_work(&panel->detect_dev_work, msecs_to_jiffies(3000));
+	}else if (panel->det_addr > 0){
+		INIT_DELAYED_WORK(&panel->detect_dev_work, panel_simple_detect_dsi_work);
 		schedule_delayed_work(&panel->detect_dev_work, msecs_to_jiffies(3000));
 	}
 
