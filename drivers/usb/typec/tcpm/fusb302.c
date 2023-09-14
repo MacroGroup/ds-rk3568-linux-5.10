@@ -85,6 +85,7 @@ struct fusb302_chip {
 	bool irq_while_suspended;
 	struct gpio_desc *gpio_int_n;
 	int gpio_int_n_irq;
+	struct gpio_desc *gpio_fswitch;
 	struct extcon_dev *extcon;
 
 	struct workqueue_struct *wq;
@@ -1165,6 +1166,8 @@ static int fusb302_set_cc_polarity_and_pull(struct fusb302_chip *chip,
 		if (pull_up)
 			switches0_data |= FUSB_REG_SWITCHES0_CC1_PU_EN;
 		switches1_data = FUSB_REG_SWITCHES1_TXCC1_EN;
+		if(!IS_ERR(chip->gpio_fswitch))
+			gpiod_set_value(chip->gpio_fswitch, 0);
 	} else {
 		switches0_data |= FUSB_REG_SWITCHES0_MEAS_CC2;
 		if (chip->vconn_on)
@@ -1172,6 +1175,8 @@ static int fusb302_set_cc_polarity_and_pull(struct fusb302_chip *chip,
 		if (pull_up)
 			switches0_data |= FUSB_REG_SWITCHES0_CC2_PU_EN;
 		switches1_data = FUSB_REG_SWITCHES1_TXCC2_EN;
+		if(!IS_ERR(chip->gpio_fswitch))
+			gpiod_set_value(chip->gpio_fswitch, 1);
 	}
 	ret = fusb302_i2c_write(chip, FUSB_REG_SWITCHES0, switches0_data);
 	if (ret < 0)
@@ -1637,6 +1642,13 @@ static int init_gpio(struct fusb302_chip *chip)
 {
 	struct device *dev = chip->dev;
 	int ret = 0;
+
+	chip->gpio_fswitch = devm_gpiod_get(dev, "fusb340-switch", GPIOD_OUT_LOW);
+	if (IS_ERR(chip->gpio_fswitch)) {
+		dev_err(dev, "Could not get named GPIO for fusb340-switch!\n");
+	} else {
+		gpiod_set_value(chip->gpio_fswitch, 0);
+	}
 
 	chip->gpio_int_n = devm_gpiod_get(dev, "fcs,int_n", GPIOD_IN);
 	if (IS_ERR(chip->gpio_int_n)) {
