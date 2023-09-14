@@ -270,6 +270,7 @@ void stmmac_ptp_register(struct stmmac_priv *priv);
 void stmmac_ptp_unregister(struct stmmac_priv *priv);
 int stmmac_resume(struct device *dev);
 int stmmac_suspend(struct device *dev);
+void stmmac_firefly_shutdown(struct device *dev);
 int stmmac_dvr_remove(struct device *dev);
 int stmmac_dvr_probe(struct device *device,
 		     struct plat_stmmacenet_data *plat_dat,
