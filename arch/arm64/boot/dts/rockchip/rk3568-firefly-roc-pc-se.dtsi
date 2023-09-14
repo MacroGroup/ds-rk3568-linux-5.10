@@ -281,7 +281,7 @@
     hp-adc-drift-scope = <100>;
     hp-volume = <3>;
     spk-volume = <3>;
-    /delete-property/ spk-ctl;
+    /delete-property/ spk-ctl-gpios;
 };
 
 &rk809 {
