@@ -179,10 +179,15 @@
 &route_dsi {
 	status = "okay";
 	logo,mode = "center";
+	connect = <&vopb_out_dsi>;
+};
+
+&dsi_in_vopb {
+	status = "okay";
 };
 
 &dsi_in_vopl {
-	status = "okay";
+	status = "disabled";
 };
 
 &i2c4 {
@@ -210,6 +215,16 @@
 		poll_delay_ms = <30>;
 		layout = <1>;
 	};
+};
+
+&hdmi {
+	status = "okay";
+};
+
+&route_hdmi {
+	status = "disabled";
+	logo,mode = "center";
+	connect = <&vopl_out_hdmi>;
 };
 
 &hdmi_in_vopb {

@@ -208,8 +208,13 @@
 };
 
 &route_dsi {
-	status = "disabled";
+	status = "okay";
 	logo,mode = "center";
+	connect = <&vopb_out_dsi>;
+};
+
+&dsi_in_vopb {
+	status = "okay";
 };
 
 &dsi_in_vopl {
@@ -219,6 +224,16 @@
 &gmac {
 	tx_delay = <0x2F>;
 	rx_delay = <0x26>;
+};
+
+&hdmi {
+	status = "okay";
+};
+
+&route_hdmi {
+	status = "disabled";
+	logo,mode = "center";
+	connect = <&vopl_out_hdmi>;
 };
 
 &hdmi_in_vopb {
@@ -294,4 +309,31 @@
     phys = <&u2phy0_otg>;
     maximum-speed = "high-speed";
     phy-names = "usb2-phy";
+};
+
+&i2c4 {
+        status = "okay";
+        sensor@4c {
+            compatible = "gs_mc3230";
+            reg = <0x4c>;
+            type = <SENSOR_TYPE_ACCEL>;
+            irq_enable = <0>;
+            poll_delay_ms = <30>;
+            layout = <4>;
+        };
+
+        gslx680: gslx680@41 {
+                compatible = "gslX680";
+                reg = <0x41>;
+                screen_max_x = <800>;
+                screen_max_y = <1280>;
+                touch-gpio = <&gpio4 28 IRQ_TYPE_LEVEL_LOW>;
+                reset-gpio = <&gpio4 21 GPIO_ACTIVE_HIGH>;
+                flip-x = <1>;
+                flip-y = <0>;
+                swap-xy = <0>;
+                gsl,fw = <1>;
+        };
+
+
 };
