@@ -777,6 +777,8 @@ static int es8323_mute(struct snd_soc_dai *dai, int mute)
 			es8323_set_gpio(ES8323_CODEC_SET_SPK, es8323->spk_gpio_level);
 		usleep_range(18000, 20000);
 	}
+        snd_soc_write(codec, 0x2e, es8323_DEF_VOL);
+        snd_soc_write(codec, 0x2f, es8323_DEF_VOL);
 
 	if (!es8323->line_in_status)
 		spk_detect_do_switch(!es8323->muted);
@@ -899,6 +901,8 @@ static int es8323_resume(struct snd_soc_codec *codec)
 	snd_soc_write(codec, 0x31, es8323_DEF_VOL);
 	snd_soc_write(codec, 0x30, es8323_DEF_VOL);
 	snd_soc_write(codec, 0x19, 0x02);
+        snd_soc_write(codec, 0x2e, es8323_DEF_VOL);
+        snd_soc_write(codec, 0x2f, es8323_DEF_VOL);
 	return 0;
 }
 
@@ -1000,8 +1004,8 @@ static int es8323_probe(struct snd_soc_codec *codec)
 	snd_soc_write(codec, 0x19, 0x02);	/* SOFT RAMP RATE=32LRCKS/STEP,Enable ZERO-CROSS CHECK,DAC MUTE */
 	snd_soc_write(codec, 0x04, 0x0c);	/* pdn_ana=0,ibiasgen_pdn=0 */
 	usleep_range(18000, 20000);
-	snd_soc_write(codec, 0x2e, 0x00);
-	snd_soc_write(codec, 0x2f, 0x00);
+	snd_soc_write(codec, 0x2e, 0x18);
+	snd_soc_write(codec, 0x2f, 0x18);
 	snd_soc_write(codec, 0x30, 0x08);
 	snd_soc_write(codec, 0x31, 0x08);
 	usleep_range(18000, 20000);
