@@ -589,11 +589,6 @@ static int hym8563_probe(struct i2c_client *client,
 		}
 	}
 
-	if (client->irq > 0 ||
-	    device_property_read_bool(&client->dev, "wakeup-source")) {
-		device_init_wakeup(&client->dev, true);
-	}
-
 	/* check state of calendar information */
 	ret = i2c_smbus_read_byte_data(client, HYM8563_SEC);
 	if (ret < 0)
