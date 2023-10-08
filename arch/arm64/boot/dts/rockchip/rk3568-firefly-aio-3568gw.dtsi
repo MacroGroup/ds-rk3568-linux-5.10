@@ -625,6 +625,10 @@
 	status = "okay";
 };
 
+&fiq_debugger {
+	rockchip,baudrate = <115200>;
+};
+
 &pinctrl {
 	/delete-node/ mxc6655xa;
 
