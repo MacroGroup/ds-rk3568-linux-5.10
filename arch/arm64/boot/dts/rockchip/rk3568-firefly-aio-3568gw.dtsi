@@ -530,8 +530,8 @@
 
 &gmac0 {
 	status = "okay";
-	tx_delay = <0x43>;
-	rx_delay = <0x33>;
+	tx_delay = <0x41>;
+	rx_delay = <0x31>;
 	snps,reset-gpio = <&gpio0 RK_PB7 GPIO_ACTIVE_LOW>;
 
 	clock_in_out = "output";
@@ -549,7 +549,7 @@
 
 &gmac1 {
 	status = "okay";
-	tx_delay = <0x4b>;
+	tx_delay = <0x4d>;
 	rx_delay = <0x2c>;
 	snps,reset-gpio = <&gpio0 RK_PC6 GPIO_ACTIVE_LOW>;
 
