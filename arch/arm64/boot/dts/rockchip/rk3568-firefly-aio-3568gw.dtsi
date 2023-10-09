@@ -379,7 +379,7 @@
 };
 
 &i2c1 {
-	status = "okay";
+	status = "disabled";
 };
 
 &i2c2 {
@@ -469,12 +469,6 @@
 	status = "okay";
 };
 
-&uart8 {
-	pinctrl-names = "default";
-	pinctrl-0 = <&uart8m0_xfer>;
-	status = "okay";
-};
-
 &uart9 {
 	pinctrl-names = "default";
 	pinctrl-0 = <&uart9m1_xfer>;
@@ -516,13 +510,6 @@
 	compatible = "rockchip,rk3568-can-2.0";
 	pinctrl-names = "default";
 	pinctrl-0 = <&can1m1_pins>;
-	status = "okay";
-};
-
-&can2 {
-	compatible = "rockchip,rk3568-can-2.0";
-	pinctrl-names = "default";
-	pinctrl-0 = <&can2m1_pins>;
 	status = "okay";
 };
 
@@ -572,10 +559,6 @@
 
 &rgmii_phy1 {
 	led_status_value = <0x6940>;
-};
-
-&sdio_pwrseq {
-	status = "disabled";
 };
 
 &sdmmc0 {
@@ -628,6 +611,42 @@
 &fiq_debugger {
 	rockchip,baudrate = <115200>;
 };
+
+/* ap6256 start */
+&wireless_wlan {
+	wifi_chip_type = "ap6275s";
+	pinctrl-0 = <&wifi_host_wake_irq>;
+	WIFI,host_wake_irq = <&gpio0 RK_PB4 GPIO_ACTIVE_HIGH>;
+	status = "okay";
+};
+
+&wifi_host_wake_irq {
+	rockchip,pins = <0 RK_PB4 RK_FUNC_GPIO &pcfg_pull_down>;
+};
+
+&wireless_bluetooth {
+	BT,reset_gpio    = <&gpio4 RK_PB3 GPIO_ACTIVE_HIGH>;
+	BT,wake_gpio     = <&gpio4 RK_PB2 GPIO_ACTIVE_HIGH>;
+	BT,wake_host_irq = <&gpio3 RK_PD2 GPIO_ACTIVE_HIGH>;
+	status = "okay";
+};
+
+&sdmmc2 {
+	status = "okay";
+};
+
+&sdio_pwrseq {
+	reset-gpios = <&gpio0 RK_PB3 GPIO_ACTIVE_LOW>;
+};
+
+&wifi_enable_h {
+	rockchip,pins = <0 RK_PB3 RK_FUNC_GPIO &pcfg_pull_none>;
+};
+
+&uart8 {
+	status = "okay";
+};
+/* ap6256 finish */
 
 &pinctrl {
 	/delete-node/ mxc6655xa;
