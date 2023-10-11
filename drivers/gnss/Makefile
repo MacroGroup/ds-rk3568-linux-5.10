@@ -17,3 +17,7 @@ gnss-ubx-y := ubx.o
 
 obj-$(CONFIG_GNSS_CMDLINE_SERIAL)	+= gnss-cmdline.o
 gnss-cmdline-y := cmdline.o
+
+gnss-cmdline-y := cmdline.o
+
+obj-$(CONFIG_QUECTEL_L76K)	+= l76k.o

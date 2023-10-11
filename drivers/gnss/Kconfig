@@ -55,4 +55,11 @@ config GNSS_CMDLINE_SERIAL
 
 	  If unsure, say N.
 
+config QUECTEL_L76K
+	tristate "QUECTEL L76K GPS driver"
+	default y
+	help
+		QUECTEL L76K GPS driver
+
 endif # GNSS
+

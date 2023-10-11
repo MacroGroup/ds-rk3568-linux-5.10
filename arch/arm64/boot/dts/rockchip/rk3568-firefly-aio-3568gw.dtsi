@@ -48,7 +48,7 @@
 	};
 
 	leds {
-		status = "okay";
+		status = "disabled";
 		compatible = "gpio-leds";
 
 		// UART
@@ -301,6 +301,14 @@
 		#cooling-cells = <2>;
 		fan-supply = <&vcc5v0_sys>;
 		pwms = <&pwm11 0 50000 0>;
+	};
+
+	l76k: l76k {
+		status = "okay";
+		compatible = "quectel,l76k";
+		pwr-gpio = <&gpio1 RK_PA4 GPIO_ACTIVE_HIGH>;  // GPS_PWR_EN
+		reset-gpio = <&gpio0 RK_PD5 GPIO_ACTIVE_LOW>; // GPS_RESET
+		standby-gpio = <&gpio2 RK_PC1 GPIO_ACTIVE_HIGH>; // GPS_STANDBY
 	};
 };
 
