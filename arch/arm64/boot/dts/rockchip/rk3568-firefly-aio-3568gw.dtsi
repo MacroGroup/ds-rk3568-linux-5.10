@@ -7,6 +7,22 @@
 #include "rk3568-firefly-port.dtsi"
 
 / {
+	LED14_R: led14-red {
+		compatible = "regulator-fixed";
+		enable-active-high;
+		gpio = <&pca9555 PCA_IO0_6 GPIO_ACTIVE_HIGH>;
+		regulator-name = "led14:red";
+		regulator-always-on;
+	};
+
+	LED14_G: led14-green {
+		compatible = "regulator-fixed";
+		enable-active-low;
+		gpio = <&pca9555 PCA_IO0_7 GPIO_ACTIVE_LOW>;
+		regulator-name = "led14:green";
+		regulator-always-on;
+	};
+
 	vcc3v3_sys_rgl: vcc3v3-sys-regulator {
 		compatible = "regulator-fixed";
 		enable-active-high;
@@ -56,18 +72,33 @@
 		pinctrl-0 = <&vcc3v3_pcie20_en>;
 	};
 
+	fan: pwm-fan {
+		compatible = "pwm-fan";
+		#cooling-cells = <2>;
+		fan-supply = <&vcc5v0_sys>;
+		pwms = <&pwm11 0 50000 0>;
+	};
+
+	l76k: l76k {
+		status = "okay";
+		compatible = "quectel,l76k";
+		pwr-gpio = <&gpio1 RK_PA4 GPIO_ACTIVE_HIGH>;  // GPS_PWR_EN
+		reset-gpio = <&gpio0 RK_PD5 GPIO_ACTIVE_LOW>; // GPS_RESET
+		standby-gpio = <&gpio2 RK_PC1 GPIO_ACTIVE_HIGH>; // GPS_STANDBY
+	};
+
 	leds {
-		status = "disabled";
+		status = "okay";
 		compatible = "gpio-leds";
 
-		// UART
+		// RS485_1
 		LED1_R {
 			default-state = "off";
-			gpios = <&gpio2 RK_PD2 GPIO_ACTIVE_HIGH>;
+			gpios = <&gpio2 RK_PD3 GPIO_ACTIVE_HIGH>;
 			pinctrl-names = "default";
 			pinctrl-0 = <&led1_r_en>;
 			linux,default-trigger = "tty";
-			label = "uart:red";
+			label = "rs485_1:red";
 		};
 
 		LED1_G {
@@ -76,22 +107,13 @@
 			pinctrl-names = "default";
 			pinctrl-0 = <&led1_g_en>;
 			linux,default-trigger = "tty";
-			label = "uart:green";
-		};
-
-		LED1_B {
-			default-state = "off";
-			gpios = <&gpio2 RK_PD1 GPIO_ACTIVE_HIGH>;
-			pinctrl-names = "default";
-			pinctrl-0 = <&led1_b_en>;
-			linux,default-trigger = "tty";
-			label = "uart:blue";
+			label = "rs485_1:green";
 		};
 
 		// RS485_2
 		LED2_R {
 			default-state = "off";
-			gpios = <&gpio2 RK_PD3 GPIO_ACTIVE_HIGH>;
+			gpios = <&gpio3 RK_PB7 GPIO_ACTIVE_HIGH>;
 			pinctrl-names = "default";
 			pinctrl-0 = <&led2_r_en>;
 			linux,default-trigger = "tty";
@@ -107,15 +129,6 @@
 			label = "rs485_2:green";
 		};
 
-		LED2_B {
-			default-state = "off";
-			gpios = <&gpio3 RK_PB7 GPIO_ACTIVE_HIGH>;
-			pinctrl-names = "default";
-			pinctrl-0 = <&led2_b_en>;
-			linux,default-trigger = "tty";
-			label = "rs485_2:blue";
-		};
-
 		// RS232_1
 		LED3_R {
 			default-state = "off";
@@ -128,26 +141,17 @@
 
 		LED3_G {
 			default-state = "off";
-			gpios = <&gpio2 RK_PD7 GPIO_ACTIVE_HIGH>;
+			gpios = <&gpio3 RK_PD5 GPIO_ACTIVE_HIGH>;
 			pinctrl-names = "default";
 			pinctrl-0 = <&led3_g_en>;
 			linux,default-trigger = "tty";
 			label = "rs232_1:green";
 		};
 
-		LED3_B {
-			default-state = "off";
-			gpios = <&gpio2 RK_PD5 GPIO_ACTIVE_HIGH>;
-			pinctrl-names = "default";
-			pinctrl-0 = <&led3_b_en>;
-			linux,default-trigger = "tty";
-			label = "rs232_1:blue";
-		};
-
 		// RS232_2
 		LED4_R {
 			default-state = "off";
-			gpios = <&gpio2 RK_PD4 GPIO_ACTIVE_HIGH>;
+			gpios = <&gpio2 RK_PD0 GPIO_ACTIVE_HIGH>;
 			pinctrl-names = "default";
 			pinctrl-0 = <&led4_r_en>;
 			linux,default-trigger = "tty";
@@ -156,168 +160,197 @@
 
 		LED4_G {
 			default-state = "off";
-			gpios = <&gpio3 RK_PA0 GPIO_ACTIVE_HIGH>;
+			gpios = <&gpio2 RK_PD4 GPIO_ACTIVE_HIGH>;
 			pinctrl-names = "default";
 			pinctrl-0 = <&led4_g_en>;
 			linux,default-trigger = "tty";
 			label = "rs232_2:green";
 		};
 
-		LED4_B {
-			default-state = "off";
-			gpios = <&gpio3 RK_PA3 GPIO_ACTIVE_HIGH>;
-			pinctrl-names = "default";
-			pinctrl-0 = <&led4_b_en>;
-			linux,default-trigger = "tty";
-			label = "rs232_2:blue";
-		};
-
-		// CAN
+		// UART
 		LED5_R {
 			default-state = "off";
-			gpios = <&gpio3 RK_PB5 GPIO_ACTIVE_HIGH>;
+			gpios = <&gpio3 RK_PA0 GPIO_ACTIVE_HIGH>;
 			pinctrl-names = "default";
 			pinctrl-0 = <&led5_r_en>;
-			linux,default-trigger = "netdev";
-			label = "can:red";
+			linux,default-trigger = "tty";
+			label = "uart:red";
 		};
 
 		LED5_G {
 			default-state = "off";
-			gpios = <&gpio3 RK_PB6 GPIO_ACTIVE_HIGH>;
+			gpios = <&gpio3 RK_PA3 GPIO_ACTIVE_HIGH>;
 			pinctrl-names = "default";
 			pinctrl-0 = <&led5_g_en>;
-			linux,default-trigger = "netdev";
-			label = "can:green";
+			linux,default-trigger = "tty";
+			label = "uart:green";
 		};
 
-		LED5_B {
-			default-state = "off";
-			gpios = <&gpio3 RK_PB0 GPIO_ACTIVE_HIGH>;
-			pinctrl-names = "default";
-			pinctrl-0 = <&led5_b_en>;
-			linux,default-trigger = "netdev";
-			label = "can:blue";
-		};
-
-		// GPIO_IN_1
+		// CAN
 		LED6_R {
 			default-state = "off";
-			gpios = <&gpio3 RK_PB4 GPIO_ACTIVE_HIGH>;
+			gpios = <&gpio3 RK_PA6 GPIO_ACTIVE_HIGH>;
 			pinctrl-names = "default";
 			pinctrl-0 = <&led6_r_en>;
-			linux,default-trigger = "gpio";
-			label = "gpio_in_1:red";
+			linux,default-trigger = "netdev";
+			label = "can:red";
 		};
 
 		LED6_G {
 			default-state = "off";
-			gpios = <&gpio3 RK_PC1 GPIO_ACTIVE_HIGH>;
+			gpios = <&gpio3 RK_PA5 GPIO_ACTIVE_HIGH>;
 			pinctrl-names = "default";
 			pinctrl-0 = <&led6_g_en>;
-			linux,default-trigger = "gpio";
-			label = "gpio_in_1:green";
+			linux,default-trigger = "netdev";
+			label = "can:green";
 		};
 
-		LED6_B {
-			default-state = "off";
-			gpios = <&gpio2 RK_PD6 GPIO_ACTIVE_HIGH>;
-			pinctrl-names = "default";
-			pinctrl-0 = <&led6_b_en>;
-			linux,default-trigger = "gpio";
-			label = "gpio_in_1:blue";
-		};
-
-		// GPIO_IN_2
+		// GPS
 		LED7_R {
 			default-state = "off";
-			gpios = <&gpio4 RK_PD2 GPIO_ACTIVE_HIGH>;
+			gpios = <&gpio3 RK_PA4 GPIO_ACTIVE_HIGH>;
 			pinctrl-names = "default";
 			pinctrl-0 = <&led7_r_en>;
-			linux,default-trigger = "gpio";
-			label = "gpio_in_2:red";
+			linux,default-trigger = "tty";
+			label = "gps:red";
 		};
 
 		LED7_G {
 			default-state = "off";
-			gpios = <&gpio2 RK_PD0 GPIO_ACTIVE_HIGH>;
+			gpios = <&gpio3 RK_PA7 GPIO_ACTIVE_HIGH>;
 			pinctrl-names = "default";
 			pinctrl-0 = <&led7_g_en>;
-			linux,default-trigger = "gpio";
-			label = "gpio_in_2:green";
+			linux,default-trigger = "tty";
+			label = "gps:green";
 		};
 
-		// GPIO_OUT_1
+		// WIFI
 		LED8_R {
 			default-state = "off";
-			gpios = <&gpio3 RK_PA6 GPIO_ACTIVE_HIGH>;
+			gpios = <&gpio3 RK_PB5 GPIO_ACTIVE_HIGH>;
 			pinctrl-names = "default";
 			pinctrl-0 = <&led8_r_en>;
-			//linux,default-trigger = "gpio";
-			label = "gpio_out_1:red";
+			linux,default-trigger = "netdev";
+			label = "wifi:red";
 		};
 
 		LED8_G {
 			default-state = "off";
-			gpios = <&gpio3 RK_PA5 GPIO_ACTIVE_HIGH>;
+			gpios = <&gpio3 RK_PB6 GPIO_ACTIVE_HIGH>;
 			pinctrl-names = "default";
 			pinctrl-0 = <&led8_g_en>;
-			//linux,default-trigger = "gpio";
-			label = "gpio_out_1:green";
+			linux,default-trigger = "netdev";
+			label = "wifi:green";
 		};
 
-		// GPIO_OUT_2
+		// GPIO_IN_1
 		LED9_R {
 			default-state = "off";
-			gpios = <&gpio3 RK_PA4 GPIO_ACTIVE_HIGH>;
+			gpios = <&gpio3 RK_PB0 GPIO_ACTIVE_HIGH>;
 			pinctrl-names = "default";
 			pinctrl-0 = <&led9_r_en>;
-			//linux,default-trigger = "gpio";
-			label = "gpio_out_2:red";
+			linux,default-trigger = "gpio";
+			label = "gpio_in_1:red";
 		};
 
 		LED9_G {
 			default-state = "off";
-			gpios = <&gpio3 RK_PA7 GPIO_ACTIVE_HIGH>;
+			gpios = <&gpio4 RK_PD2 GPIO_ACTIVE_HIGH>;
 			pinctrl-names = "default";
 			pinctrl-0 = <&led9_g_en>;
-			//linux,default-trigger = "gpio";
-			label = "gpio_out_2:green";
+			linux,default-trigger = "gpio";
+			label = "gpio_in_1:green";
 		};
 
-		// RS485_1
+		// GPIO_IN_2
 		LED10_R {
 			default-state = "off";
-			gpios = <&gpio1 RK_PA4 GPIO_ACTIVE_HIGH>;
-			pinctrl-names = "default";
-			pinctrl-0 = <&led10_r_en>;
-			linux,default-trigger = "tty";
-			label = "rs485_1:red";
+			gpios = <&pca9555 PCA_IO1_4 GPIO_ACTIVE_HIGH>;
+			linux,default-trigger = "gpio";
+			label = "gpio_in_2:red";
 		};
 
 		LED10_G {
 			default-state = "off";
-			gpios = <&gpio1 RK_PB0 GPIO_ACTIVE_HIGH>;
-			pinctrl-names = "default";
-			pinctrl-0 = <&led10_g_en>;
-			linux,default-trigger = "tty";
-			label = "rs485_1:green";
+			gpios = <&pca9555 PCA_IO1_5 GPIO_ACTIVE_HIGH>;
+			linux,default-trigger = "gpio";
+			label = "gpio_in_2:green";
 		};
-	};
 
-	fan: pwm-fan {
-		compatible = "pwm-fan";
-		#cooling-cells = <2>;
-		fan-supply = <&vcc5v0_sys>;
-		pwms = <&pwm11 0 50000 0>;
-	};
+        // GPIO_OUT_1
+        LED11_R {
+			default-state = "off";
+			gpios = <&pca9555 PCA_IO0_0 GPIO_ACTIVE_HIGH>;
+			// linux,default-trigger = "gpio";
+			label = "gpio_out_1:red";
+		};
 
-	l76k: l76k {
-		status = "okay";
-		compatible = "quectel,l76k";
-		pwr-gpio = <&gpio1 RK_PA4 GPIO_ACTIVE_HIGH>;  // GPS_PWR_EN
-		reset-gpio = <&gpio0 RK_PD5 GPIO_ACTIVE_LOW>; // GPS_RESET
-		standby-gpio = <&gpio2 RK_PC1 GPIO_ACTIVE_HIGH>; // GPS_STANDBY
+        LED11_G {
+			default-state = "off";
+			gpios = <&pca9555 PCA_IO0_1 GPIO_ACTIVE_HIGH>;
+			// linux,default-trigger = "gpio";
+			label = "gpio_out_1:green";
+		};
+
+        // GPIO_OUT_2
+        LED12_R {
+			default-state = "off";
+			gpios = <&pca9555 PCA_IO0_2 GPIO_ACTIVE_HIGH>;
+			// linux,default-trigger = "gpio";
+			label = "gpio_out_2:red";
+		};
+
+        LED12_G {
+			default-state = "off";
+			gpios = <&pca9555 PCA_IO0_3 GPIO_ACTIVE_HIGH>;
+			// linux,default-trigger = "gpio";
+			label = "gpio_out_2:green";
+		};
+
+        // SSD
+        LED13_R {
+			default-state = "off";
+			gpios = <&pca9555 PCA_IO0_4 GPIO_ACTIVE_HIGH>;
+			// linux,default-trigger = "gpio";
+			label = "ssd:red";
+		};
+
+        LED13_G {
+			default-state = "off";
+			gpios = <&pca9555 PCA_IO0_5 GPIO_ACTIVE_HIGH>;
+			// linux,default-trigger = "gpio";
+			label = "ssd:green";
+		};
+
+		// 4G/5G
+		LED15_R {
+			default-state = "off";
+			gpios = <&pca9555 PCA_IO1_0 GPIO_ACTIVE_HIGH>;
+			linux,default-trigger = "netdev";
+			label = "wwan:red";
+		};
+
+		LED15_G {
+			default-state = "off";
+			gpios = <&pca9555 PCA_IO1_1 GPIO_ACTIVE_HIGH>;
+			linux,default-trigger = "netdev";
+			label = "wwan:green";
+		};
+
+		// RESERVE
+		LED16_R {
+			default-state = "off";
+			gpios = <&pca9555 PCA_IO1_2 GPIO_ACTIVE_HIGH>;
+			// linux,default-trigger = "netdev";
+			label = "reserve:red";
+		};
+
+		LED16_G {
+			default-state = "off";
+			gpios = <&pca9555 PCA_IO1_3 GPIO_ACTIVE_HIGH>;
+			// linux,default-trigger = "netdev";
+			label = "reserve:green";
+		};
 	};
 };
 
@@ -402,6 +435,7 @@
 
 &i2c1 {
 	status = "disabled";
+	/delete-node/ gpio@21;
 };
 
 &i2c2 {
@@ -418,6 +452,15 @@
 		clock-frequency = <32768>;
 		clock-output-names = "xin32k";
 		wakeup-source;
+	};
+
+	pca9555: gpio@21 {
+		status = "okay";
+		compatible = "nxp,pca9555";
+		reg = <0x21>;
+		gpio-controller;
+		#gpio-cells = <2>;
+		gpio-group-num = <200>;
 	};
 };
 
@@ -456,10 +499,6 @@
 };
 
 &mc3230 {
-    status = "disabled";
-};
-
-&pca9555 {
     status = "disabled";
 };
 
@@ -740,27 +779,19 @@
 
 	leds {
 		led1_r_en: led1-r-en {
-			rockchip,pins = <2 RK_PD2 RK_FUNC_GPIO &pcfg_pull_none>;
+			rockchip,pins = <2 RK_PD3 RK_FUNC_GPIO &pcfg_pull_none>;
 		};
 
 		led1_g_en: led1-g-en {
 			rockchip,pins = <3 RK_PA1 RK_FUNC_GPIO &pcfg_pull_none>;
 		};
 
-		led1_b_en: led1-b-en {
-			rockchip,pins = <2 RK_PD1 RK_FUNC_GPIO &pcfg_pull_none>;
-		};
-
 		led2_r_en: led2-r-en {
-			rockchip,pins = <2 RK_PD3 RK_FUNC_GPIO &pcfg_pull_none>;
+			rockchip,pins = <3 RK_PB7 RK_FUNC_GPIO &pcfg_pull_none>;
 		};
 
 		led2_g_en: led2-g-en {
 			rockchip,pins = <3 RK_PA2 RK_FUNC_GPIO &pcfg_pull_none>;
-		};
-
-		led2_b_en: led2-b-en {
-			rockchip,pins = <3 RK_PB7 RK_FUNC_GPIO &pcfg_pull_none>;
 		};
 
 		led3_r_en: led3-r-en {
@@ -768,79 +799,55 @@
 		};
 
 		led3_g_en: led3-g-en {
-			rockchip,pins = <2 RK_PD7 RK_FUNC_GPIO &pcfg_pull_none>;
-		};
-
-		led3_b_en: led3-b-en {
-			rockchip,pins = <2 RK_PD5 RK_FUNC_GPIO &pcfg_pull_none>;
+			rockchip,pins = <3 RK_PD5 RK_FUNC_GPIO &pcfg_pull_none>;
 		};
 
 		led4_r_en: led4-r-en {
-			rockchip,pins = <2 RK_PD4 RK_FUNC_GPIO &pcfg_pull_none>;
-		};
-
-		led4_g_en: led4-g-en {
-			rockchip,pins = <3 RK_PA0 RK_FUNC_GPIO &pcfg_pull_none>;
-		};
-
-		led4_b_en: led4-b-en {
-			rockchip,pins = <3 RK_PA3 RK_FUNC_GPIO &pcfg_pull_none>;
-		};
-
-		led5_r_en: led5-r-en {
-			rockchip,pins = <3 RK_PB5 RK_FUNC_GPIO &pcfg_pull_none>;
-		};
-
-		led5_g_en: led5-g-en {
-			rockchip,pins = <3 RK_PB6 RK_FUNC_GPIO &pcfg_pull_none>;
-		};
-
-		led5_b_en: led5-b-en {
-			rockchip,pins = <3 RK_PB0 RK_FUNC_GPIO &pcfg_pull_none>;
-		};
-
-		led6_r_en: led6-r-en {
-			rockchip,pins = <3 RK_PB4 RK_FUNC_GPIO &pcfg_pull_none>;
-		};
-
-		led6_g_en: led6-g-en {
-			rockchip,pins = <3 RK_PC1 RK_FUNC_GPIO &pcfg_pull_none>;
-		};
-
-		led6_b_en: led6-b-en {
-			rockchip,pins = <2 RK_PD6 RK_FUNC_GPIO &pcfg_pull_none>;
-		};
-
-		led7_r_en: led7-r-en {
-			rockchip,pins = <4 RK_PD2 RK_FUNC_GPIO &pcfg_pull_none>;
-		};
-
-		led7_g_en: led7-g-en {
 			rockchip,pins = <2 RK_PD0 RK_FUNC_GPIO &pcfg_pull_none>;
 		};
 
-		led8_r_en: led8-r-en {
+		led4_g_en: led4-g-en {
+			rockchip,pins = <2 RK_PD4 RK_FUNC_GPIO &pcfg_pull_none>;
+		};
+
+		led5_r_en: led5-r-en {
+			rockchip,pins = <3 RK_PA0 RK_FUNC_GPIO &pcfg_pull_none>;
+		};
+
+		led5_g_en: led5-g-en {
+			rockchip,pins = <3 RK_PA3 RK_FUNC_GPIO &pcfg_pull_none>;
+		};
+
+		led6_r_en: led6-r-en {
 			rockchip,pins = <3 RK_PA6 RK_FUNC_GPIO &pcfg_pull_none>;
 		};
 
-		led8_g_en: led8-g-en {
+		led6_g_en: led6-g-en {
 			rockchip,pins = <3 RK_PA5 RK_FUNC_GPIO &pcfg_pull_none>;
 		};
 
-		led9_r_en: led9-r-en {
+		led7_r_en: led7-r-en {
 			rockchip,pins = <3 RK_PA4 RK_FUNC_GPIO &pcfg_pull_none>;
 		};
 
-		led9_g_en: led9-g-en {
+		led7_g_en: led7-g-en {
 			rockchip,pins = <3 RK_PA7 RK_FUNC_GPIO &pcfg_pull_none>;
 		};
 
-		led10_r_en: led10-r-en {
-			rockchip,pins = <1 RK_PA4 RK_FUNC_GPIO &pcfg_pull_none>;
+		led8_r_en: led8-r-en {
+			rockchip,pins = <3 RK_PB5 RK_FUNC_GPIO &pcfg_pull_none>;
 		};
 
-		led10_g_en: led10-g-en {
-			rockchip,pins = <1 RK_PB0 RK_FUNC_GPIO &pcfg_pull_none>;
+		led8_g_en: led8-g-en {
+			rockchip,pins = <3 RK_PB6 RK_FUNC_GPIO &pcfg_pull_none>;
 		};
-	};
+
+		led9_r_en: led9-r-en {
+			rockchip,pins = <3 RK_PB0 RK_FUNC_GPIO &pcfg_pull_none>;
+		};
+
+		led9_g_en: led9-g-en {
+			rockchip,pins = <4 RK_PD2 RK_FUNC_GPIO &pcfg_pull_none>;
+		};
+	};   
 };
