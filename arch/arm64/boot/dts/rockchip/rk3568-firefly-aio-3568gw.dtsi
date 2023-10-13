@@ -36,7 +36,7 @@
 	vcc5v0_usb2_host: vcc5v0-usb2-host-regulator {
 		compatible = "regulator-fixed";
 		enable-active-high;
-		gpio = <&gpio1 RK_PB1 GPIO_ACTIVE_HIGH>;
+		gpio = <&gpio0 RK_PA5 GPIO_ACTIVE_HIGH>;
 		regulator-name = "vcc5v0_usb2_host";
 		regulator-always-on;
 		pinctrl-names = "default";
@@ -720,7 +720,7 @@
 
 	usb2 {
 		vcc5v0_usb2_host_en: vcc5v0-usb2-host-en {
-			rockchip,pins = <1 RK_PB1 RK_FUNC_GPIO &pcfg_pull_none>;
+			rockchip,pins = <0 RK_PA5 RK_FUNC_GPIO &pcfg_pull_none>;
 		};
 	};
 
