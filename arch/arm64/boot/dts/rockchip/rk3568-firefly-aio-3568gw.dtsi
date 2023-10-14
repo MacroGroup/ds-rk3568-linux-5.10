@@ -56,7 +56,7 @@
 	vcc5v0_ext: vcc5v0-ext-regulator {
 		compatible = "regulator-fixed";
 		enable-active-high;
-		gpio = <&gpio1 RK_PB2 GPIO_ACTIVE_HIGH>;
+		gpio = <&gpio0 RK_PB5 GPIO_ACTIVE_HIGH>;
 		regulator-name = "vcc5v0_ext";
 		regulator-always-on;
 		pinctrl-names = "default";
