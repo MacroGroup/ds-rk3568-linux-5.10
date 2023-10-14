@@ -63,7 +63,7 @@
 		pinctrl-0 = <&vcc5v0_ext_en>;
 	};
 
-	vcc3v3_pcie20: gpio-regulator {
+	vcc3v3_pcie20: vcc3v3-pcie20-regulator {
 		compatible = "regulator-fixed";
 		enable-active-high;
 		gpio = <&gpio3 RK_PB3 GPIO_ACTIVE_HIGH>;
