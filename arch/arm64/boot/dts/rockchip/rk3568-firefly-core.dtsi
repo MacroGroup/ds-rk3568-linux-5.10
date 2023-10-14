@@ -172,6 +172,7 @@
 		pinctrl-0 = <&vcc5v0_host_en>;
 		regulator-name = "vcc5v0_host";
 		regulator-always-on;
+		regulator-boot-on;
 	};
 
 	vcc5v0_otg: vcc5v0-otg-regulator {
