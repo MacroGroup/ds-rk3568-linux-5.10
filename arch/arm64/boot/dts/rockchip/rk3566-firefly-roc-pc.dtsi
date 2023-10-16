@@ -7,6 +7,8 @@
 #include "rk3568-firefly-port.dtsi"
 #include "rk3566-diff.dtsi"
 
+#define M2_SATA_OR_PCIE 0 /* 1 = SATA, 0 = PCIe */
+
 /delete-node/ &hym8563;
 
 / {
@@ -145,6 +147,11 @@
 	status = "disabled";
 };
 
+#if M2_SATA_OR_PCIE
+&sata2 {
+	status = "okay";
+};
+#else
 &pcie2x1 {
     reset-gpios = <&gpio1 RK_PB2 GPIO_ACTIVE_HIGH>;
     pinctrl-names = "default";
@@ -152,6 +159,7 @@
 	vpcie3v3-supply = <&pcie30_3v3>;
     status = "okay";
 };
+#endif
 
 &pcie30_3v3 {
 	status = "okay";
