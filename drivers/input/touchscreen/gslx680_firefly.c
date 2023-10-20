@@ -167,7 +167,7 @@ static struct gsl_ts *gts;
 static int gslX680_shutdown_low(void)
 {
 	if (gpio_is_valid(gts->rst_pin))
-		gpio_set_value(gts->rst_pin, GPIO_LOW);
+		gpio_set_value_cansleep(gts->rst_pin, GPIO_LOW);
 
 	return 0;
 }
@@ -175,7 +175,7 @@ static int gslX680_shutdown_low(void)
 static int gslX680_shutdown_high(void)
 {
 	if (gpio_is_valid(gts->rst_pin))
-		gpio_set_value(gts->rst_pin, GPIO_HIGH);
+		gpio_set_value_cansleep(gts->rst_pin, GPIO_HIGH);
 
 	return 0;
 }
@@ -1010,7 +1010,7 @@ static int gsl_ts_probe(struct i2c_client *client,
 			return -EIO;
 		}
 		gpio_direction_output(ts->rst_pin, 0);
-		gpio_set_value(ts->rst_pin, GPIO_HIGH);
+		gpio_set_value_cansleep(ts->rst_pin, GPIO_HIGH);
 		msleep(20);
 	} else {
 		dev_info(&client->dev, "reset pin invalid\n");
