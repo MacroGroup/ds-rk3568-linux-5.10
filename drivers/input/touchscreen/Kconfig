@@ -427,6 +427,11 @@ config TOUCHSCREEN_GSLX680_PAD
 	help
 	  gslX680 touchpad driver for pad
 
+config TOUCHSCREEN_GSLX680_FIREFLY
+	tristate "firefly gslX680 touchscreen driver"
+	help
+	  firefly gslX680 touchscreen driver
+
 config TOUCHSCREEN_GT1X
 	tristate "GT1X touchscreens support"
 
