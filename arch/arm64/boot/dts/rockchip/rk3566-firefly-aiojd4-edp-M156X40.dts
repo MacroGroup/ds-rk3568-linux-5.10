@@ -135,6 +135,11 @@
 	status = "disabled";
 };
 
+&route_edp {
+    status = "okay";
+    connect = <&vp0_out_edp>;
+};
+
 &hdmi {
 	status = "disabled";
 };
@@ -145,4 +150,14 @@
 
 &hdmi_in_vp1 {
 	status = "disabled";
+};
+
+&vp0 {
+    rockchip,plane-mask = <(1 << ROCKCHIP_VOP2_CLUSTER0 | 1 << ROCKCHIP_VOP2_ESMART0 | 1 << ROCKCHIP_VOP2_SMART0)>;
+    rockchip,primary-plane = <ROCKCHIP_VOP2_SMART0>;
+};
+
+&vp1 {
+    rockchip,plane-mask = <(1 << ROCKCHIP_VOP2_CLUSTER1 | 1 << ROCKCHIP_VOP2_ESMART1 | 1 << ROCKCHIP_VOP2_SMART1)>;
+    rockchip,primary-plane = <ROCKCHIP_VOP2_SMART1>;
 };

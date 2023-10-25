@@ -34,6 +34,7 @@
 		pinctrl-0 = <&vcc_5v_en>;
 		regulator-name = "vcc_5v";
 		regulator-always-on;
+		regulator-boot-on;
 	};
 	
 	/* USB vbus config */
@@ -45,6 +46,7 @@
 		pinctrl-0 = <&vcc5v0_host30_en>;
 		regulator-name = "vcc5v0_host30";
 		regulator-always-on;
+		regulator-boot-on;
 	};
 
 	vcc5v0_host: vcc5v0-host-regulator {
@@ -55,6 +57,7 @@
 		pinctrl-0 = <&vcc5v0_host_en>;
 		regulator-name = "vcc5v0_host";
 		regulator-always-on;
+		regulator-boot-on;
 	};
 
 	vcc_hub_reset: vcc-hub-reset-regulator {
@@ -84,6 +87,7 @@
 		pinctrl-0 = <&vcc_4g_power_en>;
 		regulator-name = "vcc_4g_power";
 		regulator-always-on;
+		regulator-boot-on;
 	};
 
 	firefly_leds: leds {
