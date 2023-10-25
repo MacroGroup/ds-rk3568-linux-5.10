@@ -42,6 +42,10 @@
 	status = "okay";
 };
 
+&mipi_csi2_hw{
+	status = "okay";
+};
+
 &csi2_dphy0 {
 	status = "disabled";
 };
@@ -200,8 +204,10 @@
 		firefly,clkout-enabled-index = <1>;
 		rockchip,camera-module-index = <0>;
 		rockchip,camera-module-facing = "back";
-		rockchip,camera-module-name = "YT-RV1109-2-V1";
-		rockchip,camera-module-lens-name = "40IR-2MP-F20";
+		//rockchip,camera-module-name = "YT-RV1109-2-V1";
+		//rockchip,camera-module-lens-name = "40IR-2MP-F20";
+		rockchip,camera-module-name = "default";
+		rockchip,camera-module-lens-name = "JX8006";
 		port {
 			gc2053_out: endpoint {
 				remote-endpoint = <&dphy1_in>;
@@ -228,8 +234,10 @@
 		firefly,clkout-enabled-index = <0>;
 		rockchip,camera-module-index = <1>;
 		rockchip,camera-module-facing = "front";
-		rockchip,camera-module-name = "YT-RV1109-2-V1";
-		rockchip,camera-module-lens-name = "40IR-2MP-F20";
+		//rockchip,camera-module-name = "YT-RV1109-2-V1";
+		//rockchip,camera-module-lens-name = "40IR-2MP-F20";
+		rockchip,camera-module-name = "SIDB205300385-VA";
+		rockchip,camera-module-lens-name = "default";
 		port {
 			gc2093_out: endpoint {
 				remote-endpoint = <&dphy2_in>;
