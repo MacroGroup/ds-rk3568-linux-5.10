@@ -18,7 +18,7 @@
 #include "rk3568-firefly-aioj-cam-8ms1m.dtsi"
 
 / {
-    model = "AIO-3568J MIPI (Linux)";
+    model = "AIO-3568J MIPI + HDMI (Linux)";
     compatible = "rockchip,rk3568-firefly-aioj", "rockchip,rk3568";
 
     vcc1v8_lcd0_power: vcc1v8-lcd0-power-regulator {
@@ -139,7 +139,7 @@
 
 &route_dsi0 {
     status = "okay";
-    connect = <&vp0_out_dsi0>;
+    connect = <&vp1_out_dsi0>;
 };
 
 &video_phy0 {
@@ -147,11 +147,11 @@
 };
 
 &dsi0_in_vp0 {
-    status = "okay";
+    status = "disabled";
 };
 
 &dsi0_in_vp1 {
-    status = "disabled";
+    status = "okay";
 };
 
 &route_dsi1 {
@@ -172,11 +172,11 @@
 };
 
 &hdmi {
-	status = "disabled";
+	status = "okay";
 };
 
 &hdmi_in_vp0 {
-	status = "disabled";
+	status = "okay";
 };
 
 &hdmi_in_vp1 {
@@ -184,7 +184,12 @@
 };
 
 &hdmi_sound {
-	status = "disabled";
+	status = "okay";
+};
+
+&route_hdmi {
+	status = "okay";
+	connect = <&vp0_out_hdmi>;
 };
 
 /*
@@ -199,6 +204,9 @@
         compatible = "simple-panel-dsi";
         reg = <0>;
         backlight = <&backlight_0>;
+
+		ddc-i2c-bus = <&i2c1>;
+		det-addr = <0x48>;
 
         enable-gpios = <&gpio0 RK_PC7 GPIO_ACTIVE_HIGH>;
 	    reset-gpios = <&gpio0 RK_PC5 GPIO_ACTIVE_LOW>;
@@ -287,6 +295,9 @@
         reg = <0>;
         backlight = <&backlight_1>;
 		power-supply = <&vcc1v8_lcd1_power>;
+
+		ddc-i2c-bus = <&i2c4>;
+		det-addr = <0x48>;
 
         enable-gpios = <&pca9555 PCA_IO0_7 GPIO_ACTIVE_HIGH>;
 	    reset-gpios = <&gpio4 RK_PC6 GPIO_ACTIVE_LOW>;
@@ -408,3 +419,12 @@
 	};
 };
 
+&vp0 {
+	rockchip,plane-mask = <(1 << ROCKCHIP_VOP2_CLUSTER0 | 1 << ROCKCHIP_VOP2_ESMART0 | 1 << ROCKCHIP_VOP2_SMART0)>;
+	rockchip,primary-plane = <ROCKCHIP_VOP2_SMART0>;
+};
+
+&vp1 {
+	rockchip,plane-mask = <(1 << ROCKCHIP_VOP2_CLUSTER1 | 1 << ROCKCHIP_VOP2_ESMART1 | 1 << ROCKCHIP_VOP2_SMART1)>;
+	rockchip,primary-plane = <ROCKCHIP_VOP2_SMART1>;
+};
