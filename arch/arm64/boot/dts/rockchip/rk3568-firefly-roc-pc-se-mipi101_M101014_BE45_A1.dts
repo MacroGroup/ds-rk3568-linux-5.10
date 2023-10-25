@@ -18,7 +18,7 @@
 #include "rk3568-firefly-roc-pc-se-cam-8ms1m.dtsi"
 
 / {
-    model = "Firefly RK3568-ROC-PC-SE MIPI (Linux)";
+    model = "Firefly RK3568-ROC-PC-SE MIPI + HDMI (Linux)";
     compatible = "rockchip,rk3568-firefly-roc-pc-se", "rockchip,rk3568";
 
     vcc1v8_lcd0_power: vcc1v8-lcd0-power-regulator {
@@ -80,7 +80,7 @@
 
 &route_dsi0 {
     status = "okay";
-    connect = <&vp0_out_dsi0>;
+    connect = <&vp1_out_dsi0>;
 };
 
 &video_phy0 {
@@ -88,19 +88,19 @@
 };
 
 &dsi0_in_vp0 {
-    status = "okay";
-};
-
-&dsi0_in_vp1 {
     status = "disabled";
 };
 
+&dsi0_in_vp1 {
+    status = "okay";
+};
+
 &hdmi {
-	status = "disabled";
+	status = "okay";
 };
 
 &hdmi_in_vp0 {
-	status = "disabled";
+	status = "okay";
 };
 
 &hdmi_in_vp1 {
@@ -108,7 +108,12 @@
 };
 
 &hdmi_sound {
-	status = "disabled";
+	status = "okay";
+};
+
+&route_hdmi {
+    status = "okay";
+    connect = <&vp0_out_hdmi>;
 };
 
 /*
