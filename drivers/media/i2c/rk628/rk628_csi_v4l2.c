@@ -301,7 +301,7 @@ static bool tx_5v_power_present(struct v4l2_subdev *sd)
 
 	cnt = 0;
 	for (i = 0; i < 5; i++) {
-		val = gpiod_get_value(csi->plugin_det_gpio);
+		val = gpiod_get_value_cansleep(csi->plugin_det_gpio);
 		if (val > 0)
 			cnt++;
 		usleep_range(500, 600);
@@ -2012,18 +2012,18 @@ static int rk628_csi_probe_of(struct rk628_csi *csi)
 	}
 
 	if (csi->enable_gpio) {
-		gpiod_set_value(csi->enable_gpio, 1);
+		gpiod_set_value_cansleep(csi->enable_gpio, 1);
 		usleep_range(10000, 11000);
 	}
-	gpiod_set_value(csi->reset_gpio, 0);
+	gpiod_set_value_cansleep(csi->reset_gpio, 0);
 	usleep_range(10000, 11000);
-	gpiod_set_value(csi->reset_gpio, 1);
+	gpiod_set_value_cansleep(csi->reset_gpio, 1);
 	usleep_range(10000, 11000);
-	gpiod_set_value(csi->reset_gpio, 0);
+	gpiod_set_value_cansleep(csi->reset_gpio, 0);
 	usleep_range(10000, 11000);
 
 	if (csi->power_gpio) {
-		gpiod_set_value(csi->power_gpio, 1);
+		gpiod_set_value_cansleep(csi->power_gpio, 1);
 		usleep_range(500, 510);
 	}
 
