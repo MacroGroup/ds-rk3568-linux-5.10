@@ -2371,7 +2371,19 @@ static struct i2c_driver rk628_csi_i2c_driver = {
 	.remove = rk628_csi_remove,
 };
 
-module_i2c_driver(rk628_csi_i2c_driver);
+//module_i2c_driver(rk628_csi_i2c_driver);
+static int __init sensor_mod_init(void)
+{
+        return i2c_add_driver(&rk628_csi_i2c_driver);
+}
+
+static void __exit sensor_mod_exit(void)
+{
+         i2c_del_driver(&rk628_csi_i2c_driver);
+}
+
+late_initcall(sensor_mod_init);
+module_exit(sensor_mod_exit);
 
 MODULE_DESCRIPTION("Rockchip RK628 HDMI to MIPI CSI-2 bridge I2C driver");
 MODULE_AUTHOR("Dingxian Wen <shawn.wen@rock-chips.com>");
