@@ -7,13 +7,13 @@
 #include "rk3568-firefly-port.dtsi"
 
 / {
-	LED14_R: led14-red {
-		compatible = "regulator-fixed";
-		enable-active-high;
-		gpio = <&pca9555 PCA_IO0_6 GPIO_ACTIVE_HIGH>;
-		regulator-name = "led14:red";
-		regulator-always-on;
-	};
+	// LED14_R: led14-red {
+	// 	compatible = "regulator-fixed";
+	// 	enable-active-high;
+	// 	gpio = <&pca9555 PCA_IO0_6 GPIO_ACTIVE_HIGH>;
+	// 	regulator-name = "led14:red";
+	// 	regulator-always-on;
+	// };
 
 	LED14_G: led14-green {
 		compatible = "regulator-fixed";
@@ -87,9 +87,18 @@
 		standby-gpio = <&gpio2 RK_PC1 GPIO_ACTIVE_HIGH>; // GPS_STANDBY
 	};
 
-	leds {
+	firefly_leds: leds {
 		status = "okay";
 		compatible = "gpio-leds";
+
+		power_led: power {
+			label = "firefly:blue:power";
+			linux,default-trigger = "ir-power-click";
+			default-state = "on";
+			gpios = <&pca9555 PCA_IO0_6 GPIO_ACTIVE_HIGH>;
+			pinctrl-names = "default";
+			// pinctrl-0 = <&led_power>;
+		};
 
 		// RS485_1
 		LED1_R {
