@@ -53,15 +53,15 @@
 		pinctrl-0 = <&vcc_4g_power_en>;
 	};
 
-	vcc5v0_ext: vcc5v0-ext-regulator {
-		compatible = "regulator-fixed";
-		enable-active-high;
-		gpio = <&gpio0 RK_PB5 GPIO_ACTIVE_HIGH>;
-		regulator-name = "vcc5v0_ext";
-		regulator-always-on;
-		pinctrl-names = "default";
-		pinctrl-0 = <&vcc5v0_ext_en>;
-	};
+	// vcc5v0_ext: vcc5v0-ext-regulator {
+	// 	compatible = "regulator-fixed";
+	// 	enable-active-high;
+	// 	gpio = <&gpio0 RK_PB5 GPIO_ACTIVE_HIGH>;
+	// 	regulator-name = "vcc5v0_ext";
+	// 	regulator-always-on;
+	// 	pinctrl-names = "default";
+	// 	pinctrl-0 = <&vcc5v0_ext_en>;
+	// };
 
 	vcc3v3_pcie20: vcc3v3-pcie20-regulator {
 		compatible = "regulator-fixed";
