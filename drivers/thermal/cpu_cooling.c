@@ -691,7 +691,16 @@ __cpufreq_cooling_register(struct device_node *np,
 	if (IS_ERR(cdev))
 		goto free_idle_time;
 
-	cpufreq_cdev->clipped_freq = get_state_freq(cpufreq_cdev, 0);
+	if(cpufreq_cdev->cpufreq_state>=0 && cpufreq_cdev->cpufreq_state<=cpufreq_cdev->max_level)
+	{
+		cpufreq_cdev->clipped_freq = get_state_freq(cpufreq_cdev,cpufreq_cdev->cpufreq_state);
+	}
+	else
+	{
+		cpufreq_cdev->clipped_freq = get_state_freq(cpufreq_cdev, 0);
+		cpufreq_cdev->cpufreq_state = 0;
+	}
+
 	cpufreq_cdev->cdev = cdev;
 
 	cpufreq_cdev->model_data = rockchip_ipa_power_model_init(dev,
