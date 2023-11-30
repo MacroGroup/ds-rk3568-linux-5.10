@@ -664,6 +664,8 @@
 };
 
 &pcie2x1 {
+	reset-gpios = <&gpio1 RK_PB2 GPIO_ACTIVE_HIGH>;
+	vpcie3v3-supply = <&vcc3v3_pcie20>;
 	status = "okay";
 };
 
@@ -738,7 +740,7 @@
 
 	ext {
 		vcc5v0_ext_en: vcc5v0-ext-en {
-			rockchip,pins = <1 RK_PB2 RK_FUNC_GPIO &pcfg_pull_up>;
+			rockchip,pins = <0 RK_PB5 RK_FUNC_GPIO &pcfg_pull_up>;
 		};
 	};
 
