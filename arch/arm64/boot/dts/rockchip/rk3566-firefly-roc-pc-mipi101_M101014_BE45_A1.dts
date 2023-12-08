@@ -12,10 +12,12 @@
 *								select camera
 *
 * using single camera xc7160        --->  rk3566-firefly-roc-pc-cam-8ms1m.dtsi
+* using single camera imx415        --->  rk3566-firefly-roc-pc-cam-imx415.dtsi
 * using dual camera gc2053/gc2093   --->  rk3566-firefly-roc-pc-cam-2ms2m.dtsi
 *
 */
 #include "rk3566-firefly-roc-pc-cam-8ms1m.dtsi"
+#include "rk3566-firefly-roc-pc-cam-imx415.dtsi"
 
 / {
     model = "Firefly RK3566-ROC-PC MIPI (Linux)";
