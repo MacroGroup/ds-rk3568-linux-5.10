@@ -75,14 +75,23 @@
 		status = "okay";
 		compatible = "gpio-leds";
 
-		// POWER
-		LED1_R {
-			default-state = "off";
+		power_led: power {
+			label = "firefly:blue:power";
+			linux,default-trigger = "ir-power-click";
+			default-state = "on";
 			gpios = <&gpio2 RK_PD3 GPIO_ACTIVE_HIGH>;
 			pinctrl-names = "default";
 			pinctrl-0 = <&led1_r_en>;
-			label = "power:red";
 		};
+
+		// POWER
+		// LED1_R {
+		// 	default-state = "off";
+		// 	gpios = <&gpio2 RK_PD3 GPIO_ACTIVE_HIGH>;
+		// 	pinctrl-names = "default";
+		// 	pinctrl-0 = <&led1_r_en>;
+		// 	label = "power:red";
+		// };
 
 		LED1_G {
 			default-state = "off";
