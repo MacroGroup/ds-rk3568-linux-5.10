@@ -1037,6 +1037,7 @@ s32 rtl8821cu_hal_mgmt_xmitframe_enqueue(PADAPTER padapter, struct xmit_frame *p
 
 	err = rtw_mgmt_xmitframe_enqueue(padapter, pxmitframe);
 	if (err != _SUCCESS) {
+		rtw_free_xmitbuf(pxmitpriv, pxmitframe->pxmitbuf);
 		rtw_free_xmitframe(pxmitpriv, pxmitframe);
 		pxmitpriv->tx_drop++;
 	} else {

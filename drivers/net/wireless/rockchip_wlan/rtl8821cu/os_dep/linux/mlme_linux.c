@@ -442,3 +442,66 @@ void hostapd_mode_unload(_adapter *padapter)
 
 #endif
 #endif
+
+#ifdef CONFIG_DFS_MASTER
+void rtw_os_indicate_radar_detected(struct rf_ctl_t *rfctl, u8 band_idx
+	, u8 cch, enum channel_width bw)
+{
+	rtw_nlrtw_radar_detect_event(rfctl, band_idx, cch, bw);
+#ifdef CONFIG_IOCTL_CFG80211
+	rtw_cfg80211_radar_detected_event(rfctl, band_idx, cch, bw);
+#endif
+}
+
+void rtw_os_indicate_cac_started(struct rf_ctl_t *rfctl, u8 band_idx
+	, u8 ifbmp, u8 cch, enum channel_width bw)
+{
+#ifdef CONFIG_IOCTL_CFG80211
+	rtw_cfg80211_cac_started_event(rfctl, band_idx, ifbmp, cch, bw);
+#endif
+}
+
+void rtw_os_indicate_cac_finished(struct rf_ctl_t *rfctl, u8 band_idx
+	, u8 ifbmp, u8 cch, enum channel_width bw)
+{
+	rtw_nlrtw_cac_finish_event(rfctl, band_idx, ifbmp, cch, bw);
+#ifdef CONFIG_IOCTL_CFG80211
+	rtw_cfg80211_cac_finished_event(rfctl, band_idx, ifbmp, cch, bw);
+#endif
+}
+
+void rtw_os_indicate_cac_aborted(struct rf_ctl_t *rfctl, u8 band_idx
+	, u8 ifbmp, u8 cch, enum channel_width bw)
+{
+	rtw_nlrtw_cac_abort_event(rfctl, band_idx, ifbmp, cch, bw);
+#ifdef CONFIG_IOCTL_CFG80211
+	rtw_cfg80211_cac_aborted_event(rfctl, band_idx, ifbmp, cch, bw);
+#endif
+}
+
+void rtw_os_force_cac_finished(struct rf_ctl_t *rfctl, u8 band_idx
+	, u8 ifbmp, u8 cch, enum channel_width bw)
+{
+#ifdef CONFIG_IOCTL_CFG80211
+	rtw_cfg80211_cac_force_finished(rfctl, band_idx, ifbmp, cch, bw);
+#endif
+}
+
+void rtw_os_indicate_nop_finished(struct rf_ctl_t *rfctl, u8 band_idx
+	, u8 band, u8 cch, enum channel_width bw)
+{
+	rtw_nlrtw_nop_finish_event(rfctl, band_idx, band, cch, bw);
+#ifdef CONFIG_IOCTL_CFG80211
+	rtw_cfg80211_nop_finished_event(rfctl, band_idx, band, cch, bw);
+#endif
+}
+
+void rtw_os_indicate_nop_started(struct rf_ctl_t *rfctl, u8 band_idx
+	, u8 band, u8 cch, enum channel_width bw, bool called_on_cmd_thd)
+{
+	rtw_nlrtw_nop_start_event(rfctl, band_idx, band, cch, bw);
+#ifdef CONFIG_IOCTL_CFG80211
+	rtw_cfg80211_nop_started_event(rfctl, band_idx, band, cch, bw, called_on_cmd_thd);
+#endif
+}
+#endif /* CONFIG_DFS_MASTER */
