@@ -8,6 +8,7 @@
 #include <dt-bindings/display/media-bus-format.h>
 #include "rk3568-firefly-itx-3568q.dtsi"
 #include "rk3568-firefly-itx-3568q-cam-8ms1m.dtsi"
+#include "rk3568-firefly-itx-3568q-cam-imx415.dtsi"
 
 / {
     model = "ITX-3568Q HDMI+LVDS (Linux)";
