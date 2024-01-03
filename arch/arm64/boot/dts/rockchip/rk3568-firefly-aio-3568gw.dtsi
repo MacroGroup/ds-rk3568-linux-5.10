@@ -517,12 +517,16 @@
 &uart4 { // rs485_1
 	pinctrl-names = "default";
 	pinctrl-0 = <&uart4m1_xfer>;
-	status = "okay";
+    rs485-de-gpios = <&gpio3 RK_PC1 GPIO_ACTIVE_LOW>;
+    linux,rs485-enabled-at-boot-time;
+    status = "okay";
 };
 
 &uart5 { // rs485_2
 	pinctrl-names = "default";
 	pinctrl-0 = <&uart5m1_xfer>;
+    rs485-de-gpios = <&gpio2 RK_PD6 GPIO_ACTIVE_LOW>;
+    linux,rs485-enabled-at-boot-time;
 	status = "okay";
 };
 
@@ -712,7 +716,6 @@
 
 &pinctrl {
 	/delete-node/ mxc6655xa;
-
 	power {
 		vcc3v3_sys_rgl_en: vcc3v3-sys-rgl-en {
 			rockchip,pins = <0 RK_PA0 RK_FUNC_GPIO &pcfg_pull_up>;
