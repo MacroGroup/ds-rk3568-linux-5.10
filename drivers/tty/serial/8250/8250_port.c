@@ -61,7 +61,7 @@
 #define DEBUG_AUTOCONF(fmt...)	do { } while (0)
 #endif
 
-#if 1
+#if 0
 #define DEBUG_EM485(fmt...)	printk(fmt)
 #else
 #define DEBUG_EM485(fmt...)	do { } while (0)
