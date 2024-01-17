@@ -244,6 +244,17 @@
 	dr_mode = "host";
 };
 
+&vcca_1v8{
+	regulator-always-on;
+	regulator-boot-on;
+	regulator-min-microvolt = <1800000>;
+	regulator-max-microvolt = <1800000>;
+	regulator-name = "vcca_1v8";
+	regulator-state-mem {
+		regulator-on-in-suspend;
+	};
+};
+
 &pinctrl {
 
 	usb {
