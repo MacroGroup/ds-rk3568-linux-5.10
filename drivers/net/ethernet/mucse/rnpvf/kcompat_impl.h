@@ -849,10 +849,10 @@ _kc_bpf_warn_invalid_xdp_action(__maybe_unused struct net_device *dev,
  * netdev->dev_addr assignment helpers")
  */
 #ifdef NEED_ETH_HW_ADDR_SET
-static inline void eth_hw_addr_set(struct net_device *dev, const u8 *addr)
-{
-	ether_addr_copy(dev->dev_addr, addr);
-}
+//static inline void eth_hw_addr_set(struct net_device *dev, const u8 *addr)
+//{
+//	ether_addr_copy(dev->dev_addr, addr);
+//}
 #endif /* NEED_ETH_HW_ADDR_SET */
 
 #ifdef NEED_JIFFIES_64_TIME_IS_MACROS
