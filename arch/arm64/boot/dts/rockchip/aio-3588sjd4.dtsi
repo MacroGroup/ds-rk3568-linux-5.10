@@ -157,7 +157,6 @@
 	linein-type = <2>;
 	pinctrl-names = "default";
 	pinctrl-0 = <&hp_det>;
-	hw-ver =<0x0>;
 };
 
 &i2c7 {

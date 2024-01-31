@@ -115,8 +115,8 @@
 
 	/delete-property/ spk-con-gpio;
 	
-	io-channels = <&saradc 5>;
-	io-channel-names = "hw-ver";
+	/delete-property/ io-channels;
+	/delete-property/ io-channel-names;
 	rockchip,audio-routing =
 			"Headphone", "LOUT2",
 			"Headphone", "ROUT2",
