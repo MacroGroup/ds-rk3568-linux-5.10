@@ -64,6 +64,7 @@ enum LINEIN_TYPE{
 	LINEIN_TYPE2,    //AIO-3588SJD4 USE
 	LINEIN_TYPE3,    //ROC-RK3588-PC USE
 	LINEIN_TPYE4,   //AIO-3588Q USE
+	LINEIN_TPYE5,   //ROC-RK3588-PC-SE USE
 	LINEIN_TPYE6,   //AIO-3588L USE
 };
 
@@ -190,17 +191,41 @@ static struct jack_zone aio_3588q_zone[] ={
 	}
 };
 
+static struct jack_zone roc_rk3588_pc_se_zone[] ={
+        {
+                .min_mv = 0,
+                .max_mv = 100,
+                .type = INPUT_LIN2_DIFF,
+        }, {
+                .min_mv = 1250,
+                .max_mv = 1350,
+                .type = INPUT_LIN1,
+        }, {
+                .min_mv = 1550,
+                .max_mv = UINT_MAX,
+                .type = INPUT_LIN1_DIFF,
+        }
+};
+
 static struct jack_zone aio_3588l_zone[] ={
-       {
-               .min_mv = 2500,
+	{
+                .min_mv = 0,
+                .max_mv = 1090,
+                .type = INPUT_LIN2,//useless
+        },{
+                .min_mv = 1100,
+                .max_mv = 1320,
+                .type = INPUT_LIN1_DIFF,
+        },{
+               .min_mv = 1330,    //useless
                .max_mv = UINT_MAX,
-               .type = INPUT_LIN1,
+               .type = INPUT_LIN2,
        }
 };
 
 static struct jack_zone roc_rk3588_pc_zone[] ={
-	{
-		.min_mv = 1700,
+	
+{		.min_mv = 1700,
 		.max_mv = UINT_MAX,
 		.type = INPUT_LIN1,
 	}
@@ -230,7 +255,6 @@ static void mic_det_work(struct work_struct *work)
 	struct multicodecs_data *mc_data = container_of(work,struct multicodecs_data,mic_work.work);
 	struct snd_soc_jack *jack_headset = mc_data->jack_headset;
 	int value, ret ,status;
-
 	ret = iio_read_channel_processed(mc_data->adc, &value);
 	if (unlikely(ret < 0)) {
 		/* Forcibly release key if any was pressed */
@@ -245,6 +269,8 @@ static void mic_det_work(struct work_struct *work)
 			status = jack_get_type(roc_rk3588_pc_zone,ARRAY_SIZE(roc_rk3588_pc_zone),value);
 		}else if (mc_data->linein_type == LINEIN_TPYE4){
 			status = jack_get_type(aio_3588q_zone,ARRAY_SIZE(aio_3588q_zone),value);
+		}else if (mc_data->linein_type == LINEIN_TPYE5){
+                     status = jack_get_type(roc_rk3588_pc_se_zone,ARRAY_SIZE(roc_rk3588_pc_se_zone),value);
 		}else if (mc_data->linein_type == LINEIN_TPYE6){
 			status = jack_get_type(aio_3588l_zone,ARRAY_SIZE(aio_3588l_zone),value);
 		}else{
