@@ -33,8 +33,8 @@
 	vcc_4g_pwr: vcc-4g-pwr {
 		compatible = "regulator-fixed";
 		regulator-name = "vcc_4g_pwr";
-		//regulator-boot-on;
-		//regulator-always-on;
+		regulator-boot-on;
+		regulator-always-on;
 		enable-active-high;
 		gpio = <&gpio4 RK_PB5 GPIO_ACTIVE_HIGH>;
 		status = "okay";
