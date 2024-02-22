@@ -462,8 +462,8 @@ __retry:
 		bt->il_vsync = bt->vsync + 1;
 		bt->pixelclock /= 2;
 	}
-
-	if (vact == 1080 && vtotal > 1500)
+	
+	if ((vact == 1080 && vtotal > 1500) || (vact == 2160 && vtotal > 2600))
 		goto __retry;
 
 	v4l2_dbg(1, debug, sd, "SCDC_REGS1:%#x, act:%dx%d, total:%dx%d, fps:%d, pixclk:%llu\n",
