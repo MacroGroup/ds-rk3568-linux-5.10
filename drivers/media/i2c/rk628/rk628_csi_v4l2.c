@@ -472,6 +472,7 @@ __retry:
 		 bt->hfrontporch, bt->hsync, bt->hbackporch, bt->vfrontporch, bt->vsync,
 		 bt->vbackporch, bt->interlaced);
 
+	csi->timings = *timings;
 	csi->src_timings = *timings;
 	if (csi->scaler_en)
 		*timings = csi->timings;
