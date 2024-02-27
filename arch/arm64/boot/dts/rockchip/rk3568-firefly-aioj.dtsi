@@ -217,8 +217,8 @@
 
 &rk809_codec {
     hp-ctl-gpios = <&gpio1 RK_PB0 GPIO_ACTIVE_HIGH>;
-	hp-det-adc-value = <300>;
-	hp-adc-drift-scope = <300>;
+	hp-det-adc-value = <500>;
+	hp-adc-drift-scope = <500>; // adc value range 500±500 to cover all earphones
 };
 
 &rk809 {
