@@ -64,6 +64,7 @@
 
 	vcc_3v3_sd_s0: vcc-3v3-sd-s0 {
 		compatible = "regulator-fixed";
+		regulator-boot-on;
 		regulator-name = "vcc_3v3_sd_s0";
 		regulator-min-microvolt = <3300000>;
 		regulator-max-microvolt = <3300000>;
