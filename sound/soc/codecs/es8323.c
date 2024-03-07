@@ -626,12 +626,18 @@ static int es8323_pcm_hw_params(struct snd_pcm_substream *substream,
 /*control gpio about hp_ctl and spk_ctl*/
 extern void firefly_multicodecs_control_gpio(int sound_mute);
 
-void firefly_multircodecs_mute_es8323(int mute)
-{
+static int gl_mute;
+struct mutex mute_lock;
+struct mutex mute_lock2;
 
+void firefly_multircodecs_mute_es8323(void)
+{
+	int mute = 0;
 	if(es8323_param == NULL)
 		return;
-
+	
+	mutex_lock(&mute_lock2);
+	mute = gl_mute;
 	if(mute){
 		/*DAC CONTROL3
 		 * Bit3		0 – normal (default)   1 – both channel gain control is set by DAC left gain control register
@@ -648,13 +654,17 @@ void firefly_multircodecs_mute_es8323(int mute)
 		snd_soc_component_write(es8323_param->component,ES8323_DACCONTROL3,0x02);
 	}
 
+	mutex_unlock(&mute_lock2);
 	return;
 }
 
 static int es8323_mute(struct snd_soc_dai *dai, int mute, int stream)
 {
 	//printk("[zyk debug] %s: codec mute set to %d\n",__func__,mute);
-	firefly_multircodecs_mute_es8323(mute);
+	mutex_lock(&mute_lock);
+	gl_mute = mute;
+	firefly_multircodecs_mute_es8323();
+	mutex_unlock(&mute_lock);
 	return 0;
 }
 
@@ -683,7 +693,7 @@ static int es8323_set_bias_level(struct snd_soc_component *component,
 		snd_soc_component_write(component, ES8323_CHIPLOPOW1, 0x00);
 		snd_soc_component_write(component, ES8323_CHIPLOPOW2, 0x00);
 		snd_soc_component_write(component, ES8323_CHIPPOWER, 0x00);
-		snd_soc_component_write(component, ES8323_ADCPOWER, 0x59);
+		snd_soc_component_write(component, ES8323_ADCPOWER, 0x09);
 		break;
 	case SND_SOC_BIAS_STANDBY:
 		dev_dbg(component->dev, "%s standby\n", __func__);
@@ -691,7 +701,7 @@ static int es8323_set_bias_level(struct snd_soc_component *component,
 		snd_soc_component_write(component, ES8323_CHIPLOPOW1, 0x00);
 		snd_soc_component_write(component, ES8323_CHIPLOPOW2, 0x00);
 		snd_soc_component_write(component, ES8323_CHIPPOWER, 0x00);
-		snd_soc_component_write(component, ES8323_ADCPOWER, 0x59);
+		snd_soc_component_write(component, ES8323_ADCPOWER, 0x09);
 		break;
 	case SND_SOC_BIAS_OFF:
 		dev_dbg(component->dev, "%s off\n", __func__);
@@ -770,7 +780,7 @@ static int es8323_resume(struct snd_soc_component *component)
 	snd_soc_component_write(component, 0x00, 0x32);
 	snd_soc_component_write(component, ES8323_CHIPPOWER, 0x00);
 	snd_soc_component_write(component, ES8323_DACPOWER, 0x0c);
-	snd_soc_component_write(component, ES8323_ADCPOWER, 0x59);
+	snd_soc_component_write(component, ES8323_ADCPOWER, 0x09);
 	snd_soc_component_write(component, 0x31, es8323_DEF_VOL);
 	snd_soc_component_write(component, 0x30, es8323_DEF_VOL);
 	snd_soc_component_write(component, 0x19, 0x02);
@@ -798,7 +808,10 @@ static int es8323_probe(struct snd_soc_component *component)
 		clk_disable_unprepare(es8323->mclk);
 		return ret;
 	}
+	
 
+	mutex_init(&mute_lock);
+	mutex_init(&mute_lock2);
 	snd_soc_component_write(component, 0x01, 0x60);
 	snd_soc_component_write(component, 0x02, 0xF3);
 	snd_soc_component_write(component, 0x02, 0xF0);
@@ -809,9 +822,6 @@ static int es8323_probe(struct snd_soc_component *component)
 	snd_soc_component_write(component, 0x06, 0xC3);
 	snd_soc_component_write(component, 0x19, 0x02);
 	snd_soc_component_write(component, 0x09, 0x00);
-	snd_soc_component_write(component, 0x0A, 0xf0);
-	snd_soc_component_write(component, 0x0B, 0x82);
-	snd_soc_component_write(component, 0x0C, 0x4C);
 	snd_soc_component_write(component, 0x0D, 0x02);
 	snd_soc_component_write(component, 0x10, 0x00);
 	snd_soc_component_write(component, 0x11, 0x00);
@@ -929,15 +939,22 @@ MODULE_DEVICE_TABLE(i2c, es8323_i2c_id);
 //value 0:line1  1:line2  2:line2 diff
 void es8323_line1_line2_line2diff_switch(int value)
 {
+	int read_val = 0;
 	if(!es8323_param)
 		return;
 	printk("es8323_line1_line2_line2diff_switch:%d\n",value);
 	if(value == INPUT_LIN1){
 		regmap_write(es8323_param->regmap, ES8323_ADCCONTROL2, 0x00);
 		regmap_write(es8323_param->regmap, ES8323_ADCCONTROL3, 0x02);
+		regmap_read(es8323_param->regmap, ES8323_ADCCONTROL4, &read_val);
+		read_val = read_val & 0x3f;
+		regmap_write(es8323_param->regmap, ES8323_ADCCONTROL4, read_val);
 	}else if(value == INPUT_LIN2){
 		regmap_write(es8323_param->regmap, ES8323_ADCCONTROL2, 0x50);
-		regmap_write(es8323_param->regmap, ES8323_ADCCONTROL3, 0x82);
+		regmap_write(es8323_param->regmap, ES8323_ADCCONTROL3, 0x02);
+		regmap_read(es8323_param->regmap, ES8323_ADCCONTROL4, &read_val);
+		read_val = read_val & 0x3f;
+		regmap_write(es8323_param->regmap, ES8323_ADCCONTROL4, read_val);
 	}else if(value == INPUT_LIN1_DIFF){
 		regmap_write(es8323_param->regmap, ES8323_ADCCONTROL2, 0xf0);
 		regmap_write(es8323_param->regmap, ES8323_ADCCONTROL3, 0x02);

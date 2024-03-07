@@ -64,6 +64,7 @@
 
 	vcc_3v3_sd_s0: vcc-3v3-sd-s0 {
 		compatible = "regulator-fixed";
+		regulator-boot-on;
 		regulator-name = "vcc_3v3_sd_s0";
 		regulator-min-microvolt = <3300000>;
 		regulator-max-microvolt = <3300000>;
@@ -115,8 +116,8 @@
 
 	/delete-property/ spk-con-gpio;
 	
-	io-channels = <&saradc 5>;
-	io-channel-names = "hw-ver";
+	/delete-property/ io-channels;
+	/delete-property/ io-channel-names;
 	rockchip,audio-routing =
 			"Headphone", "LOUT2",
 			"Headphone", "ROUT2",

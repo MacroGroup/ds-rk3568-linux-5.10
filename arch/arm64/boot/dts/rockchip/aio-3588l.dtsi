@@ -33,8 +33,8 @@
 	vcc_4g_pwr: vcc-4g-pwr {
 		compatible = "regulator-fixed";
 		regulator-name = "vcc_4g_pwr";
-		//regulator-boot-on;
-		//regulator-always-on;
+		regulator-boot-on;
+		regulator-always-on;
 		enable-active-high;
 		gpio = <&gpio4 RK_PB5 GPIO_ACTIVE_HIGH>;
 		status = "okay";
@@ -240,18 +240,18 @@
 &pcie3x4 {
 	reset-gpios = <&gpio4 RK_PB6 GPIO_ACTIVE_HIGH>;
 	vpcie3v3-supply = <&vcc3v3_pcie30>;
-	status = "okay";
+	status = "disabled";
 };
 
 &vcc3v3_pcie30{
 	gpios = <&gpio1 RK_PB3 GPIO_ACTIVE_HIGH>;
 	startup-delay-us = <5000>;
-	status = "okay";
+	status = "disabled";
 };
 
 /* sata pm */
 &combphy0_ps {
-	status = "okay";
+	status = "disabled";
 };
 
 #if M2_SATA_OR_PCIE

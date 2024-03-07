@@ -1729,7 +1729,7 @@ static int rtw_cfgvendor_set_country(struct wiphy *wiphy,
 
 	RTW_INFO("%s country_code:\"%c%c\" \n", __func__, country_code[0], country_code[1]);
 
-	rtw_set_country(padapter, country_code);
+	rtw_set_country(padapter, country_code, RTW_REGD_SET_BY_USER);
 
 	return err;
 }
@@ -1767,11 +1767,6 @@ static const struct wiphy_vendor_command rtw_vendor_cmds[] = {
 		},
 		.flags = WIPHY_VENDOR_CMD_NEED_WDEV | WIPHY_VENDOR_CMD_NEED_NETDEV,
 		.doit = rtw_cfgvendor_gscan_get_capabilities
-#if (LINUX_VERSION_CODE >= KERNEL_VERSION(5, 3, 0))
-               ,
-               .policy = VENDOR_CMD_RAW_DATA,
-               .maxattr = 1
-#endif
 	},
 	{
 		{

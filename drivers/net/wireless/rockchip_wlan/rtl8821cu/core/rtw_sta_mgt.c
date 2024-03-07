@@ -1,6 +1,6 @@
 /******************************************************************************
  *
- * Copyright(c) 2007 - 2019 Realtek Corporation.
+ * Copyright(c) 2007 - 2021 Realtek Corporation.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of version 2 of the GNU General Public License as
@@ -214,6 +214,9 @@ void _rtw_init_stainfo(struct sta_info *psta)
 	_rtw_init_listhead(&psta->auth_list);
 	psta->bpairwise_key_installed = _FALSE;
 
+#ifdef CONFIG_RTW_80211R_AP
+	rtw_ft_peer_info_init(psta);
+#endif
 #ifdef CONFIG_RTW_80211R
 	psta->ft_pairwise_key_installed = _FALSE;
 #endif
@@ -315,6 +318,8 @@ u32	_rtw_init_sta_priv(struct	sta_priv *pstapriv)
 	rtw_pre_link_sta_ctl_init(pstapriv);
 #endif
 
+	_rtw_spinlock_init(&pstapriv->tx_rpt_lock);
+
 #if defined(DBG_ROAMING_TEST) || defined(CONFIG_RTW_REPEATER_SON)
 	rtw_set_rx_chk_limit(adapter,1);
 #elif defined(CONFIG_ACTIVE_KEEP_ALIVE_CHECK) && !defined(CONFIG_LPS_LCLK_WD_TIMER)
@@ -388,9 +393,7 @@ void rtw_mfree_stainfo(struct sta_info *psta);
 void rtw_mfree_stainfo(struct sta_info *psta)
 {
 
-	if (&psta->lock != NULL)
-		_rtw_spinlock_free(&psta->lock);
-
+	_rtw_spinlock_free(&psta->lock);
 	_rtw_free_sta_xmit_priv_lock(&psta->sta_xmitpriv);
 	_rtw_free_sta_recv_priv_lock(&psta->sta_recvpriv);
 
@@ -481,6 +484,8 @@ u32	_rtw_free_sta_priv(struct	sta_priv *pstapriv)
 #if CONFIG_RTW_PRE_LINK_STA
 		rtw_pre_link_sta_ctl_deinit(pstapriv);
 #endif
+
+		_rtw_spinlock_free(&pstapriv->tx_rpt_lock);
 
 		if (pstapriv->pallocated_stainfo_buf)
 			rtw_vmfree(pstapriv->pallocated_stainfo_buf,
@@ -744,7 +749,7 @@ u32	rtw_free_stainfo(_adapter *padapter , struct sta_info *psta)
 
 #ifdef CONFIG_RTW_MGMT_QUEUE
 	/* mgmt */
-	rtw_free_xmitframe_queue(pxmitpriv, &pstaxmitpriv->mgmt_q.sta_pending);
+	rtw_free_mgmt_xmitframe_queue(pxmitpriv, &pstaxmitpriv->mgmt_q.sta_pending);
 	rtw_list_delete(&(pstaxmitpriv->mgmt_q.tx_pending));
 	phwxmit = pxmitpriv->hwxmits + 4;
 	phwxmit->accnt -= pstaxmitpriv->mgmt_q.qcnt;
@@ -871,6 +876,9 @@ u32	rtw_free_stainfo(_adapter *padapter , struct sta_info *psta)
 	psta->under_exist_checking = 0;
 #endif
 
+#ifdef CONFIG_RTW_80211R_AP
+	rtw_ft_peer_info_free(psta);
+#endif
 #endif /* CONFIG_AP_MODE	 */
 
 	rtw_st_ctl_deinit(&psta->st_ctl);
@@ -993,29 +1001,27 @@ struct sta_info *rtw_get_stainfo(struct sta_priv *pstapriv, const u8 *hwaddr)
 
 u32 rtw_init_bcmc_stainfo(_adapter *padapter)
 {
-
 	struct sta_info	*psta;
-	struct tx_servq	*ptxservq;
-	u32 res = _SUCCESS;
+	/*struct tx_servq *ptxservq;*/
 	NDIS_802_11_MAC_ADDRESS	bcast_addr = {0xff, 0xff, 0xff, 0xff, 0xff, 0xff};
-
 	struct	sta_priv *pstapriv = &padapter->stapriv;
 
 
 	psta = rtw_alloc_stainfo(pstapriv, bcast_addr);
-
-	if (psta == NULL) {
-		res = _FAIL;
+	if (!psta) {
+		RTW_ERR(FUNC_ADPT_FMT ": missing stainfo of " MAC_FMT " !\n",
+			FUNC_ADPT_ARG(padapter), MAC_ARG(bcast_addr));
 		goto exit;
 	}
+
 #ifdef CONFIG_BEAMFORMING
 	psta->cmn.bf_info.g_id = 63;
 	psta->cmn.bf_info.p_aid = 0;
 #endif
 
+	/*
 	ptxservq = &(psta->sta_xmitpriv.be_q);
 
-	/*
 		_enter_critical(&pstapending->lock, &irqL0);
 
 		if (rtw_is_list_empty(&ptxservq->tx_pending))
@@ -1026,9 +1032,7 @@ u32 rtw_init_bcmc_stainfo(_adapter *padapter)
 
 exit:
 	return _SUCCESS;
-
 }
-
 
 struct sta_info *rtw_get_bcmc_stainfo(_adapter *padapter)
 {

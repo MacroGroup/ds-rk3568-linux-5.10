@@ -1476,11 +1476,12 @@ u8 query_phydm_current_ant_num_8821c(struct dm_struct *dm)
 	if (dm->current_rf_set_8821c == SWITCH_TO_BTG || dm->current_rf_set_8821c == SWITCH_TO_WLA || dm->current_rf_set_8821c == SWITCH_TO_BT) {
 		if (regval_0xcb4 == 1)
 			dm->current_ant_num_8821c = SWITCH_TO_ANT1;
-		else if (regval_0xcb4 == 2)
+		else
 			dm->current_ant_num_8821c = SWITCH_TO_ANT2;
-		else if (regval_0xcb4 == 1)
+	} else {
+		if (regval_0xcb4 == 1)
 			dm->current_ant_num_8821c = SWITCH_TO_ANT2;
-		else if (regval_0xcb4 == 2)
+		else
 			dm->current_ant_num_8821c = SWITCH_TO_ANT1;
 	}
 
