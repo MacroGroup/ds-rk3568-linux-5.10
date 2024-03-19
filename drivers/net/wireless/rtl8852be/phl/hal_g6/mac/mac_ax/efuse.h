@@ -26,8 +26,7 @@
 #define EFUSE_WAIT_CNT_PLUS	30000
 #define EFUSE_C2HREG_WAIT_CNT	10000
 #define EFUSE_C2HREG_RETRY_WAIT_US 1
-#define EFUSE_FW_DUMP_WAIT_CNT	100
-#define EFUSE_FW_DUMP_WAIT_CNT_V1 400
+#define EFUSE_FW_DUMP_WAIT_CNT	100000
 #define OTP_PHY_SIZE		0x800
 #define CHK_OTP_ADDR		0x4
 #define CHK_OTP_WAIT_CNT	50000
@@ -44,7 +43,7 @@
 #define XTAL_SI_LOW_ADDR_SH	0
 #define XTAL_SI_LOW_ADDR_MSK	0xFF
 
-#define XTAL_SI_CTRL		0x63
+#define XTAL_SI_CTRL			0x63
 #define XTAL_SI_MODE_SEL_SH	6
 #define XTAL_SI_MODE_SEL_MSK	0x3
 #define XTAL_SI_RDY		BIT(5)
@@ -55,22 +54,6 @@
 #define XTAL_SI_WRITE_VAL	0x60
 #define XTAL_SI_WRITE_DATA_SH	0
 #define XTAL_SI_WRITE_DATA_MSK	0xFF
-
-#define DUMP_OFLD_TYPE_HIDDEN	1
-#define DUMP_OFLD_TYPE_DAV	2
-
-#define BT_DIS_WAIT_CNT	100
-#define BT_DIS_WAIT_US	50
-
-#define EF_FV_OFSET_AX 0x5EA
-#define EF_FV_OFSET_BE 0x77CA
-#define EF_FV_OFSET_BE_V1 0x1FCA
-
-#define EF_CV_OFSET 0x4
-#define EF_CV_MSK 0xF
-
-extern struct mac_bank_efuse_info bank_efuse_info;
-extern enum rtw_dv_sel dv_sel;
 
 /**
  * @struct mac_efuse_tbl
@@ -125,7 +108,6 @@ enum efuse_map_sel {
 	EFUSE_MAP_SEL_PHY_OTP,
 	EFUSE_MAP_SEL_PHY_DAV,
 	EFUSE_MAP_SEL_LOG_DAV,
-	EFUSE_MAP_SEL_HIDDEN_RF,
 
 	/* keep last */
 	EFUSE_MAP_SEL_LAST,
@@ -298,13 +280,6 @@ enum mac_cntlr_mode_sel {
 	MODE_CMP,
 };
 
-enum efuse_fv_type {
-	FV_TYPE1 = 0xF,
-	FV_TYPE2 = 0xE,
-	FV_TYPE3 = 0xC,
-	FV_TYPE4 = 0x8,
-};
-
 /**
  * @addtogroup Efuse
  * @{
@@ -447,28 +422,6 @@ u32 mac_read_efuse_plus(struct mac_ax_adapter *adapter, u32 addr, u32 size,
  */
 u32 mac_read_efuse(struct mac_ax_adapter *adapter, u32 addr, u32 size, u8 *val,
 		   enum mac_ax_efuse_bank bank);
-/**
- * @}
- */
-
-/**
- * @addtogroup Efuse
- * @{
- */
-
-/**
- * @brief mac_read_hidden_efuse
- *
- * @param *adapter
- * @param addr
- * @param size
- * @param *val
- * @param hidden_cfg
- * @return Please Place Description here.
- * @retval u32
- */
-u32 mac_read_hidden_efuse(struct mac_ax_adapter *adapter, u32 addr, u32 size,
-			  u8 *val, enum mac_ax_efuse_hidden_cfg hidden_cfg);
 /**
  * @}
  */
@@ -993,32 +946,37 @@ u32 mac_checksum_rpt(struct mac_ax_adapter *adapter, u16 *chksum);
  */
 
 /**
- * @brief mac_disable_rf_ofld_by_info
+ * @brief mac_check_OTP
  *
  * @param *adapter
- * @param info
+ * @param *is_start
  * @return Please Place Description here.
  * @retval u32
  */
-u32 mac_disable_rf_ofld_by_info(struct mac_ax_adapter *adapter,
-				struct mac_disable_rf_ofld_info info);
-/**
- * @}
- */
+u32 mac_check_OTP(struct mac_ax_adapter *adapter, u8 is_start);
 
 /**
- * @addtogroup Efuse
- * @{
- */
-
-/**
- * @brief _patch_otp_power_issue
+ * @brief mac_disable_rf
  *
  * @param *adapter
+ * @param *func
+ * @param *type
  * @return Please Place Description here.
  * @retval u32
  */
-u32 _patch_otp_power_issue(struct mac_ax_adapter *adapter);
+u32 mac_disable_rf(struct mac_ax_adapter *adapter,
+		   enum mac_ax_disable_rf_func func, enum mac_ax_net_type type);
+
+/**
+ * @brief mac_check_OTP
+ *
+ * @param *adapter
+ * @param *is_start
+ * @return Please Place Description here.
+ * @retval u32
+ */
+u32 mac_check_OTP(struct mac_ax_adapter *adapter, u8 is_start);
+
 /**
  * @}
  */
@@ -1034,14 +992,12 @@ u32 _patch_otp_power_issue(struct mac_ax_adapter *adapter);
  * @param *adapter
  * @param is_secure
  * @return Please Place Description here.
- * @retval u32
+ * @retval void
  */
-u32 mac_set_efuse_ctrl(struct mac_ax_adapter *adapter, bool is_secure);
+void mac_set_efuse_ctrl(struct mac_ax_adapter *adapter, u8 is_secure);
 /**
  * @}
  */
-
-u32 get_fv_info(struct mac_ax_adapter *adapter);
 
 /**
  * @addtogroup Efuse
@@ -1112,43 +1068,4 @@ u32 efuse_tbl_exit(struct mac_ax_adapter *adapter);
 /**
  * @}
  */
-
-/**
- * @addtogroup Efuse
- * @{
- */
-
-/**
- * @brief enable_efuse_pwr_cut_dav
- *
- * @param *adapter
- * @param is_write
- * @return Please Place Description here.
- * @retval u32
- */
-u32 enable_efuse_pwr_cut_dav(struct mac_ax_adapter *adapter,
-			     bool is_write);
-/**
- * @}
- */
-
-/**
- * @addtogroup Efuse
- * @{
- */
-
-/**
- * @brief enable_efuse_pwr_cut_dav
- *
- * @param *adapter
- * @param is_write
- * @return Please Place Description here.
- * @retval u32
- */
-u32 disable_efuse_pwr_cut_dav(struct mac_ax_adapter *adapter,
-			      bool is_write);
-/**
- * @}
- */
-
 #endif

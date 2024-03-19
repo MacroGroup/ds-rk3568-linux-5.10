@@ -23,18 +23,12 @@ phl_sw_cap_deinit(struct rtw_phl_com_t* phl_com);
 
 enum rtw_phl_status
 phl_init_protocol_cap(struct phl_info_t *phl_info,
-                      struct rtw_wifi_role_t *wifi_role,
-                      struct rtw_wifi_role_link_t *rlink);
-
+			    struct rtw_wifi_role_t *wifi_role);
 enum rtw_phl_status
 phl_init_role_cap(struct phl_info_t *phl_info,
-                  struct rtw_wifi_role_t *wifi_role);
+			struct rtw_wifi_role_t *wifi_role);
 
-enum rtw_phl_status
-phl_init_rlink_cap(struct phl_info_t *phl_info,
-                   struct rtw_wifi_role_link_t *rlink);
-
-void phl_init_proto_stbc_cap(struct rtw_wifi_role_link_t *rlink,
+void phl_init_proto_stbc_cap(struct rtw_wifi_role_t *role,
 		struct phl_info_t *phl_info,
 		struct protocol_cap_t *proto_role_cap);
 

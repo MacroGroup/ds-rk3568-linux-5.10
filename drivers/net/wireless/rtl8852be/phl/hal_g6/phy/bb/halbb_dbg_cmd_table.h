@@ -30,7 +30,6 @@ enum HALBB_CMD_ID {
 	HALBB_SUPPORT_ABILITY,
 	HALBB_TX_PW,
 	HALBB_IC_API,
-	HALBB_SPUR_SUPP,
 	HALBB_LA_MODE,
 	HALBB_DUMP_REG,
 	HALBB_AUTO_DBG,
@@ -71,17 +70,8 @@ enum HALBB_CMD_ID {
 	HALBB_ANT_DIV,
 	HALBB_DCR_DBG,
 	HALBB_RX_GAIN_TABLE,
-	HALBB_RX_OP1DB_TABLE,
 	HALBB_HW_SETTING,
-	HALBB_PATH_DIV,
-	HALBB_DTP,
-	HALBB_TX_INFO,
-	HALBB_DYN_1R_CCA,
-	HALBB_CMN_INFO,
-	HALBB_SNIFFER_MODE,
-	HALBB_DTR_DBG,
-	HALBB_FW_OFLD,
-	HALBB_MATH
+	HALBB_MAC_PHY_INTF
 };
 
 /*@--------------------------[Structure]-------------------------------------*/
@@ -103,7 +93,6 @@ static const struct halbb_cmd_info halbb_cmd_i[] = {
 	{"ability", HALBB_SUPPORT_ABILITY},
 	{"tx_pw", HALBB_TX_PW},
 	{"ic_api", HALBB_IC_API},
-	{"spur", HALBB_SPUR_SUPP},
 	{"lamode", HALBB_LA_MODE},
 	{"psd", HALBB_PSD},
 	{"dumpreg", HALBB_DUMP_REG},
@@ -140,17 +129,8 @@ static const struct halbb_cmd_info halbb_cmd_i[] = {
 	{"ant_div", HALBB_ANT_DIV},
 	{"dcr", HALBB_DCR_DBG},
 	{"gain_table", HALBB_RX_GAIN_TABLE},
-	{"dtr", HALBB_DTR_DBG},
-	{"op1db_table", HALBB_RX_OP1DB_TABLE},
 	{"hw_set", HALBB_HW_SETTING},
-	{"path_div", HALBB_PATH_DIV},
-	{"dtp", HALBB_DTP},
-	{"txinfo", HALBB_TX_INFO},
-	{"dyn_1r_cca", HALBB_DYN_1R_CCA},
-	{"cmn_info", HALBB_CMN_INFO},
-	{"snif", HALBB_SNIFFER_MODE},
-	{"fw_ofld", HALBB_FW_OFLD},
-	{"math", HALBB_MATH}
+	{"txinfo", HALBB_MAC_PHY_INTF}
 	};
 
 /*@--------------------------[Prptotype]-------------------------------------*/

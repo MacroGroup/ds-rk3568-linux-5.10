@@ -85,6 +85,7 @@ const char *android_wifi_cmd_str[ANDROID_WIFI_CMD_MAX] = {
 	"WFD-SET-TCPPORT",
 	"WFD-SET-MAXTPUT",
 	"WFD-SET-DEVTYPE",
+	"SET_DTIM",
 	"HOSTAPD_SET_MACADDR_ACL",
 	"HOSTAPD_ACL_ADD_STA",
 	"HOSTAPD_ACL_REMOVE_STA",
@@ -96,7 +97,7 @@ const char *android_wifi_cmd_str[ANDROID_WIFI_CMD_MAX] = {
 	"SET_AEK",
 	"EXT_AUTH_STATUS",
 	"DRIVER_VERSION"
-#ifdef PRIVATE_R
+#ifdef ROKU_PRIVATE
 	,"ROKU_FIND_REMOTE"
 #endif
 };
@@ -142,7 +143,7 @@ int rtw_android_get_rssi(struct net_device *net, char *command, int total_len)
 {
 	_adapter *padapter = (_adapter *)rtw_netdev_priv(net);
 	struct	mlme_priv	*pmlmepriv = &(padapter->mlmepriv);
-	struct	wlan_network	*pcur_network = &pmlmepriv->dev_cur_network;
+	struct	wlan_network	*pcur_network = &pmlmepriv->cur_network;
 	int bytes_written = 0;
 
 	if (check_fwstate(pmlmepriv, WIFI_ASOC_STATE) == _TRUE) {
@@ -642,6 +643,22 @@ int rtw_android_priv_cmd(struct net_device *net, struct ifreq *ifr, int cmd)
 		break;
 	}
 #endif
+	case ANDROID_WIFI_CMD_CHANGE_DTIM: {
+#ifdef CONFIG_LPS
+		u8 dtim;
+		u8 *ptr = (u8 *) command;
+
+		ptr += 9;/* string command length of  "SET_DTIM"; */
+
+		dtim = rtw_atoi(ptr);
+
+		RTW_INFO("DTIM=%d\n", dtim);
+
+		rtw_lps_change_dtim_cmd(padapter, dtim);
+#endif
+	}
+	break;
+
 #if CONFIG_RTW_MACADDR_ACL
 	case ANDROID_WIFI_CMD_HOSTAPD_SET_MACADDR_ACL: {
 		rtw_set_macaddr_acl(padapter, RTW_ACL_PERIOD_BSS, get_int_from_command(command));
@@ -690,7 +707,7 @@ int rtw_android_priv_cmd(struct net_device *net, struct ifreq *ifr, int cmd)
 		snprintf(command, bytes_written + 1, DRIVERVERSION);
 		break;
 	}
-#ifdef PRIVATE_R
+#ifdef ROKU_PRIVATE
 	case ANDROID_WIFI_CMD_ROKU_FIND_REMOTE: {
 		struct mlme_ext_priv *pmlmeext = &(padapter->mlmeextpriv);
 		struct wifidirect_info	*pwdinfo = &(padapter->wdinfo);
@@ -901,8 +918,6 @@ static int wifi_probe(struct platform_device *pdev)
 		oob_irq = wifi_irqres->start;
 		RTW_INFO("%s oob_irq:%d\n", __func__, oob_irq);
 	}
-
-	platform_wifi_get_oob_irq(&oob_irq);
 #endif
 	wifi_control_data = wifi_ctrl;
 
@@ -925,6 +940,10 @@ static void shutdown_card(void)
 		RTW_INFO("%s: padapter==NULL\n", __FUNCTION__);
 		return;
 	}
+
+#ifdef CONFIG_FWLPS_IN_IPS
+	LeaveAllPowerSaveMode(g_test_adapter);
+#endif /* CONFIG_FWLPS_IN_IPS */
 
 #ifdef CONFIG_WOWLAN
 #ifdef CONFIG_GPIO_WAKEUP

@@ -15,31 +15,6 @@ EXTRA_CFLAGS += -Wno-unused-label
 EXTRA_CFLAGS += -Wno-unused
 #EXTRA_CFLAGS += -Wno-uninitialized
 
-############ firefly COMMON KERNEL ############
-ifeq ($(CONFIG_CPU_LITTLE_ENDIAN), y)
-EXTRA_CFLAGS += -DCONFIG_LITTLE_ENDIAN
-endif
-ifeq ($(CONFIG_CPU_BIG_ENDIAN), y)
-EXTRA_CFLAGS += -DCONFIG_BIG_ENDIAN
-endif
-
-EXTRA_CFLAGS += -DCONFIG_IOCTL_CFG80211 -DRTW_USE_CFG80211_STA_EVENT 
-# EXTRA_CFLAGS += -DCONFIG_PLATFORM_OPS
-EXTRA_CFLAGS += -DCONFIG_RADIO_WORK
-# EXTRA_CFLAGS += -DCONFIG_CONCURRENT_MODE
-
-############ ANDROID COMMON KERNEL ############
-# clang
-ifeq ($(CC), clang)
-EXTRA_CFLAGS += -Wno-uninitialized
-EXTRA_CFLAGS += -Wno-enum-conversion
-EXTRA_CFLAGS += -Wno-fortify-source
-EXTRA_CFLAGS += -Wno-invalid-source-encoding
-EXTRA_CFLAGS += -Wno-tautological-pointer-compare
-EXTRA_CFLAGS += -Wno-tautological-overlap-compare
-EXTRA_CFLAGS += -Wno-pointer-bool-conversion
-endif
-
 GCC_VER_49 := $(shell echo `$(CC) -dumpversion | cut -f1-2 -d.` \>= 4.9 | bc )
 ifeq ($(GCC_VER_49),1)
 EXTRA_CFLAGS += -Wno-date-time	# Fix compile error && warning on gcc 4.9 and later
@@ -54,8 +29,6 @@ CONFIG_AUTOCFG_CP = n
 ########################## WIFI IC ############################
 CONFIG_RTL8852A = n
 CONFIG_RTL8852B = y
-CONFIG_RTL8852BP = n
-CONFIG_RTL8851B = n
 CONFIG_RTL8852C = n
 ######################### Interface ###########################
 CONFIG_USB_HCI = n
@@ -65,7 +38,10 @@ CONFIG_GSPI_HCI = n
 ########################## Features ###########################
 CONFIG_MP_INCLUDED = y
 CONFIG_CONCURRENT_MODE = n
+CONFIG_POWER_SAVING = n
 CONFIG_POWER_SAVE = y
+CONFIG_IPS_MODE = default
+CONFIG_LPS_MODE = default
 CONFIG_BTC = y
 CONFIG_WAPI_SUPPORT = n
 CONFIG_EFUSE_CONFIG_FILE = y
@@ -79,25 +55,10 @@ CONFIG_TXPWR_BY_RATE = y
 CONFIG_TXPWR_BY_RATE_EN = y
 CONFIG_TXPWR_LIMIT = y
 CONFIG_TXPWR_LIMIT_EN = n
-CONFIG_RTW_REGDB = phl
-########################## Initial Channel Plan  ##########################
-# XX: unspecified
-CONFIG_RTW_COUNTRY_CODE = XX
-# 0xFFFF: unspecified
 CONFIG_RTW_CHPLAN = 0xFFFF
-# 0xFFFF: unspecified
-CONFIG_RTW_CHPLAN_6G = 0xFFFF
-
-########################## 802.11d (country IE slave) ##########################
-CONFIG_80211D = y
-# 0: disable, 1: enable, 2: enable when INIT/USER set world wide mode
-CONFIG_RTW_COUNTRY_IE_SLAVE_EN_MODE = 0
-# BIT0: take intersection when having multiple received IEs, otherwise choose effected one from received IEs
-# BIT1: consider all environment BSSs, otherwise associated BSSs only
-CONFIG_RTW_COUNTRY_IE_SLAVE_FLAGS = 0x01
-
 CONFIG_RTW_ADAPTIVITY_EN = disable
 CONFIG_RTW_ADAPTIVITY_MODE = normal
+CONFIG_80211D = n
 CONFIG_SIGNAL_SCALE_MAPPING = n
 CONFIG_80211W = y
 CONFIG_REDUCE_TX_CPU_LOADING = n
@@ -139,7 +100,7 @@ CONFIG_RTW_MBO = n
 # CONFIG_RTKM - n/m/y for not support / standalone / built-in
 CONFIG_RTKM ?= n
 ########################## Android ###########################
-# CONFIG_RTW_ANDROID - 0: no Android, 4/5/6/7/8/9/10/11/12 : Android version
+# CONFIG_RTW_ANDROID - 0: no Android, 4/5/6/7/8/9/10 : Android version
 CONFIG_RTW_ANDROID = 0
 
 ifeq ($(shell test $(CONFIG_RTW_ANDROID) -gt 0; echo $$?), 0)
@@ -147,28 +108,14 @@ EXTRA_CFLAGS += -DCONFIG_RTW_ANDROID=$(CONFIG_RTW_ANDROID)
 endif
 
 ########################## Debug ###########################
-CONFIG_RTW_DEBUG = y
+CONFIG_RTW_DEBUG = n
 # default log level is _DRV_INFO_ = 4,
 # please refer to "How_to_set_driver_debug_log_level.doc" to set the available level.
 CONFIG_RTW_LOG_LEVEL = 4
-CONFIG_RTW_PHL_LOG_LEVEL = 4
 
 # enable /proc/net/rtlxxxx/ debug interfaces
 CONFIG_PROC_DEBUG = y
 
-############################# MLO #############################
-CONFIG_80211BE_EHT = n
-ifeq ($(CONFIG_80211BE_EHT), y)
-EXTRA_CFLAGS += -DCONFIG_80211BE_EHT
-endif
-CONFIG_MLD_TEST = n # used for test MLD capability
-RTW_NETWORK_LINK_MAX = 3
-DTYPE = DEV_TYPE_LEGACY # DEV_TYPE_MLD for MLD device
-ifeq ($(CONFIG_MLD_TEST), y)
-EXTRA_CFLAGS += -DCONFIG_MLD_TEST
-endif
-EXTRA_CFLAGS += -DRTW_NETWORK_LINK_MAX=$(RTW_NETWORK_LINK_MAX)
-EXTRA_CFLAGS += -DDTYPE=$(DTYPE)
 ######################## Wake On Lan ##########################
 CONFIG_WOWLAN = n
 # CONFIG_WAKE_TYPE definition:
@@ -178,6 +125,7 @@ CONFIG_WOWLAN = n
 #    bit3: customized pattern match
 #    bit4: pairwise key rekey
 CONFIG_WAKEUP_TYPE = 0x0f
+CONFIG_WOW_LPS_MODE = default
 #bit0: disBBRF off, #bit1: Wireless remote controller (WRC)
 CONFIG_SUSPEND_TYPE = 0
 CONFIG_WOW_STA_MIX = n
@@ -202,7 +150,7 @@ CONFIG_LAYER2_ROAMING = y
 CONFIG_ROAMING_FLAG = 0x3
 
 ###################### Platform Related #######################
-CONFIG_PLATFORM_I386_PC = y
+CONFIG_PLATFORM_I386_PC = n
 CONFIG_PLATFORM_RTL8198D = n
 CONFIG_PLATFORM_ANDROID_X86 = n
 CONFIG_PLATFORM_ANDROID_INTEL_X86 = n
@@ -212,10 +160,8 @@ CONFIG_PLATFORM_ARM_SUNxI = n
 CONFIG_PLATFORM_RTK1319 = n
 CONFIG_PLATFORM_RTK16XXB = n
 CONFIG_PLATFORM_AML_S905 = n
-CONFIG_PLATFORM_AML_S905_L3A = n
 CONFIG_PLATFORM_HUANGLONG = n
-CONFIG_PLATFORM_ARM_ROCKCHIP = n
-CONFIG_PLATFORM_AML_S928X = n
+CONFIG_PLATFORM_ARM_RK3188 = y
 
 ########### CUSTOMER ################################
 
@@ -238,18 +184,6 @@ endif
 
 ifeq ($(CONFIG_PCI_HCI), y)
 HCI_NAME = pci
-endif
-
-ifeq ($(CONFIG_PCI_HCI), y)
-EXTRA_CFLAGS += -DCONFIG_PLATFORM_OPS
-_PLATFORM_FILES := platform/platform_linux_pc_pci.o \
-					platform/platform_ARM_RK_pci.o
-
-OBJS += $(_PLATFORM_FILES)
-
-CONFIG_MSG_NUM = 128
-EXTRA_CFLAGS += -DCONFIG_MSG_NUM=$(CONFIG_MSG_NUM)
-EXTRA_CFLAGS += -DCONFIG_TX_SKB_ORPHAN
 endif
 
 ifeq ($(CONFIG_HWSIM), y)
@@ -290,36 +224,6 @@ MODULE_NAME = 8852be
 endif
 ifeq ($(CONFIG_SDIO_HCI), y)
 MODULE_NAME = 8852bs
-endif
-
-endif
-
-########### HAL_RTL8852BP #################################
-ifeq ($(CONFIG_RTL8852BP), y)
-IC_NAME := rtl8852bp
-ifeq ($(CONFIG_USB_HCI), y)
-MODULE_NAME = 8852bpu
-endif
-ifeq ($(CONFIG_PCI_HCI), y)
-MODULE_NAME = 8852bpe
-endif
-ifeq ($(CONFIG_SDIO_HCI), y)
-MODULE_NAME = 8852bps
-endif
-
-endif
-
-########### HAL_RTL8851B #################################
-ifeq ($(CONFIG_RTL8851B), y)
-IC_NAME := rtl8851b
-ifeq ($(CONFIG_USB_HCI), y)
-MODULE_NAME = 8851bu
-endif
-ifeq ($(CONFIG_PCI_HCI), y)
-MODULE_NAME = 8851be
-endif
-ifeq ($(CONFIG_SDIO_HCI), y)
-MODULE_NAME = 8851bs
 endif
 
 endif
@@ -368,6 +272,18 @@ ifeq ($(CONFIG_CONCURRENT_MODE), y)
 EXTRA_CFLAGS += -DCONFIG_CONCURRENT_MODE
 endif
 
+ifeq ($(CONFIG_POWER_SAVING), y)
+ifneq ($(CONFIG_IPS_MODE), default)
+EXTRA_CFLAGS += -DRTW_IPS_MODE=$(CONFIG_IPS_MODE)
+endif
+ifneq ($(CONFIG_LPS_MODE), default)
+EXTRA_CFLAGS += -DRTW_LPS_MODE=$(CONFIG_LPS_MODE)
+endif
+ifneq ($(CONFIG_WOW_LPS_MODE), default)
+EXTRA_CFLAGS += -DRTW_WOW_LPS_MODE=$(CONFIG_WOW_LPS_MODE)
+endif
+EXTRA_CFLAGS += -DCONFIG_POWER_SAVING
+endif
 ifeq ($(CONFIG_POWER_SAVE), y)
 EXTRA_CFLAGS += -DCONFIG_POWER_SAVE
 endif
@@ -455,14 +371,8 @@ else ifeq ($(CONFIG_TXPWR_LIMIT_EN), auto)
 EXTRA_CFLAGS += -DCONFIG_TXPWR_LIMIT_EN=2
 endif
 
-ifneq ($(CONFIG_RTW_COUNTRY_CODE), XX)
-EXTRA_CFLAGS += -DCONFIG_RTW_COUNTRY_CODE=\"$(CONFIG_RTW_COUNTRY_CODE)\"
-endif
 ifneq ($(CONFIG_RTW_CHPLAN), 0xFFFF)
 EXTRA_CFLAGS += -DCONFIG_RTW_CHPLAN=$(CONFIG_RTW_CHPLAN)
-endif
-ifneq ($(CONFIG_RTW_CHPLAN_6G), 0xFFFF)
-EXTRA_CFLAGS += -DCONFIG_RTW_CHPLAN_6G=$(CONFIG_RTW_CHPLAN_6G)
 endif
 
 ifeq ($(CONFIG_CALIBRATE_TX_POWER_BY_REGULATORY), y)
@@ -489,12 +399,6 @@ endif
 
 ifeq ($(CONFIG_80211D), y)
 EXTRA_CFLAGS += -DCONFIG_80211D
-ifneq ($(CONFIG_RTW_COUNTRY_IE_SLAVE_EN_MODE), )
-EXTRA_CFLAGS += -DCONFIG_RTW_COUNTRY_IE_SLAVE_EN_MODE=$(CONFIG_RTW_COUNTRY_IE_SLAVE_EN_MODE)
-endif
-ifneq ($(CONFIG_RTW_COUNTRY_IE_SLAVE_FLAGS), )
-EXTRA_CFLAGS += -DCONFIG_RTW_COUNTRY_IE_SLAVE_FLAGS=$(CONFIG_RTW_COUNTRY_IE_SLAVE_FLAGS)
-endif
 endif
 
 ifeq ($(CONFIG_SIGNAL_SCALE_MAPPING), y)
@@ -627,7 +531,6 @@ endif
 ifeq ($(CONFIG_RTW_DEBUG), y)
 EXTRA_CFLAGS += -DCONFIG_RTW_DEBUG
 EXTRA_CFLAGS += -DRTW_LOG_LEVEL=$(CONFIG_RTW_LOG_LEVEL)
-EXTRA_CFLAGS += -DRTW_PHL_LOG_LEVEL=$(CONFIG_RTW_PHL_LOG_LEVEL)
 endif
 
 ifeq ($(CONFIG_PROC_DEBUG), y)
@@ -676,7 +579,7 @@ endif
 
 ########### PLATFORM OPS  ##########################
 # Import platform assigned KSRC and CROSS_COMPILE
-include $(wildcard $(DRV_PATH)/platform/*.mk)
+include $(src)/platform/arm_rk3188.mk
 
 # Import platform specific compile options
 EXTRA_CFLAGS += -I$(src)/platform
@@ -687,15 +590,6 @@ OBJS += $(_PLATFORM_FILES)
 USER_MODULE_NAME ?=
 ifneq ($(USER_MODULE_NAME),)
 MODULE_NAME := $(USER_MODULE_NAME)
-endif
-
-############ ANDROID COMMON KERNEL ############
-export M ?= $(shell pwd)
-export OUT_DIR ?= $(shell pwd)
-ifneq ($(LLVM),)
-export CC_STRIP = llvm-strip
-else
-export CC_STRIP = $(CROSS_COMPILE)strip
 endif
 
 ifneq ($(KERNELRELEASE),)
@@ -750,15 +644,14 @@ export CONFIG_RTL8852BE = m
 all: modules
 
 modules:
-#	rm -f .symvers.$(MODULE_NAME)
+	#rm -f .symvers.$(MODULE_NAME)
 
-	$(MAKE) ARCH=$(ARCH) CROSS_COMPILE=$(CROSS_COMPILE) -C $(KSRC) M=$(M)  modules
+	$(MAKE) ARCH=$(ARCH) CROSS_COMPILE=$(CROSS_COMPILE) -C $(KSRC) M=$(shell pwd)  modules
 
-#	$(CC_STRIP) --strip-unneeded ${OUT_DIR}/$(M)/$(MODULE_NAME).ko
-#	cp Module.symvers .symvers.$(MODULE_NAME)
+	#cp Module.symvers .symvers.$(MODULE_NAME)
 
 strip:
-	$(CC_STRIP) $(MODULE_NAME).ko --strip-unneeded
+	$(CROSS_COMPILE)strip $(MODULE_NAME).ko --strip-unneeded
 
 install:
 	install -p -m 644 $(MODULE_NAME).ko  $(MODDESTDIR)
@@ -767,11 +660,6 @@ install:
 uninstall:
 	rm -f $(MODDESTDIR)/$(MODULE_NAME).ko
 	/sbin/depmod -a ${KVER}
-
-modules_install:
-	$(MAKE) INSTALL_MOD_STRIP=1 M=$(M) -C $(KSRC) modules_install
-#	mkdir -p ${OUT_DIR}/../vendor_lib/modules
-#	cd ${OUT_DIR}/$(M)/; find -name $(MODULE_NAME).ko -exec cp {} ${OUT_DIR}/../vendor_lib/modules/ \;
 
 backup_rtlwifi:
 	@echo "Making backup rtlwifi drivers"
@@ -815,7 +703,7 @@ config_r:
 .PHONY: modules clean
 
 clean:
-#	$(MAKE) -C $(KSRC) M=$(shell pwd) clean
+	#$(MAKE) -C $(KSRC) M=$(shell pwd) clean
 	cd $(HAL) ; rm -fr */*/*/*/*.mod.c */*/*/*/*.mod */*/*/*/*.o */*/*/*/.*.cmd */*/*/*/*.ko
 	cd $(HAL) ; rm -fr */*/*/*.mod.c */*/*/*.mod */*/*/*.o */*/*/.*.cmd */*/*/*.ko
 	cd $(HAL) ; rm -fr */*/*.mod.c */*/*.mod */*/*.o */*/.*.cmd */*/*.ko
@@ -832,20 +720,3 @@ clean:
 	rm -fr .tmp_versions
 endif
 
-############ ANDROID COMMON KERNEL ############
-# Convert to absolute path
-ifneq ($(srctree),)
-_EXTRA_CFLAGS :=
-_INC_CFLAGS :=
-$(foreach flag,$(EXTRA_CFLAGS),\
- $(if $(shell echo $(flag) | grep "\-I"),\
-  $(eval _INC_CFLAGS += $(flag)),\
-  $(eval _EXTRA_CFLAGS += $(flag))\
- )\
-)
-_INC_CFLAGS := \
-$(foreach flag,$(subst -I,,$(_INC_CFLAGS)),\
- $(shell if test -d $(srctree)/$(flag); then echo -I$$(cd $(srctree)/$(flag) && pwd); else echo -I$(flag); fi)\
-)
-EXTRA_CFLAGS := $(_EXTRA_CFLAGS) $(_INC_CFLAGS)
-endif

@@ -144,12 +144,11 @@ s8 rtw_get_sta_rx_nss(_adapter *adapter, struct sta_info *psta)
 {
 	s8 nss = 1;
 	struct dvobj_priv *dvobj = adapter_to_dvobj(adapter);
-	struct _ADAPTER_LINK *padapter_link = psta->padapter_link;
 
 	if (!psta)
 		return nss;
 
-	nss = get_phy_rx_nss(adapter, padapter_link);
+	nss = get_phy_rx_nss(adapter);
 
 #ifdef CONFIG_80211N_HT
 	#ifdef CONFIG_80211AC_VHT
@@ -172,12 +171,11 @@ s8 rtw_get_sta_rx_nss(_adapter *adapter, struct sta_info *psta)
 s8 rtw_get_sta_tx_nss(_adapter *adapter, struct sta_info *psta)
 {
 	s8 nss = 1;
-	struct _ADAPTER_LINK *padapter_link = psta->padapter_link;
 
 	if (!psta)
 		return nss;
 
-	nss = get_phy_tx_nss(adapter, padapter_link);
+	nss = get_phy_tx_nss(adapter);
 
 #ifdef CONFIG_80211N_HT
 	#ifdef CONFIG_80211AC_VHT
@@ -256,11 +254,11 @@ unsigned char ratetbl_val_2wifirate(unsigned char rate)
 
 }
 
-int is_basicrate(_adapter *padapter, struct _ADAPTER_LINK *padapter_link, unsigned char rate)
+int is_basicrate(_adapter *padapter, unsigned char rate)
 {
 	int i;
 	unsigned char val;
-	struct link_mlme_ext_priv *pmlmeext = &padapter_link->mlmeextpriv;
+	struct mlme_ext_priv *pmlmeext = &padapter->mlmeextpriv;
 
 	for (i = 0; i < NumRates; i++) {
 		val = pmlmeext->basicrate[i];
@@ -274,18 +272,17 @@ int is_basicrate(_adapter *padapter, struct _ADAPTER_LINK *padapter_link, unsign
 	return _FALSE;
 }
 
-unsigned int ratetbl2rateset(_adapter *padapter, struct _ADAPTER_LINK *padapter_link,
-				unsigned char *rateset)
+unsigned int ratetbl2rateset(_adapter *padapter, unsigned char *rateset)
 {
 	int i;
 	unsigned char rate;
 	unsigned int	len = 0;
-	struct link_mlme_ext_priv *pmlmeext = &padapter_link->mlmeextpriv;
+	struct mlme_ext_priv *pmlmeext = &padapter->mlmeextpriv;
 
 	for (i = 0; i < NumRates; i++) {
 		rate = pmlmeext->datarate[i];
 
-		if (rtw_get_oper_ch(padapter, padapter_link) > 14 && rate < _6M_RATE_) /*5G no support CCK rate*/
+		if (rtw_get_oper_ch(padapter) > 14 && rate < _6M_RATE_) /*5G no support CCK rate*/
 			continue;
 
 		switch (rate) {
@@ -298,7 +295,7 @@ unsigned int ratetbl2rateset(_adapter *padapter, struct _ADAPTER_LINK *padapter_
 		default:
 			rate = ratetbl_val_2wifirate(rate);
 
-			if (is_basicrate(padapter, padapter_link, rate) == _TRUE)
+			if (is_basicrate(padapter, rate) == _TRUE)
 				rate |= IEEE80211_BASIC_RATE_MASK;
 
 			rateset[len] = rate;
@@ -309,13 +306,12 @@ unsigned int ratetbl2rateset(_adapter *padapter, struct _ADAPTER_LINK *padapter_
 	return len;
 }
 
-void get_rate_set(_adapter *padapter, struct _ADAPTER_LINK *padapter_link,
-			unsigned char *pbssrate, int *bssrate_len)
+void get_rate_set(_adapter *padapter, unsigned char *pbssrate, int *bssrate_len)
 {
 	unsigned char supportedrates[NumRates];
 
 	_rtw_memset(supportedrates, 0, NumRates);
-	*bssrate_len = ratetbl2rateset(padapter, padapter_link, supportedrates);
+	*bssrate_len = ratetbl2rateset(padapter, supportedrates);
 	_rtw_memcpy(pbssrate, supportedrates, *bssrate_len);
 }
 
@@ -379,73 +375,45 @@ void UpdateBrateTblForSoftAP(u8 *bssrateset, u32 bssratelen)
 /*rtw_phl_mr_get_chandef(dvobj->phl, adapter->phl_role, &chandef); => mr union chan*/
 /*rtw_phl_get_cur_hal_chdef(adapter->phl_role, &chandef) => hal chan*/
 
-void rtw_get_oper_chdef(_adapter *adapter, struct _ADAPTER_LINK *adapter_link, struct rtw_chan_def *chandef)
+void rtw_get_oper_chdef(_adapter *adapter, struct rtw_chan_def *chandef)
 {
 	if (!adapter->phl_role)
 		return;
 
-	if (rtw_phl_get_cur_hal_chdef(adapter->phl_role, adapter_link->wrlink, chandef) != RTW_PHL_STATUS_SUCCESS)
+	if (rtw_phl_get_cur_hal_chdef(adapter->phl_role, chandef) != RTW_PHL_STATUS_SUCCESS)
 		RTW_ERR("%s failed\n", __func__);
 }
 
-u8 rtw_get_oper_band(_adapter *adapter, struct _ADAPTER_LINK *adapter_link)
+u8 rtw_get_oper_band(_adapter *adapter)
 {
 	struct rtw_chan_def cur_chandef = {0};
 
-	rtw_get_oper_chdef(adapter, adapter_link, &cur_chandef);
+	rtw_get_oper_chdef(adapter, &cur_chandef);
 	return cur_chandef.band;
 }
 
-u8 rtw_get_oper_ch(_adapter *adapter, struct _ADAPTER_LINK *adapter_link)
+u8 rtw_get_oper_ch(_adapter *adapter)
 {
 	struct rtw_chan_def cur_chandef = {0};
 
-	rtw_get_oper_chdef(adapter, adapter_link, &cur_chandef);
+	rtw_get_oper_chdef(adapter, &cur_chandef);
 	return cur_chandef.chan;
 }
 
-u8 rtw_get_oper_bw(_adapter *adapter, struct _ADAPTER_LINK *adapter_link)
+u8 rtw_get_oper_bw(_adapter *adapter)
 {
 	struct rtw_chan_def cur_chandef = {0};
 
-	rtw_get_oper_chdef(adapter, adapter_link, &cur_chandef);
+	rtw_get_oper_chdef(adapter, &cur_chandef);
 	return cur_chandef.bw;
 }
 
-u8 rtw_get_oper_choffset(_adapter *adapter, struct _ADAPTER_LINK *adapter_link)
+u8 rtw_get_oper_choffset(_adapter *adapter)
 {
 	struct rtw_chan_def cur_chandef = {0};
 
-	rtw_get_oper_chdef(adapter, adapter_link, &cur_chandef);
+	rtw_get_oper_chdef(adapter, &cur_chandef);
 	return cur_chandef.offset;
-}
-
-int rtw_get_oper_chdef_by_hwband(struct dvobj_priv *dvobj, enum phl_band_idx band_idx
-	, struct rtw_chan_def *chandef)
-{
-	if (rtw_phl_get_cur_hal_chdef_by_hwband(GET_PHL_INFO(dvobj), band_idx, chandef) != RTW_PHL_STATUS_SUCCESS) {
-		RTW_ERR("%s failed\n", __func__);
-		return _FAIL;
-	}
-	return _SUCCESS;
-}
-
-int rtw_get_oper_bchbw_by_hwband(struct dvobj_priv *dvobj, enum phl_band_idx band_idx
-	, enum band_type *band, u8 *ch, u8 *bw, u8 *offset)
-{
-	struct rtw_chan_def chdef;
-
-	if (rtw_phl_get_cur_hal_chdef_by_hwband(GET_PHL_INFO(dvobj), band_idx, &chdef) != RTW_PHL_STATUS_SUCCESS) {
-		RTW_ERR("%s failed\n", __func__);
-		*ch = 0;
-		return _FAIL;
-	}
-
-	*band = chdef.band;
-	*ch = chdef.chan;
-	*bw = chdef.bw;
-	*offset = chdef.offset;
-	return _SUCCESS;
 }
 
 inline systime rtw_get_on_oper_ch_time(_adapter *adapter)
@@ -455,38 +423,20 @@ inline systime rtw_get_on_oper_ch_time(_adapter *adapter)
 
 inline systime rtw_get_on_cur_ch_time(_adapter *adapter)
 {
-	/* ToDo CONFIG_RTW_MLD: [currently primary link only] */
-	struct _ADAPTER_LINK *adapter_link = GET_PRIMARY_LINK(adapter);
-
-	if (adapter_link && adapter_link->mlmeextpriv.chandef.chan == rtw_get_oper_ch(adapter, adapter_link))
+	if (adapter->mlmeextpriv.chandef.chan == rtw_get_oper_ch(adapter))
 		return adapter_to_dvobj(adapter)->on_oper_ch_time;
 	else
 		return 0;
 }
 
-#if CONFIG_ALLOW_FUNC_2G_5G_ONLY
-RTW_FUNC_2G_5G_ONLY void set_channel_bwmode(_adapter *padapter,
-				struct _ADAPTER_LINK *padapter_link,
+void set_channel_bwmode(_adapter *padapter,
 				unsigned char channel,
 				unsigned char channel_offset,
 				unsigned short bwmode,
-				enum rfk_tri_type rt_type)
+				u8 do_rfk)
 {
-	rtw_hw_set_ch_bw(padapter, padapter_link, (channel > 14) ? BAND_ON_5G : BAND_ON_24G,
-		channel, (enum channel_width)bwmode, channel_offset, rt_type);
-}
-#endif
-
-void set_bch_bwmode(_adapter *padapter,
-				struct _ADAPTER_LINK *padapter_link,
-				enum band_type band,
-				unsigned char channel,
-				unsigned char channel_offset,
-				unsigned short bwmode,
-				enum rfk_tri_type rt_type)
-{
-	rtw_hw_set_ch_bw(padapter, padapter_link, band,
-		channel, (enum channel_width)bwmode, channel_offset, rt_type);
+	rtw_hw_set_ch_bw(padapter, channel, (enum channel_width)bwmode,
+		channel_offset, do_rfk);
 }
 
 __inline u8 *get_my_bssid(WLAN_BSSID_EX *pnetwork)
@@ -601,13 +551,12 @@ void rtw_process_wfd_ies(_adapter *adapter, u8 *ies, u8 ies_len, const char *tag
 }
 #endif /* defined(CONFIG_P2P) && defined(CONFIG_WFD) */
 
-int WMM_param_handler(_adapter *padapter, struct _ADAPTER_LINK *padapter_link,
-			PNDIS_802_11_VARIABLE_IEs	pIE)
+int WMM_param_handler(_adapter *padapter, PNDIS_802_11_VARIABLE_IEs	pIE)
 {
 	/* struct registry_priv	*pregpriv = &padapter->registrypriv; */
-	struct link_mlme_priv	*pmlmepriv = &(padapter_link->mlmepriv);
-	struct link_mlme_ext_priv	*pmlmeext = &padapter_link->mlmeextpriv;
-	struct link_mlme_ext_info	*pmlmeinfo = &(pmlmeext->mlmext_info);
+	struct mlme_priv	*pmlmepriv = &(padapter->mlmepriv);
+	struct mlme_ext_priv	*pmlmeext = &padapter->mlmeextpriv;
+	struct mlme_ext_info	*pmlmeinfo = &(pmlmeext->mlmext_info);
 
 	if (pmlmepriv->qospriv.qos_option == 0) {
 		pmlmeinfo->WMM_enable = 0;
@@ -654,7 +603,7 @@ u8 rtw_is_tbtx_capabilty(u8 *p, u8 len){
 }
 #endif
 
-void WMMOnAssocRsp(_adapter *padapter, struct _ADAPTER_LINK *padapter_link)
+void WMMOnAssocRsp(_adapter *padapter)
 {
 	u8	ACI, ACM, AIFS, ECWMin, ECWMax, aSifsTime;
 	u8	acm_mask;
@@ -662,14 +611,19 @@ void WMMOnAssocRsp(_adapter *padapter, struct _ADAPTER_LINK *padapter_link)
 	u32	acParm, i;
 	u32	edca[4], inx[4];
 	u8 ac_be = 0;
-	struct link_mlme_ext_priv	*pmlmeext = &padapter_link->mlmeextpriv;
-	struct link_mlme_ext_info	*pmlmeinfo = &(pmlmeext->mlmext_info);
+	struct mlme_ext_priv	*pmlmeext = &padapter->mlmeextpriv;
+	struct mlme_ext_info	*pmlmeinfo = &(pmlmeext->mlmext_info);
 	struct xmit_priv		*pxmitpriv = &padapter->xmitpriv;
 	struct registry_priv	*pregpriv = &padapter->registrypriv;
+#ifdef CONFIG_WMMPS_STA
+	struct mlme_priv	*pmlmepriv = &(padapter->mlmepriv);
+	struct qos_priv	*pqospriv = &pmlmepriv->qospriv;
+#endif /* CONFIG_WMMPS_STA */	
 
 	acm_mask = 0;
-	if (WIFI_ROLE_LINK_IS_ON_5G(padapter_link) ||
-		(pmlmeext->cur_wireless_mode & WLAN_MD_11N))
+
+	if (WIFI_ROLE_IS_ON_5G(padapter) ||
+	    (pmlmeext->cur_wireless_mode & WLAN_MD_11N))
 		aSifsTime = 16;
 	else
 		aSifsTime = 10;
@@ -692,19 +646,15 @@ void WMMOnAssocRsp(_adapter *padapter, struct _ADAPTER_LINK *padapter_link)
 
 		TXOP = 0;
 		acParm = AIFS | (ECWMin << 8) | (ECWMax << 12) | (TXOP << 16);
-		rtw_hw_set_edca(padapter, padapter_link, 0, acParm);
-		rtw_update_phl_sta_edca(padapter, padapter_link, RTW_AC_BE, acParm);
-		rtw_hw_set_edca(padapter, padapter_link, 1, acParm);
-		rtw_update_phl_sta_edca(padapter, padapter_link, RTW_AC_BK, acParm);
-		rtw_hw_set_edca(padapter, padapter_link, 2, acParm);
-		rtw_update_phl_sta_edca(padapter, padapter_link, RTW_AC_VI, acParm);
+		rtw_hw_set_edca(padapter, 0, acParm);
+		rtw_hw_set_edca(padapter, 1, acParm);
+		rtw_hw_set_edca(padapter, 2, acParm);
 
 		ECWMin = 2;
 		ECWMax = 3;
 		TXOP = 0x2f;
 		acParm = AIFS | (ECWMin << 8) | (ECWMax << 12) | (TXOP << 16);
-		rtw_hw_set_edca(padapter, padapter_link, 3, acParm);
-		rtw_update_phl_sta_edca(padapter, padapter_link, RTW_AC_VO, acParm);
+		rtw_hw_set_edca(padapter, 3, acParm);
 	} else {
 		edca[0] = edca[1] = edca[2] = edca[3] = 0;
 
@@ -720,8 +670,7 @@ void WMMOnAssocRsp(_adapter *padapter, struct _ADAPTER_LINK *padapter_link)
 			TXOP = le16_to_cpu(pmlmeinfo->WMM_param.ac_param[i].TXOP_limit);
 
 			acParm = AIFS | (ECWMin << 8) | (ECWMax << 12) | (TXOP << 16);
-			rtw_hw_set_edca(padapter, padapter_link, ACI, acParm);
-			rtw_update_phl_sta_edca(padapter, padapter_link, ACI, acParm);
+			rtw_hw_set_edca(padapter, ACI, acParm);
 
 			switch (ACI) {
 			case 0x0:
@@ -751,7 +700,7 @@ void WMMOnAssocRsp(_adapter *padapter, struct _ADAPTER_LINK *padapter_link)
 				padapter->last_edca = acParm;
 				acParm = rtw_get_turbo_edca(padapter, AIFS, ECWMin, ECWMax, TXOP);
 				if (acParm) {
-					rtw_hw_set_edca(padapter, padapter_link, ACI, acParm);
+					rtw_hw_set_edca(padapter, ACI, acParm);
 					padapter->last_edca = acParm;
 				}
 			}
@@ -802,20 +751,27 @@ void WMMOnAssocRsp(_adapter *padapter, struct _ADAPTER_LINK *padapter_link)
 			pxmitpriv->wmm_para_seq[i] = inx[i];
 			RTW_INFO("wmm_para_seq(%d): %d\n", i, pxmitpriv->wmm_para_seq[i]);
 		}
+		
+#ifdef CONFIG_WMMPS_STA
+		/* if AP supports UAPSD function, driver must set each uapsd TID to coresponding mac register 0x693 */
+		if (pmlmeinfo->WMM_param.QoS_info & AP_SUPPORTED_UAPSD) {
+			pqospriv->uapsd_ap_supported = 1;
+			rtw_hal_set_hwreg(padapter, HW_VAR_UAPSD_TID, NULL);
+		}
+#endif /* CONFIG_WMMPS_STA */
 	}
 }
 
-static void bwmode_update_check(_adapter *padapter,struct _ADAPTER_LINK *padapter_link,
-			PNDIS_802_11_VARIABLE_IEs pIE)
+static void bwmode_update_check(_adapter *padapter, PNDIS_802_11_VARIABLE_IEs pIE)
 {
 #ifdef CONFIG_80211N_HT
 	unsigned char	 new_bwmode;
 	unsigned char  new_ch_offset;
 	struct HT_info_element	*pHT_info;
+	struct mlme_priv	*pmlmepriv = &(padapter->mlmepriv);
+	struct mlme_ext_priv	*pmlmeext = &padapter->mlmeextpriv;
+	struct mlme_ext_info	*pmlmeinfo = &(pmlmeext->mlmext_info);
 	struct registry_priv *pregistrypriv = &padapter->registrypriv;
-	struct link_mlme_priv	*pmlmepriv = &(padapter_link->mlmepriv);
-	struct link_mlme_ext_priv	*pmlmeext = &padapter_link->mlmeextpriv;
-	struct link_mlme_ext_info	*pmlmeinfo = &(pmlmeext->mlmext_info);
 	struct ht_priv			*phtpriv = &pmlmepriv->htpriv;
 	u8	cbw40_enable = 0;
 
@@ -875,7 +831,7 @@ static void bwmode_update_check(_adapter *padapter,struct _ADAPTER_LINK *padapte
 		pmlmeext->chandef.offset = new_ch_offset;
 
 		/* update HT info also */
-		HT_info_handler(padapter, padapter_link, pIE);
+		HT_info_handler(padapter, pIE);
 	} else
 		pmlmeinfo->bwmode_updated = _FALSE;
 
@@ -916,13 +872,12 @@ static void bwmode_update_check(_adapter *padapter,struct _ADAPTER_LINK *padapte
 #endif /* CONFIG_80211N_HT */
 }
 
-#ifdef PRIVATE_R
-void Supported_rate_infra_ap(_adapter *padapter, struct _ADAPTER_LINK *padapter_link,
-			PNDIS_802_11_VARIABLE_IEs pIE)
+#ifdef ROKU_PRIVATE
+void Supported_rate_infra_ap(_adapter *padapter, PNDIS_802_11_VARIABLE_IEs pIE)
 {
 	unsigned int	i;
-	struct link_mlme_ext_priv		*pmlmeext = &padapter_link->mlmeextpriv;
-	struct link_mlme_ext_info		*pmlmeinfo = &(pmlmeext->mlmext_info);
+	struct mlme_ext_priv		*pmlmeext = &padapter->mlmeextpriv;
+	struct mlme_ext_info		*pmlmeinfo = &(pmlmeext->mlmext_info);
 
 	if (pIE == NULL)
 		return;
@@ -932,12 +887,11 @@ void Supported_rate_infra_ap(_adapter *padapter, struct _ADAPTER_LINK *padapter_
 
 }
 
-void Extended_Supported_rate_infra_ap(_adapter *padapter, struct _ADAPTER_LINK *padapter_link,
-			PNDIS_802_11_VARIABLE_IEs pIE)
+void Extended_Supported_rate_infra_ap(_adapter *padapter, PNDIS_802_11_VARIABLE_IEs pIE)
 {
 	unsigned int i, j;
-	struct link_mlme_ext_priv		*pmlmeext = &padapter_link->mlmeextpriv;
-	struct link_mlme_ext_info		*pmlmeinfo = &(pmlmeext->mlmext_info);
+	struct mlme_ext_priv		*pmlmeext = &padapter->mlmeextpriv;
+	struct mlme_ext_info		*pmlmeinfo = &(pmlmeext->mlmext_info);
 
 	if (pIE == NULL)
 		return;
@@ -968,15 +922,15 @@ void HT_get_ss_from_mcs_set(u8 *mcs_set, u8 *Rx_ss)
 	*Rx_ss = r_ss;
 }
 
-void HT_caps_handler_infra_ap(_adapter *padapter, struct _ADAPTER_LINK *padapter_link, PNDIS_802_11_VARIABLE_IEs pIE)
+void HT_caps_handler_infra_ap(_adapter *padapter, PNDIS_802_11_VARIABLE_IEs pIE)
 {
 	unsigned int	i;
 	u8	cur_stbc_cap_infra_ap = 0;
-	struct link_mlme_priv		*pmlmepriv = &padapter_link->mlmepriv;
+	struct mlme_priv		*pmlmepriv = &padapter->mlmepriv;
 	struct ht_priv_infra_ap		*phtpriv = &pmlmepriv->htpriv_infra_ap;
 
-	struct link_mlme_ext_priv		*pmlmeext = &padapter_link->mlmeextpriv;
-	struct link_mlme_ext_info		*pmlmeinfo = &(pmlmeext->mlmext_info);
+	struct mlme_ext_priv		*pmlmeext = &padapter->mlmeextpriv;
+	struct mlme_ext_info		*pmlmeinfo = &(pmlmeext->mlmext_info);
 
 	if (pIE == NULL)
 		return;
@@ -1007,23 +961,22 @@ void HT_caps_handler_infra_ap(_adapter *padapter, struct _ADAPTER_LINK *padapter
 	/*store ap info for supported channel bandwidth*/
 	phtpriv->channel_width_infra_ap = GET_HT_CAP_ELE_CHL_WIDTH(pIE->data);
 }
-#endif /* PRIVATE_R */
+#endif /* ROKU_PRIVATE */
 
-void HT_caps_handler(_adapter *padapter, struct _ADAPTER_LINK *padapter_link,
-			PNDIS_802_11_VARIABLE_IEs pIE)
+void HT_caps_handler(_adapter *padapter, PNDIS_802_11_VARIABLE_IEs pIE)
 {
 #ifdef CONFIG_80211N_HT
 	unsigned int i;
 	u8 max_AMPDU_len, min_MPDU_spacing;
 	u8 cur_ldpc_cap = 0, cur_stbc_cap = 0, cur_beamform_cap = 0, rx_nss = 0;
-	struct rtw_wifi_role_t *wrole = padapter->phl_role;
-	struct link_mlme_ext_priv *pmlmeext = &padapter_link->mlmeextpriv;
-	struct link_mlme_priv *pmlmepriv = &padapter_link->mlmepriv;
-	struct protocol_cap_t *protocol_cap = &padapter_link->wrlink->protocol_cap;
-	struct link_mlme_ext_info *pmlmeinfo = &(pmlmeext->mlmext_info);
+	struct mlme_ext_priv *pmlmeext = &padapter->mlmeextpriv;
+	struct mlme_ext_info *pmlmeinfo = &(pmlmeext->mlmext_info);
+	struct mlme_priv *pmlmepriv = &padapter->mlmepriv;
 	struct ht_priv *phtpriv = &pmlmepriv->htpriv;
 	struct sta_info *sta = NULL;
 	struct rtw_phl_stainfo_t *phl_sta = NULL;
+	struct rtw_wifi_role_t *wrole = padapter->phl_role;
+	struct protocol_cap_t *proto_role_cap = &(wrole->proto_role_cap);
 #ifdef CONFIG_DISABLE_MCS13TO15
 	struct registry_priv *pregistrypriv = &padapter->registrypriv;
 #endif
@@ -1070,7 +1023,7 @@ void HT_caps_handler(_adapter *padapter, struct _ADAPTER_LINK *padapter_link,
 	for (i = 0; i < 16; i++)
 		pmlmeinfo->HT_caps.u.HT_cap_element.MCS_rate[i] &= pmlmeext->default_supported_mcs_set[i];
 
-	rx_nss = get_phy_rx_nss(padapter, padapter_link);
+	rx_nss = get_phy_rx_nss(padapter);
 
 	switch (rx_nss) {
 	case 1:
@@ -1094,7 +1047,7 @@ void HT_caps_handler(_adapter *padapter, struct _ADAPTER_LINK *padapter_link,
 		RTW_WARN("rf_type:%d or tx_nss:%u is not expected\n", GET_HAL_RFPATH(adapter_to_dvobj(padapter)), rx_nss);
 	}
 
-	if (check_fwstate(&padapter->mlmepriv, WIFI_AP_STATE)) {
+	if (check_fwstate(pmlmepriv, WIFI_AP_STATE)) {
 		/* Config STBC setting */
 		if (TEST_FLAG(phtpriv->stbc_cap, STBC_HT_ENABLE_TX) && GET_HT_CAP_ELE_RX_STBC(pIE->data)) {
 			SET_FLAG(cur_stbc_cap, STBC_HT_ENABLE_TX);
@@ -1149,7 +1102,7 @@ void HT_caps_handler(_adapter *padapter, struct _ADAPTER_LINK *padapter_link,
 			SET_FLAG(cur_stbc_cap, (STBC_HT_ENABLE_TX | STBC_HT_CAP_TX));
 			RTW_INFO("Enable HT Tx STBC!\n");
 			phl_sta->asoc_cap.stbc_ht_rx =
-				protocol_cap->stbc_ht_tx ? GET_HT_CAP_ELE_RX_STBC(pIE->data) : 0;
+				proto_role_cap->stbc_ht_tx ? GET_HT_CAP_ELE_RX_STBC(pIE->data) : 0;
 		}
 		phtpriv->stbc_cap = cur_stbc_cap;
 		phl_sta->asoc_cap.stbc_ht_tx = GET_HT_CAP_ELE_TX_STBC(pIE->data);
@@ -1178,14 +1131,12 @@ void HT_caps_handler(_adapter *padapter, struct _ADAPTER_LINK *padapter_link,
 #endif /* CONFIG_80211N_HT */
 }
 
-void HT_info_handler(_adapter *padapter, struct _ADAPTER_LINK *padapter_link,
-			PNDIS_802_11_VARIABLE_IEs pIE)
+void HT_info_handler(_adapter *padapter, PNDIS_802_11_VARIABLE_IEs pIE)
 {
 #ifdef CONFIG_80211N_HT
-	struct link_mlme_priv		*pmlmepriv = &padapter_link->mlmepriv;
-	struct link_mlme_ext_priv	*pmlmeext = &padapter_link->mlmeextpriv;
-	struct link_mlme_ext_info	*pmlmeinfo = &(pmlmeext->mlmext_info);
-
+	struct mlme_ext_priv	*pmlmeext = &padapter->mlmeextpriv;
+	struct mlme_ext_info	*pmlmeinfo = &(pmlmeext->mlmext_info);
+	struct mlme_priv		*pmlmepriv = &padapter->mlmepriv;
 	struct ht_priv			*phtpriv = &pmlmepriv->htpriv;
 
 	if (pIE == NULL)
@@ -1206,12 +1157,11 @@ void HT_info_handler(_adapter *padapter, struct _ADAPTER_LINK *padapter_link,
 
 void HTOnAssocRsp(_adapter *padapter)
 {
-	struct _ADAPTER_LINK *padapter_link = GET_PRIMARY_LINK(padapter);
 	unsigned char		max_AMPDU_len;
 	unsigned char		min_MPDU_spacing;
 	/* struct registry_priv	 *pregpriv = &padapter->registrypriv; */
-	struct link_mlme_ext_priv	*pmlmeext = &padapter_link->mlmeextpriv;
-	struct link_mlme_ext_info	*pmlmeinfo = &(pmlmeext->mlmext_info);
+	struct mlme_ext_priv	*pmlmeext = &padapter->mlmeextpriv;
+	struct mlme_ext_info	*pmlmeinfo = &(pmlmeext->mlmext_info);
 
 	RTW_INFO("%s\n", __FUNCTION__);
 
@@ -1265,14 +1215,14 @@ void HTOnAssocRsp(_adapter *padapter)
 	/* Config SM Power Save setting */
 	/*  */
 	pmlmeinfo->SM_PS = (pmlmeinfo->HT_caps.u.HT_cap_element.HT_caps_info & 0x0C) >> 2;
-	if (pmlmeinfo->SM_PS == SM_PS_STATIC) {
+	if (pmlmeinfo->SM_PS == WLAN_HT_CAP_SM_PS_STATIC) {
 #if 0
 		u8 i;
 		/* update the MCS rates */
 		for (i = 0; i < 16; i++)
 			pmlmeinfo->HT_caps.HT_cap_element.MCS_rate[i] &= MCS_rate_1R[i];
 #endif
-		RTW_INFO("%s(): SM_PS_STATIC\n", __FUNCTION__);
+		RTW_INFO("%s(): WLAN_HT_CAP_SM_PS_STATIC\n", __FUNCTION__);
 	}
 
 	/*  */
@@ -1283,11 +1233,10 @@ void HTOnAssocRsp(_adapter *padapter)
 
 }
 
-void ERP_IE_handler(_adapter *padapter, struct _ADAPTER_LINK *padapter_link,
-		PNDIS_802_11_VARIABLE_IEs pIE)
+void ERP_IE_handler(_adapter *padapter, PNDIS_802_11_VARIABLE_IEs pIE)
 {
-	struct link_mlme_ext_priv	*pmlmeext = &padapter_link->mlmeextpriv;
-	struct link_mlme_ext_info	*pmlmeinfo = &(pmlmeext->mlmext_info);
+	struct mlme_ext_priv	*pmlmeext = &padapter->mlmeextpriv;
+	struct mlme_ext_info	*pmlmeinfo = &(pmlmeext->mlmext_info);
 
 	if (pIE->Length > 1)
 		return;
@@ -1299,9 +1248,8 @@ void ERP_IE_handler(_adapter *padapter, struct _ADAPTER_LINK *padapter_link,
 void VCS_update(_adapter *padapter, struct sta_info *psta)
 {
 	struct registry_priv	*pregpriv = &padapter->registrypriv;
-	struct _ADAPTER_LINK *padapter_link = psta->padapter_link;
-	struct link_mlme_ext_priv	*pmlmeext = &padapter_link->mlmeextpriv;
-	struct link_mlme_ext_info	*pmlmeinfo = &(pmlmeext->mlmext_info);
+	struct mlme_ext_priv	*pmlmeext = &padapter->mlmeextpriv;
+	struct mlme_ext_info	*pmlmeinfo = &(pmlmeext->mlmext_info);
 
 	switch (pregpriv->vrtl_carrier_sense) { /* 0:off 1:on 2:auto */
 	case 0: /* off */
@@ -1486,15 +1434,6 @@ bool rtw_validate_value(u16 EID, u8 *p, u16 len)
 		nr_val = len;
 		for (i=0; i<nr_val; i++) {
 			rate = *(p+i);
-			/*
-			 * Skip HT, VHT, HE and SAE H2E only BSS membership selectors
-			 * since they're not rates.
-			 */
-			if (rate == (0x80 | BSS_MEMBERSHIP_SELECTOR_HT_PHY) ||
-			    rate == (0x80 | BSS_MEMBERSHIP_SELECTOR_VHT_PHY) ||
-			    rate == (0x80 | BSS_MEMBERSHIP_SELECTOR_HE_PHY) ||
-			    rate == (0x80 | BSS_MEMBERSHIP_SELECTOR_SAE_H2E))
-				continue;
 			if (match_ranges(EID, rate) == _FALSE)
 				return _FALSE;
 		}
@@ -1584,10 +1523,8 @@ void rtw_absorb_ssid_ifneed(_adapter *padapter, WLAN_BSSID_EX *bssid, u8 *pframe
 #ifdef DBG_RX_BCN
 void rtw_debug_rx_bcn(_adapter *adapter, u8 *pframe, u32 packet_len)
 {
-	/* ToDo CONFIG_RTW_MLD: [currently primary link only] */
-	struct _ADAPTER_LINK *adapter_link = GET_PRIMARY_LINK(adapter);
-	struct link_mlme_ext_priv *pmlmeext = &adapter_link->mlmeextpriv;
-	struct link_mlme_ext_info *mlmeinfo = &(pmlmeext->mlmext_info);
+	struct mlme_ext_priv *pmlmeext = &adapter->mlmeextpriv;
+	struct mlme_ext_info *mlmeinfo = &(pmlmeext->mlmext_info);
 	u16 sn = ((struct rtw_ieee80211_hdr_3addr *)pframe)->seq_ctl >> 4;
 	u64 tsf, tsf_offset;
 	u8 dtim_cnt, dtim_period, tim_bmap, tim_pvbit;
@@ -1621,7 +1558,7 @@ void rtw_debug_rx_bcn(_adapter *adapter, u8 *pframe, u32 packet_len)
  *	WLAN_EID_PWR_CONSTRAINT
  */
 int _rtw_get_bcn_keys(u8 *cap_info, u32 buf_len, u8 def_ch
-	, struct _ADAPTER_LINK *adapter_link
+	, _adapter *adapter
 	, struct beacon_keys *recv_beacon)
 {
 	int left;
@@ -1680,7 +1617,7 @@ int _rtw_get_bcn_keys(u8 *cap_info, u32 buf_len, u8 def_ch
 		recv_beacon->proto_cap |= PROTO_CAP_11AX;
 
 	/* check bw and channel offset */
-	rtw_ies_get_bchbw(pos, left, &recv_beacon->band, &recv_beacon->ch, &recv_beacon->bw, &recv_beacon->offset, NULL, NULL, 1, 1, 1);
+	rtw_ies_get_chbw(pos, left, &recv_beacon->ch, &recv_beacon->bw, &recv_beacon->offset, 1, 1);
 	if (!recv_beacon->ch)
 		recv_beacon->ch = def_ch;
 
@@ -1709,8 +1646,8 @@ int _rtw_get_bcn_keys(u8 *cap_info, u32 buf_len, u8 def_ch
 	} else if (capability & BIT(4))
 		recv_beacon->encryp_protocol = ENCRYP_PROTOCOL_WEP;
 
-	if (adapter_link) {
-		struct link_mlme_ext_priv *pmlmeext = &adapter_link->mlmeextpriv;
+	if (adapter) {
+		struct mlme_ext_priv *pmlmeext = &adapter->mlmeextpriv;
 
 		if (elems.tim && elems.tim_len) {
 			#ifdef DBG_RX_BCN
@@ -1722,7 +1659,7 @@ int _rtw_get_bcn_keys(u8 *cap_info, u32 buf_len, u8 def_ch
 		/* checking RTW TBTX */
 		#ifdef CONFIG_RTW_TOKEN_BASED_XMIT
 		if (elems.tbtx_cap && elems.tbtx_cap_len) {
-			struct link_mlme_ext_info	*pmlmeinfo = &(pmlmeext->mlmext_info);
+			struct mlme_ext_info	*pmlmeinfo = &(pmlmeext->mlmext_info);
 
 			if (rtw_is_tbtx_capabilty(elems.tbtx_cap, elems.tbtx_cap_len))
 				RTW_DBG("AP support TBTX\n");
@@ -1733,13 +1670,13 @@ int _rtw_get_bcn_keys(u8 *cap_info, u32 buf_len, u8 def_ch
 	return _TRUE;
 }
 
-int rtw_get_bcn_keys(_adapter *adapter, struct _ADAPTER_LINK *adapter_link
+int rtw_get_bcn_keys(_adapter *adapter
 	, u8 *whdr, u32 flen, struct beacon_keys *bcn_keys)
 {
 	return _rtw_get_bcn_keys(
 		whdr + WLAN_HDR_A3_LEN + 10
 		, flen - WLAN_HDR_A3_LEN - 10
-		, adapter_link->mlmeextpriv.chandef.chan, adapter_link
+		, adapter->mlmeextpriv.chandef.chan, adapter
 		, bcn_keys);
 }
 
@@ -1758,22 +1695,6 @@ int rtw_update_bcn_keys_of_network(struct wlan_network *network)
 	return network->bcn_keys_valid;
 }
 
-#define CIPHER_STR(c, type)	c & WPA_CIPHER_##type ? "["#type"]" : ""
-#define CIPHER_FMT		"%s%s%s%s%s%s%s%s%s%s%s%s"
-#define CIPHER_ARG(c)		CIPHER_STR(c, NONE), \
-				CIPHER_STR(c, WEP40), \
-				CIPHER_STR(c, WEP104), \
-				CIPHER_STR(c, TKIP), \
-				CIPHER_STR(c, CCMP), \
-				CIPHER_STR(c, GCMP), \
-				CIPHER_STR(c, GCMP_256), \
-				CIPHER_STR(c, CCMP_256), \
-				CIPHER_STR(c, BIP_CMAC_128), \
-				CIPHER_STR(c, BIP_GMAC_128), \
-				CIPHER_STR(c, BIP_GMAC_256), \
-				CIPHER_STR(c, BIP_CMAC_256)
-#define AKM_STR(akm, type)	akm & WLAN_AKM_TYPE_##type ? "["#type"]" : ""
-
 void rtw_dump_bcn_keys(void *sel, struct beacon_keys *recv_beacon)
 {
 	u8 ssid[IW_ESSID_MAX_SIZE + 1];
@@ -1782,35 +1703,14 @@ void rtw_dump_bcn_keys(void *sel, struct beacon_keys *recv_beacon)
 	ssid[recv_beacon->ssid_len] = '\0';
 
 	RTW_PRINT_SEL(sel, "ssid = %s (len = %u)\n", ssid, recv_beacon->ssid_len);
-	RTW_PRINT_SEL(sel, "ch = %u,%u,%u,%u\n"
-		, recv_beacon->band, recv_beacon->ch, recv_beacon->bw, recv_beacon->offset);
+	RTW_PRINT_SEL(sel, "ch = %u,%u,%u\n"
+		, recv_beacon->ch, recv_beacon->bw, recv_beacon->offset);
 	RTW_PRINT_SEL(sel, "proto_cap = 0x%02x\n", recv_beacon->proto_cap);
 	RTW_MAP_DUMP_SEL(sel, "rate_set = "
 		, recv_beacon->rate_set, recv_beacon->rate_num);
-	RTW_PRINT_SEL(sel, "sec = %d\n", recv_beacon->encryp_protocol);
-	RTW_PRINT_SEL(sel, "GTK = 0x%x " CIPHER_FMT "\n"
-		, recv_beacon->group_cipher
-		, CIPHER_ARG(recv_beacon->group_cipher));
-	RTW_PRINT_SEL(sel, "PTK = 0x%x " CIPHER_FMT "\n"
-		, recv_beacon->pairwise_cipher
-		, CIPHER_ARG(recv_beacon->pairwise_cipher));
-	RTW_PRINT_SEL(sel, "AKM = 0x%08x %s%s%s%s%s%s%s%s%s%s%s%s%s%s%s\n"
-		, recv_beacon->akm
-		, AKM_STR(recv_beacon->akm, 8021X)
-		, AKM_STR(recv_beacon->akm, PSK)
-		, AKM_STR(recv_beacon->akm, FT_8021X)
-		, AKM_STR(recv_beacon->akm, FT_PSK)
-		, AKM_STR(recv_beacon->akm, 8021X_SHA256)
-		, AKM_STR(recv_beacon->akm, PSK_SHA256)
-		, AKM_STR(recv_beacon->akm, TDLS)
-		, AKM_STR(recv_beacon->akm, SAE)
-		, AKM_STR(recv_beacon->akm, FT_OVER_SAE)
-		, AKM_STR(recv_beacon->akm, 8021X_SUITE_B)
-		, AKM_STR(recv_beacon->akm, 8021X_SUITE_B_192)
-		, AKM_STR(recv_beacon->akm, FILS_SHA256)
-		, AKM_STR(recv_beacon->akm, FILS_SHA384)
-		, AKM_STR(recv_beacon->akm, FT_FILS_SHA256)
-		, AKM_STR(recv_beacon->akm, FT_FILS_SHA384));
+	RTW_PRINT_SEL(sel, "sec = %d, group = 0x%x, pair = 0x%x, akm = 0x%08x\n"
+		, recv_beacon->encryp_protocol, recv_beacon->group_cipher
+		, recv_beacon->pairwise_cipher, recv_beacon->akm);
 }
 
 bool rtw_bcn_key_compare(struct beacon_keys *cur, struct beacon_keys *recv)
@@ -1821,14 +1721,13 @@ bool rtw_bcn_key_compare(struct beacon_keys *cur, struct beacon_keys *recv)
 	struct beacon_keys tmp;
 	bool ret = _FALSE;
 
-	if (!rtw_is_bchbw_grouped(cur->band, cur->ch, cur->bw, cur->offset
-			, recv->band, recv->ch, recv->bw, recv->offset))
+	if (!rtw_is_chbw_grouped(cur->ch, cur->bw, cur->offset
+			, recv->ch, recv->bw, recv->offset))
 		goto exit;
 
 	_rtw_memcpy(&tmp, cur, sizeof(tmp));
 
 	/* check fields excluding below */
-	tmp.band = recv->band;
 	tmp.ch = recv->ch;
 	tmp.bw = recv->bw;
 	tmp.offset = recv->offset;
@@ -1848,12 +1747,12 @@ exit:
 	return ret;
 }
 
-int rtw_check_bcn_info(_adapter *adapter, struct _ADAPTER_LINK *adapter_link,
-		u8 *pframe, u32 packet_len)
+int rtw_check_bcn_info(_adapter *adapter, u8 *pframe, u32 packet_len)
 {
 	u8 *pbssid = GetAddr3Ptr(pframe);
 	struct mlme_priv *pmlmepriv = &adapter->mlmepriv;
-	struct beacon_keys *cur_beacon = &adapter_link->mlmepriv.cur_beacon_keys;
+	struct wlan_network *cur_network = &(adapter->mlmepriv.cur_network);
+	struct beacon_keys *cur_beacon = &pmlmepriv->cur_beacon_keys;
 	struct beacon_keys recv_beacon;
 	int ret = 0;
 	u8 ifbmp_m = rtw_mi_get_ap_mesh_ifbmp(adapter);
@@ -1862,18 +1761,17 @@ int rtw_check_bcn_info(_adapter *adapter, struct _ADAPTER_LINK *adapter_link,
 	struct mlme_ext_priv *pmlmeext = &adapter->mlmeextpriv;
 	struct mlme_ext_info *pmlmeinfo = &pmlmeext->mlmext_info;
 	u8 ssid_is_hidden = _FALSE;
-	struct link_mlme_ext_priv *plmlmeext = &(adapter_link->mlmeextpriv);
-	struct wlan_network *cur_network = &(adapter_link->mlmepriv.cur_network);
 
 	if (is_client_associated_to_ap(adapter) == _FALSE)
 		goto exit_success;
 
-	if (rtw_get_bcn_keys(adapter, adapter_link, pframe, packet_len, &recv_beacon) == _FALSE)
+	if (rtw_get_bcn_keys(adapter, pframe, packet_len, &recv_beacon) == _FALSE)
 		goto exit_success; /* parsing failed => broken IE */
 
 #ifdef DBG_RX_BCN
 	rtw_debug_rx_bcn(adapter, pframe, packet_len);
 #endif
+
 	ssid_is_hidden = is_hidden_ssid(recv_beacon.ssid, recv_beacon.ssid_len);
 
 	if (recv_beacon.ssid_len != cur_beacon->ssid_len) {
@@ -1902,7 +1800,7 @@ int rtw_check_bcn_info(_adapter *adapter, struct _ADAPTER_LINK *adapter_link,
 		recv_beacon.ssid_len = cur_beacon->ssid_len;
 	}
 
-#ifdef CONFIG_ECSA_PHL
+#if CONFIG_DFS
 	if (check_fwstate(pmlmepriv, WIFI_CSA_UPDATE_BEACON)) {
 		u8 u_ch, u_offset, u_bw;
 		u8 bcn_ch, bcn_bw, bcn_offset;
@@ -1911,18 +1809,16 @@ int rtw_check_bcn_info(_adapter *adapter, struct _ADAPTER_LINK *adapter_link,
 		struct rtw_chan_def new_chdef = {0};
 
 		/* get union ch/bw/offset from chan_ctx */
-		rtw_phl_mr_get_chandef(d->phl, adapter->phl_role, adapter_link->wrlink, &mr_chdef);
+		rtw_phl_mr_get_chandef(d->phl, adapter->phl_role, &mr_chdef);
 		u_ch = mr_chdef.chan;
 		u_offset = (u8)mr_chdef.offset;
 		u_bw = (u8)mr_chdef.bw;
 
 		#ifdef DBG_CSA
-		RTW_INFO("CSA : Wait AP for updating its beacon, wait %u beacon, union.ch = %u, recv_beacon.ch = %u\n",
-			pmlmepriv->bcn_cnts_after_csa + 1, u_ch, recv_beacon.ch);
+		RTW_INFO("CSA : before update beacon, u_ch=%u, recv_beacon.ch=%u\n", u_ch, recv_beacon.ch);
 		#endif
 
-		/* always wait for AP to update its beacon WAIT_BCN_TIMES beacon */
-		if (pmlmepriv->bcn_cnts_after_csa < WAIT_BCN_TIMES) {
+		if (pmlmepriv->bcn_cnts_after_csa < 5) {
 			if (u_ch == recv_beacon.ch)
 				pmlmepriv->bcn_cnts_after_csa += 1;
 			goto exit_success;
@@ -1937,12 +1833,12 @@ int rtw_check_bcn_info(_adapter *adapter, struct _ADAPTER_LINK *adapter_link,
 		bcn_offset = recv_beacon.offset;
 
 		#ifdef DBG_CSA
-		RTW_INFO("CSA : copy new beacon, recv_beacon.ch = %u, recv_beacon.bw = %u, recv_beacon.offset = %u\n",
+		RTW_INFO("CSA : after update beacon, recv_beacon.ch=%u, recv_beacon.bw=%u, recv_beacon.offset=%u\n", \
 			bcn_ch, bcn_bw, bcn_offset);
 		rtw_dump_bcn_keys(RTW_DBGDUMP, &recv_beacon);
 		#endif
 
-		_cancel_timer_nowait(&adapter->mlmeextpriv.csa_wait_bcn_timer);
+		_cancel_timer_nowait(&pmlmeext->csa_timer);
 
 		/* beacon bw/offset is different from CSA IE */
 		if ((bcn_bw > u_bw) ||
@@ -1950,41 +1846,44 @@ int rtw_check_bcn_info(_adapter *adapter, struct _ADAPTER_LINK *adapter_link,
 			u_offset != CHAN_OFFSET_NO_EXT &&
 			bcn_offset != CHAN_OFFSET_NO_EXT)) {
 
-			plmlmeext->chandef.bw = bcn_bw;
-			plmlmeext->chandef.offset = bcn_offset;
-			/* updaet STA mode DSConfig , ap mode will update in rtw_change_bss_bchbw_cmd */
-			cur_network->network.Configuration.DSConfig = bcn_ch;
+			pmlmeext->chandef.bw = bcn_bw;
+			pmlmeext->chandef.offset = bcn_offset;
+			/* updaet STA mode DSConfig , ap mode will update in rtw_change_bss_chbw_cmd */
+			pmlmepriv->cur_network.network.Configuration.DSConfig = bcn_ch;
 
 			/* update wifi role chandef */
-			rtw_hw_update_chan_def(adapter, adapter_link);
+			rtw_hw_update_chan_def(adapter);
+
 			/* update chanctx */
-			if (rtw_phl_mr_upt_chandef(d->phl, adapter_link->wrlink) == RTW_PHL_STATUS_FAILURE)
+			if (rtw_phl_mr_upt_chandef(d->phl, adapter->phl_role) == RTW_PHL_STATUS_FAILURE)
 				RTW_ERR("CSA : update chanctx fail\n");
 
-			rtw_phl_mr_get_chandef(d->phl, adapter->phl_role, adapter_link->wrlink, &new_chdef);
+			rtw_phl_mr_get_chandef(d->phl, adapter->phl_role, &new_chdef);
+			rtw_mi_update_union_chan_inf(adapter, new_chdef.chan, (u8)new_chdef.offset, (u8)new_chdef.bw);
 
 			#ifdef CONFIG_AP_MODE
 			if (ifbmp_m) {
-				rtw_change_bss_bchbw_cmd(dvobj_get_primary_adapter(d), 0
-					, ifbmp_m, 0, new_chdef.band, new_chdef.chan, REQ_BW_ORI, REQ_OFFSET_NONE);
+				rtw_change_bss_chbw_cmd(dvobj_get_primary_adapter(d), 0
+					, ifbmp_m, 0, new_chdef.chan, REQ_BW_ORI, REQ_OFFSET_NONE);
 			} else
 			#endif
 			{
-				#if CONFIG_DFS && CONFIG_IEEE80211_BAND_5GHZ
-				rtw_dfs_rd_en_dec_on_mlme_act(adapter, adapter_link, MLME_OPCH_SWITCH, ifbmp_s);
+				#ifdef CONFIG_DFS_MASTER
+				rtw_dfs_rd_en_decision(adapter, MLME_OPCH_SWITCH, ifbmp_s);
 				#endif
-				rtw_set_chbw_cmd(adapter, adapter_link, &new_chdef, 0);
+				rtw_set_chbw_cmd(adapter, new_chdef.chan, (u8)new_chdef.bw, (u8)new_chdef.offset, 0);
 			}
 			RTW_INFO("CSA : after update bw/offset, new_bw=%d, new_offset=%d \n", \
 				(u8)new_chdef.bw, (u8)new_chdef.offset);
 		} else {
-			RTW_INFO("CSA : Our bw/offset is same as AP\n");
+			RTW_INFO("CSA : u_ch=%d, u_bw=%d, u_offset=%d, recv_beacon.ch=%d, recv_beacon.bw=%d, recv_beacon.offset=%d\n"
+			, u_ch, u_bw, u_offset, bcn_ch, bcn_bw, bcn_offset);
 		}
 
 		/* update RA mask */
-		psta = rtw_get_stainfo(&adapter->stapriv, get_link_bssid(&adapter_link->mlmepriv));
+		psta = rtw_get_stainfo(&adapter->stapriv, get_bssid(&adapter->mlmepriv));
 		if (psta) {
-			psta->phl_sta->chandef.bw = plmlmeext->chandef.bw;
+			psta->phl_sta->chandef.bw = pmlmeext->chandef.bw;
 			rtw_phl_cmd_change_stainfo(GET_PHL_INFO(d),
 						psta->phl_sta,
 						STA_CHG_RAMASK,
@@ -1996,7 +1895,7 @@ int rtw_check_bcn_info(_adapter *adapter, struct _ADAPTER_LINK *adapter_link,
 
 		RTW_INFO("CSA : update beacon done, WIFI_CSA_UPDATE_BEACON is clear\n");
 	}
-#endif /* CONFIG_ECSA_PHL */
+#endif /* CONFIG_DFS */
 
 	if (_rtw_memcmp(&recv_beacon, cur_beacon, sizeof(recv_beacon)) == _FALSE) {
 		RTW_INFO(FUNC_ADPT_FMT" new beacon occur!!\n", FUNC_ADPT_ARG(adapter));
@@ -2034,7 +1933,6 @@ void update_beacon_info(_adapter *padapter, u8 *pframe, uint pkt_len, struct sta
 	unsigned int i;
 	unsigned int len;
 	PNDIS_802_11_VARIABLE_IEs	pIE;
-	struct _ADAPTER_LINK *padapter_link = psta->padapter_link;
 
 #ifdef CONFIG_TDLS
 	struct tdls_info *ptdlsinfo = &padapter->tdlsinfo;
@@ -2050,13 +1948,13 @@ void update_beacon_info(_adapter *padapter, u8 *pframe, uint pkt_len, struct sta
 		case _VENDOR_SPECIFIC_IE_:
 			/* to update WMM paramter set while receiving beacon */
 			if (_rtw_memcmp(pIE->data, WMM_PARA_OUI, 6) && pIE->Length == WLAN_WMM_LEN)	/* WMM */
-				(WMM_param_handler(padapter, padapter_link, pIE)) ? report_wmm_edca_update(padapter) : 0;
+				(WMM_param_handler(padapter, pIE)) ? report_wmm_edca_update(padapter) : 0;
 
 			break;
 
 		case _HT_EXTRA_INFO_IE_:	/* HT info */
 			/* HT_info_handler(padapter, pIE); */
-			bwmode_update_check(padapter, padapter_link, pIE);
+			bwmode_update_check(padapter, pIE);
 			break;
 #ifdef CONFIG_80211AC_VHT
 		case EID_OpModeNotification:
@@ -2064,7 +1962,7 @@ void update_beacon_info(_adapter *padapter, u8 *pframe, uint pkt_len, struct sta
 			break;
 #endif /* CONFIG_80211AC_VHT */
 		case _ERPINFO_IE_:
-			ERP_IE_handler(padapter, padapter_link, pIE);
+			ERP_IE_handler(padapter, pIE);
 			VCS_update(padapter, psta);
 			break;
 
@@ -2079,9 +1977,9 @@ void update_beacon_info(_adapter *padapter, u8 *pframe, uint pkt_len, struct sta
 #ifdef CONFIG_80211AX_HE
 		case WLAN_EID_EXTENSION:
 			if (pIE->data[0] == WLAN_EID_EXTENSION_HE_OPERATION)
-				HE_operation_handler(padapter, padapter_link, pIE);
+				HE_operation_handler(padapter, pIE);
 			else if (pIE->data[0] == WLAN_EID_EXTENSION_HE_MU_EDCA)
-				HE_mu_edca_handler(padapter, padapter_link, pIE, _FALSE);
+				HE_mu_edca_handler(padapter, pIE, _FALSE);
 			break;
 #endif
 		default:
@@ -2092,18 +1990,22 @@ void update_beacon_info(_adapter *padapter, u8 *pframe, uint pkt_len, struct sta
 	}
 }
 
-#ifdef CONFIG_ECSA_PHL
+#if CONFIG_DFS
 void process_csa_ie(_adapter *padapter, u8 *ies, uint ies_len)
 {
+#ifdef CONFIG_ECSA_PHL
 	struct core_ecsa_info *ecsa_info = &(padapter->ecsa_info);
 	struct rtw_phl_ecsa_param *ecsa_param = &(ecsa_info->phl_ecsa_param);
+#endif
+	struct rf_ctl_t *rfctl = adapter_to_rfctl(padapter);
+	struct mlme_ext_priv *pmlmeext = &padapter->mlmeextpriv;
+	struct mlme_ext_info *pmlmeinfo = &(pmlmeext->mlmext_info);
 	struct mlme_priv *pmlmepriv = &padapter->mlmepriv;
-	struct ieee80211_info_element *ie;
-	u8 *wide_bw_ie;
-	uint wide_bw_ie_len;
-	u8 csa_ch = 0, csa_offset = 0, csa_ch_width = 0xff, seg_0 = 0, seg_1 = 0;
+	unsigned int i, j, countdown;
+	PNDIS_802_11_VARIABLE_IEs pIE, sub_pie;
+	u8 ch = 0, csa_ch_offset = 0, csa_ch_width = 0, csa_ch_freq_seg0 = 0, csa_ch_freq_seg1 = 0;
 	u8 csa_switch_cnt = 0, csa_mode = 0;
-	u8 ecsa_mode = 0, ecsa_op_class = 0, ecsa_ch = 0, ecsa_switch_cnt = 0;
+	u8 is_csa_running;
 
 #ifdef DBG_CSA
 	u8 *p;
@@ -2113,85 +2015,172 @@ void process_csa_ie(_adapter *padapter, u8 *ies, uint ies_len)
 		RTW_INFO("CSA : %s, CH = %u, count = %u\n",__func__, *(p+2+1), *(p+2+2));
 #endif
 
+#ifdef CONFIG_ECSA_PHL
+	is_csa_running = rtw_mr_is_ecsa_running(padapter);
+#else
+	is_csa_running = (rfctl->csa_chandef.chan > 0) ? _TRUE : _FALSE;
+#endif
+
 	/* compare with scheduling CSA to block incoming CSA IE */
-	if (rtw_mr_is_ecsa_running(padapter)
-		|| check_fwstate(pmlmepriv, WIFI_CSA_UPDATE_BEACON))
+	if (is_csa_running || check_fwstate(pmlmepriv, WIFI_CSA_UPDATE_BEACON))
 		return;
 
-	for_each_ie(ie, ies, ies_len) {
-		switch (ie->id) {
+	for (i = 0; i + 1 < ies_len;) {
+		pIE = (PNDIS_802_11_VARIABLE_IEs)(ies + i);
+
+		switch (pIE->ElementID) {
 		case WLAN_EID_CHANNEL_SWITCH:
-			csa_mode = *(ie->data);
-			csa_ch = *(ie->data + 1);
-			csa_switch_cnt = *(ie->data + 2);
+			csa_mode = *(pIE->data);
+			ch = *(pIE->data + 1);
+			csa_switch_cnt = *(pIE->data + 2);
 
-			RTW_INFO("CSA : CHANNEL_SWITCH IE, mode = %u, ch = %u, switch count = %u\n",
-				csa_mode, csa_ch, csa_switch_cnt);
+			RTW_INFO("CSA : mode = %u, ch = %u, switch count = %u\n",
+				csa_mode, ch, csa_switch_cnt);
 			break;
-		/* This element is not necessary for channel switching */
 		case WLAN_EID_SECONDARY_CHANNEL_OFFSET:
-			csa_offset = *(ie->data);
+			csa_ch_offset = *(pIE->data);
+			break;
+		case WLAN_EID_WIDE_BANDWIDTH_CHANNEL_SWITCH:
+			csa_ch_width = *(pIE->data);
+			csa_ch_freq_seg0 = *(pIE->data+1);
+			csa_ch_freq_seg1 = *(pIE->data+2);
 
-			RTW_INFO("CSA : SECONDARY_CHANNEL_OFFSET IE, secondary_offset = %u\n",
-				csa_offset);
+			RTW_INFO("CSA : bw:%02x center_freq_0:%u center_freq_1:%u, ch=%u\n"
+					, csa_ch_width, csa_ch_freq_seg0, csa_ch_freq_seg1, ch);
 			break;
 		case WLAN_EID_CHANNEL_SWITCH_WRAPPER:
-			wide_bw_ie = rtw_get_ie(ie->data, WLAN_EID_VHT_WIDE_BW_CHSWITCH, &wide_bw_ie_len, ie->len);
-			csa_ch_width = *(wide_bw_ie + 2);
-			seg_0 = *(wide_bw_ie + 3);
-			seg_1 = *(wide_bw_ie + 4);
+			for (j=0; j + 1 < pIE->Length;) {
+				sub_pie = (PNDIS_802_11_VARIABLE_IEs)(ies + i + j + 2);
+				if (sub_pie->ElementID == WLAN_EID_WIDE_BANDWIDTH_CHANNEL_SWITCH) {
+					csa_ch_width = *(sub_pie->data);
+					csa_ch_freq_seg0 = *(sub_pie->data+1);
+					csa_ch_freq_seg1 = *(sub_pie->data+2);
 
-			RTW_INFO("CSA : WIDE_BW_CHSWITCH IE, channel width = %u, segment_0 = %u, segment_1 = %u\n",
-				csa_ch_width, seg_0, seg_1);
-			break;
-		case WLAN_EID_ECSA:
-			ecsa_mode = *(ie->data);
-			ecsa_op_class = *(ie->data + 1);
-			ecsa_ch = *(ie->data + 2);
-			ecsa_switch_cnt = *(ie->data + 3);
-
-			RTW_INFO("CSA : EXT_CHANNEL_SWITCH IE, mode = %u, op class = %u, ch = %u, switch count = %u\n",
-				ecsa_mode, ecsa_op_class, ecsa_ch, ecsa_switch_cnt);
+					RTW_INFO("CSA : sub_IE:%02x IE_length:%02x bw:%02x center_freq_0:%u center_freq_1:%u, ch=%u\n"
+						, sub_pie->ElementID, sub_pie->Length, csa_ch_width, csa_ch_freq_seg0, csa_ch_freq_seg1, ch);
+				}
+				j += (sub_pie->Length + 2);
+			}
 			break;
 		default:
 			break;
 		}
+
+		i += (pIE->Length + 2);
 	}
 
-	/* Check conflict of CSA IE and ECSA IE */
-	if (rtw_is_ecsa_enabled(padapter) && ecsa_ch != 0) {
-		if (csa_ch == 0) { /* has ECSA IE, no CSA IE */
-			csa_mode = ecsa_mode;
-			csa_switch_cnt = ecsa_switch_cnt;
-			csa_ch = ecsa_ch;
-		} else if (csa_mode != ecsa_mode ||
-				csa_ch != ecsa_ch ||
-				csa_switch_cnt != ecsa_switch_cnt) { /*has both IE, but conflict */
-			RTW_ERR("CSA : There has a conflict of CSA IE and ECSA IE\n");
-			return;
-		}
+	/* Doesn't support switch bandwidth/offset in the same channel for now */
+	if (ch == rtw_mi_get_union_chan(padapter)) {
+		RTW_ERR("%s : receive the same channel from CSA IE, so ignore it\n", __func__);
+		return;
 	}
 
-	if (csa_ch != 0) {
+	if (ch != 0) {
+		#ifdef CONFIG_ECSA_PHL
 		ecsa_param->ecsa_type = ECSA_TYPE_STA;
 		ecsa_param->mode = csa_mode;
-		ecsa_param->op_class = ecsa_op_class;
 		ecsa_param->count = csa_switch_cnt;
-		ecsa_param->new_chan_def.band = rtw_get_band_type(csa_ch);
-		ecsa_param->new_chan_def.chan = csa_ch;
+		/* ecsa_param.op_class = rfctl->op_class; */ /* TODO : ECSA */
+		ecsa_param->new_chan_def.band = rtw_phl_get_band_type(ch);
+		ecsa_param->new_chan_def.chan = ch;
 		/* The channel width defined in 802.11 spec */
 		ecsa_info->channel_width = csa_ch_width;
-		ecsa_param->new_chan_def.offset = csa_offset;
-		ecsa_param->new_chan_def.center_freq1 = seg_0;
-		ecsa_param->new_chan_def.center_freq2 = seg_1;
+		ecsa_param->new_chan_def.offset = csa_ch_offset;
+		ecsa_param->new_chan_def.center_freq1 = csa_ch_freq_seg0;
+		ecsa_param->new_chan_def.center_freq2 = csa_ch_freq_seg1;
 		ecsa_param->flag = 0;
 		ecsa_param->delay_start_ms = 0;
 
 		SET_ECSA_STATE(padapter, ECSA_ST_SW_START);
 		rtw_trigger_phl_ecsa_start(padapter);
+		#else
+		rfctl->csa_mode = csa_mode;
+		rfctl->csa_switch_cnt = csa_switch_cnt;
+		rfctl->csa_ch_width = csa_ch_width;
+
+		rfctl->csa_chandef.band = rtw_phl_get_band_type(ch);
+		rfctl->csa_chandef.chan = ch;
+		rfctl->csa_chandef.offset = csa_ch_offset;
+		rfctl->csa_chandef.center_freq1= csa_ch_freq_seg0;
+		rfctl->csa_chandef.center_freq2 = csa_ch_freq_seg1;
+
+		countdown = pmlmeinfo->network.Configuration.BeaconPeriod * (csa_switch_cnt+1); /* ms */
+		RTW_INFO("csa: set countdown timer to %d ms\n", countdown);
+		_set_timer(&pmlmeext->csa_timer, countdown);
+		#endif /* CONFIG_ECSA_PHL */
 	}
 }
-#endif /* CONFIG_ECSA_PHL */
+#endif /* CONFIG_DFS */
+
+#ifdef CONFIG_80211D
+bool rtw_iface_accept_country_ie(_adapter *adapter)
+{
+	struct rf_ctl_t *rfctl = adapter_to_rfctl(adapter);
+
+	if (!(BIT(adapter->iface_id) & rfctl->country_ie_slave_en_ifbmp))
+		return 0;
+	if (!MLME_IS_STA(adapter))
+		return 0;
+	if (!MLME_IS_GC(adapter)) {
+		if (!(rfctl->country_ie_slave_en_role & COUNTRY_IE_SLAVE_EN_ROLE_STA))
+			return 0;
+	} else {
+		if (!(rfctl->country_ie_slave_en_role & COUNTRY_IE_SLAVE_EN_ROLE_GC))
+			return 0;
+	}
+	return 1;
+}
+
+void process_country_ie(_adapter *adapter, u8 *ies, uint ies_len)
+{
+	struct rf_ctl_t *rfctl = adapter_to_rfctl(adapter);
+
+	if (rfctl->regd_src == REGD_SRC_RTK_PRIV
+		&& !rtw_rfctl_is_disable_sw_channel_plan(rfctl_to_dvobj(rfctl))
+		&& !rfctl->csa_chandef.chan /* don't process country ie when under CSA processing */
+	) {
+		struct mlme_priv *mlme = &adapter->mlmepriv;
+		const u8 *ie = NULL;
+		sint ie_len = 0;
+
+		if (rtw_iface_accept_country_ie(adapter)) {
+			ie = rtw_get_ie(ies, WLAN_EID_COUNTRY, &ie_len, ies_len);
+			if (ie) {
+				if (ie_len < 6) {
+					ie = NULL;
+					ie_len = 0;
+				} else
+					ie_len += 2;
+			}
+		}
+
+		if (!mlme->recv_country_ie && !ie)
+			return;
+		if (mlme->recv_country_ie_len == ie_len
+			&& _rtw_memcmp(mlme->recv_country_ie, ie, ie_len) == _TRUE)
+			return;
+
+		if (!ie) {
+			rtw_buf_free(&mlme->recv_country_ie, &mlme->recv_country_ie_len);
+			rtw_apply_recv_country_ie_cmd(adapter, 0, 0, 0, NULL);
+		} else {
+			char ori_alpha2[2] = {0, 0};
+
+			if (mlme->recv_country_ie)
+				_rtw_memcpy(ori_alpha2, mlme->recv_country_ie + 2, 2);
+
+			rtw_buf_update(&mlme->recv_country_ie, &mlme->recv_country_ie_len, ie, ie_len);
+			/* for now only country code is used */
+			if (_rtw_memcmp(ori_alpha2, mlme->recv_country_ie + 2, 2) == _TRUE)
+				return;
+			RTW_INFO(FUNC_ADPT_FMT" country_ie alpha2 changed\n", FUNC_ADPT_ARG(adapter));
+			rtw_apply_recv_country_ie_cmd(adapter, 0
+				, mlme->cur_beacon_keys.ch > 14 ? BAND_ON_5G : BAND_ON_24G
+				, mlme->cur_beacon_keys.ch, mlme->recv_country_ie);
+		}
+	}
+}
+#endif /* CONFIG_80211D */
 
 enum eap_type parsing_eapol_packet(_adapter *padapter, u8 *key_payload, struct sta_info *psta, u8 trx_type)
 {
@@ -2250,12 +2239,12 @@ enum eap_type parsing_eapol_packet(_adapter *padapter, u8 *key_payload, struct s
 	return eapol_type;
 }
 
-unsigned int is_ap_in_tkip(struct _ADAPTER_LINK *padapter_link)
+unsigned int is_ap_in_tkip(_adapter *padapter)
 {
 	u32 i;
 	PNDIS_802_11_VARIABLE_IEs	pIE;
-	struct link_mlme_ext_priv *pmlmeext = &padapter_link->mlmeextpriv;
-	struct link_mlme_ext_info	*pmlmeinfo = &(pmlmeext->mlmext_info);
+	struct mlme_ext_priv *pmlmeext = &padapter->mlmeextpriv;
+	struct mlme_ext_info	*pmlmeinfo = &(pmlmeext->mlmext_info);
 	WLAN_BSSID_EX		*cur_network = &(pmlmeinfo->network);
 
 	if (rtw_get_capability((WLAN_BSSID_EX *)cur_network) & WLAN_CAPABILITY_PRIVACY) {
@@ -2290,7 +2279,7 @@ unsigned int should_forbid_n_rate(_adapter *padapter)
 	u32 i;
 	PNDIS_802_11_VARIABLE_IEs	pIE;
 	struct mlme_priv	*pmlmepriv = &padapter->mlmepriv;
-	WLAN_BSSID_EX  *cur_network = &pmlmepriv->dev_cur_network.network;
+	WLAN_BSSID_EX  *cur_network = &pmlmepriv->cur_network.network;
 
 	if (rtw_get_capability((WLAN_BSSID_EX *)cur_network) & WLAN_CAPABILITY_PRIVACY) {
 		for (i = sizeof(NDIS_802_11_FIXED_IEs); i < cur_network->IELength;) {
@@ -2323,12 +2312,12 @@ unsigned int should_forbid_n_rate(_adapter *padapter)
 }
 
 
-unsigned int is_ap_in_wep(struct _ADAPTER_LINK *padapter_link)
+unsigned int is_ap_in_wep(_adapter *padapter)
 {
 	u32 i;
 	PNDIS_802_11_VARIABLE_IEs	pIE;
-	struct link_mlme_ext_priv *pmlmeext = &padapter_link->mlmeextpriv;
-	struct link_mlme_ext_info	*pmlmeinfo = &(pmlmeext->mlmext_info);
+	struct mlme_ext_priv *pmlmeext = &padapter->mlmeextpriv;
+	struct mlme_ext_info	*pmlmeinfo = &(pmlmeext->mlmext_info);
 	WLAN_BSSID_EX		*cur_network = &(pmlmeinfo->network);
 
 	if (rtw_get_capability((WLAN_BSSID_EX *)cur_network) & WLAN_CAPABILITY_PRIVACY) {
@@ -2442,12 +2431,11 @@ unsigned int update_supported_rate(unsigned char *ptn, unsigned int ptn_sz)
 	return mask;
 }
 
-int support_short_GI(_adapter *padapter, struct _ADAPTER_LINK *padapter_link,
-			struct HT_caps_element *pHT_caps, u8 bwmode)
+int support_short_GI(_adapter *padapter, struct HT_caps_element *pHT_caps, u8 bwmode)
 {
 	unsigned char					bit_offset;
-	struct link_mlme_ext_priv	*pmlmeext = &padapter_link->mlmeextpriv;
-	struct link_mlme_ext_info	*pmlmeinfo = &(pmlmeext->mlmext_info);
+	struct mlme_ext_priv	*pmlmeext = &padapter->mlmeextpriv;
+	struct mlme_ext_info	*pmlmeinfo = &(pmlmeext->mlmext_info);
 
 	if (!(pmlmeinfo->HT_enable))
 		return _FAIL;
@@ -2512,10 +2500,10 @@ u8 get_highest_bw_cap(u8 bwmode)
 }
 
 /* Update RRSR and Rate for USERATE */
-void update_tx_basic_rate(_adapter *padapter, struct _ADAPTER_LINK *padapter_link, u8 wirelessmode)
+void update_tx_basic_rate(_adapter *padapter, u8 wirelessmode)
 {
 	NDIS_802_11_RATES_EX	supported_rates;
-	struct link_mlme_ext_priv	*pmlmeext = &padapter_link->mlmeextpriv;
+	struct mlme_ext_priv	*pmlmeext = &padapter->mlmeextpriv;
 
 	_rtw_memset(supported_rates, 0, NDIS_802_11_LENGTH_RATES_EX);
 
@@ -2531,9 +2519,9 @@ void update_tx_basic_rate(_adapter *padapter, struct _ADAPTER_LINK *padapter_lin
 		_rtw_memcpy(supported_rates, rtw_basic_rate_ofdm, 3);
 
 	if (wirelessmode & WLAN_MD_11B)
-		update_mgnt_tx_rate(padapter, padapter_link, IEEE80211_CCK_RATE_1MB);
+		update_mgnt_tx_rate(padapter, IEEE80211_CCK_RATE_1MB);
 	else
-		update_mgnt_tx_rate(padapter, padapter_link, IEEE80211_OFDM_RATE_6MB);
+		update_mgnt_tx_rate(padapter, IEEE80211_OFDM_RATE_6MB);
 
 	rtw_hal_set_hwreg(padapter, HW_VAR_BASIC_RATE, supported_rates);
 }
@@ -2709,10 +2697,10 @@ void get_vht_bf_cap(u8 *pframe, uint len, struct vht_bf_cap *bf_cap)
 }
 #endif
 
-void update_capinfo(_adapter *adapter, struct _ADAPTER_LINK *adapter_link, u16 updateCap)
+void update_capinfo(_adapter *adapter, u16 updateCap)
 {
-	struct link_mlme_ext_priv	*pmlmeext = &adapter_link->mlmeextpriv;
-	struct link_mlme_ext_info	*pmlmeinfo = &(pmlmeext->mlmext_info);
+	struct mlme_ext_priv	*pmlmeext = &adapter->mlmeextpriv;
+	struct mlme_ext_info	*pmlmeinfo = &(pmlmeext->mlmext_info);
 	BOOLEAN		ShortPreamble;
 
 	/* Check preamble mode, 2005.01.06, by rcnjko. */
@@ -2768,12 +2756,12 @@ void update_capinfo(_adapter *adapter, struct _ADAPTER_LINK *adapter_link, u16 u
 * set SIFS register
 * set mgmt tx rate
 */
-void update_wireless_mode(_adapter *padapter, struct _ADAPTER_LINK *padapter_link)
+void update_wireless_mode(_adapter *padapter)
 {
 	int ratelen, network_type = 0;
 	u32 SIFS_Timer;
-	struct link_mlme_ext_priv	*pmlmeext = &padapter_link->mlmeextpriv;
-	struct link_mlme_ext_info	*pmlmeinfo = &(pmlmeext->mlmext_info);
+	struct mlme_ext_priv	*pmlmeext = &padapter->mlmeextpriv;
+	struct mlme_ext_info	*pmlmeinfo = &(pmlmeext->mlmext_info);
 	WLAN_BSSID_EX		*cur_network = &(pmlmeinfo->network);
 	unsigned char			*rate = cur_network->SupportedRates;
 #ifdef CONFIG_P2P
@@ -2785,12 +2773,7 @@ void update_wireless_mode(_adapter *padapter, struct _ADAPTER_LINK *padapter_lin
 	if ((pmlmeinfo->HT_info_enable) && (pmlmeinfo->HT_caps_enable))
 		pmlmeinfo->HT_enable = 1;
 
-#if CONFIG_IEEE80211_BAND_6GHZ
-	if (pmlmeext->chandef.band == BAND_ON_6G)
-		network_type = WLAN_MD_6G_MIX;
-	else
-#endif
-	if (pmlmeext->chandef.band == BAND_ON_5G) {
+	if (pmlmeext->chandef.chan > 14) {
 		if (pmlmeinfo->HE_enable)
 			network_type = WLAN_MD_11AX;
 		else if (pmlmeinfo->VHT_enable)
@@ -2824,9 +2807,9 @@ void update_wireless_mode(_adapter *padapter, struct _ADAPTER_LINK *padapter_lin
 	    !rtw_p2p_chk_role(pwdinfo, P2P_ROLE_GO) &&
 	    #endif
 	    1)
-		update_mgnt_tx_rate(padapter, padapter_link, IEEE80211_CCK_RATE_1MB);
+		update_mgnt_tx_rate(padapter, IEEE80211_CCK_RATE_1MB);
 	else
-		update_mgnt_tx_rate(padapter, padapter_link, IEEE80211_OFDM_RATE_6MB);
+		update_mgnt_tx_rate(padapter, IEEE80211_OFDM_RATE_6MB);
 }
 
 void update_sta_basic_rate(struct sta_info *psta, u8 wireless_mode)
@@ -2983,7 +2966,7 @@ exit:
 	return;
 }
 
-void update_TSF(struct link_mlme_ext_priv *pmlmeext, u8 *pframe, uint len)
+void update_TSF(struct mlme_ext_priv *pmlmeext, u8 *pframe, uint len)
 {
 	u8 *pIE;
 	u32 *pbuf;
@@ -3017,9 +3000,9 @@ inline u16 _rx_bcn_time_calculate(uint bcn_len, u8 data_rate)
 */
 	return rx_bcn_time;
 }
-void rtw_rx_bcn_time_update(_adapter *adapter, struct _ADAPTER_LINK *adapter_link, uint bcn_len, u8 data_rate)
+void rtw_rx_bcn_time_update(_adapter *adapter, uint bcn_len, u8 data_rate)
 {
-	struct link_mlme_ext_priv *pmlmeext = &adapter_link->mlmeextpriv;
+	struct mlme_ext_priv *pmlmeext = &adapter->mlmeextpriv;
 
 	pmlmeext->bcn_rx_time = _rx_bcn_time_calculate(bcn_len, data_rate);
 }
@@ -3030,9 +3013,9 @@ void beacon_timing_control(_adapter *padapter)
 	rtw_hal_bcn_param_setting(padapter);
 }
 
-inline void rtw_collect_bcn_info(_adapter *adapter, struct _ADAPTER_LINK *adapter_link)
+inline void rtw_collect_bcn_info(_adapter *adapter)
 {
-	struct link_mlme_ext_priv *pmlmeext = &adapter_link->mlmeextpriv;
+	struct mlme_ext_priv *pmlmeext = &adapter->mlmeextpriv;
 
 	if (!is_client_associated_to_ap(adapter))
 		return;
@@ -3400,7 +3383,7 @@ static u32 rtw_get_ht_bitrate(u8 mcs, u8 bw, u8 sgi)
  */
 u32 rtw_desc_rate_to_bitrate(u8 bw, u16 data_rate, u8 sgi)
 {
-	u32 bitrate = DESC_RATE1M;
+	u32 bitrate;
 
 	if (data_rate <= DESC_RATE54M){
 		u16 ofdm_rate[12] = {10, 20, 55, 110,
@@ -3467,25 +3450,6 @@ u8 rtw_get_current_tx_sgi(_adapter *adapter, struct sta_info *psta)
 	return curr_tx_sgi;
 }
 
-bool rtw_chk_phy_can_append_actrl(_adapter *padapter, struct sta_info *psta)
-{
-	bool is_actrl = _FALSE;
-	struct rtw_phl_rainfo ra_info;
-	struct dvobj_priv *dvobj = adapter_to_dvobj(padapter);
-
-	if (!psta)
-		return is_actrl;
-
-	if (padapter->fix_rate != NO_FIX_RATE)
-		if (rtw_get_current_tx_rate(padapter, psta) < RTW_DATA_RATE_MCS0)
-			return is_actrl;
-
-	rtw_phl_query_rainfo(dvobj->phl, psta->phl_sta, &ra_info);
-	is_actrl = ra_info.is_actrl;
-
-	return is_actrl;
-}
-
 void rtw_get_current_rx_info(_adapter *adapter, struct sta_info *psta,
 	u16 *rate, u8 *bw, u8 *gi_ltf)
 {
@@ -3500,18 +3464,14 @@ void rtw_get_current_rx_info(_adapter *adapter, struct sta_info *psta,
 #ifdef CONFIG_RTW_MULTI_AP
 u8 rtw_get_ch_utilization(_adapter *adapter)
 {
-	struct dvobj_priv *d = adapter_to_dvobj(adapter);
-	struct rtw_phl_com_t *phl_com = GET_PHL_COM(d);
-	void *phl = GET_PHL_INFO(d);
-	struct rtw_env_report rpt;
-	u16 clm, nhm, ch_util;
-	/* ToDo CONFIG_RTW_MLD: [currently primary link only] */
-	struct _ADAPTER_LINK *adapter_link = GET_PRIMARY_LINK(adapter);
-
-	rtw_phl_get_env_rpt(phl, &rpt, adapter_link->wrlink->hw_band);
-
-	clm = rpt.nhm_cca_ratio;
-	nhm = rpt.nhm_ratio;
+#if 0 /* FIXME */
+	u16 clm = rtw_phydm_clm_ratio(adapter);
+	u16 nhm = rtw_phydm_nhm_ratio(adapter);
+#else
+	u16 clm = 55;
+	u16 nhm = 55;
+#endif
+	u16 ch_util;
 
 	ch_util = clm / 3 + (2 * (nhm / 3));
 	/* For Multi-AP, scaling 0-100 to 0-255 */
@@ -3550,9 +3510,7 @@ void rtw_ch_util_rpt(_adapter *adapter)
 
 	for (i = 0; i < dvobj->iface_nums; i++) {
 		iface = dvobj->padapters[i];
-		if ((iface) && MLME_IS_AP(iface) &&
-			rtw_iface_at_same_hwband(adapter, iface)) {
-
+		if ((iface) && MLME_IS_AP(iface)) {
 			*(ch_util + i_rpts) = rtw_get_ch_utilization(iface);
 			_rtw_memcpy(*(bssid + i_rpts), iface->mac_addr, ETH_ALEN);
 			if (*(ch_util + i_rpts) > threshold)
@@ -3584,66 +3542,48 @@ err_out:
 }
 #endif
 
+#define rtw_efuse_str_out_raw(str, len)		\
+	do {					\
+		u32 i;				\
+		u8 *_pos = str;			\
+		for (i = 0; i <= len; i++) {	\
+			_RTW_PRINT_SEL(		\
+				RTW_DBGDUMP,	\
+				"%c",*_pos++);	\
+		}				\
+	} while(0)
 
-/*
- * rtw_set_mac_addr_hw() - Set HW MAC address
- * @adapter:	struct PADAPTER
- * @mac_addr:   6-bytes mac address
- *
- * Set Wifi Mac address by writing to the relative HW registers,
- *
- */
-void rtw_set_mac_addr_hw(_adapter *padapter, u8 *mac_addr)
+void rtw_efuse_dbg_raw_dump(struct dvobj_priv *pdvobj)
 {
-	struct dvobj_priv *d = adapter_to_dvobj(padapter);
-	struct sta_priv *pstapriv = &padapter->stapriv;
-	struct rtw_wifi_role_t *phl_role = padapter->phl_role;
-	struct rtw_phl_stainfo_t *phl_sta_self = NULL;
-	struct sta_info *psta;
-	_list *plist, *phead;
-	void *phl = GET_PHL_INFO(d);
-	u32 index, new_index;
-	/* ToDo CONFIG_RTW_MLD: [currently primary link only] */
-	struct _ADAPTER_LINK *padapter_link = GET_PRIMARY_LINK(padapter);
+#ifdef CONFIG_RTW_EFUSE_DBG_DUMP
+#define PROC_MSG_LEN   (80*24*4)
+	struct phl_info_t *phl_info = \
+		(struct phl_info_t *)GET_PHL_INFO(pdvobj);
+	struct rtw_proc_cmd proc_cmd;
+	u32 proc_cmd_msg_len = PROC_MSG_LEN;
+	u8 *proc_cmd_msg = NULL;
+	u8 pstr_dump_hw_map_str[] = "dump_hw_map";
+	u32 i = 0;
 
-	/* sta_hash */
-	phl_sta_self = rtw_phl_get_stainfo_self(phl, padapter_link->wrlink);
-	if (phl_sta_self) {
-		index = wifi_mac_hash(phl_role->mac_addr);
-		new_index = wifi_mac_hash(mac_addr);
+	if (0 == CONFIG_RTW_EFUSE_DBG_DUMP)
+		return;
 
-		_rtw_spinlock_bh(&(pstapriv->sta_hash_lock));
-		phead = &(pstapriv->sta_hash[index]);
-		plist = get_next(phead);
+	proc_cmd_msg = rtw_zmalloc(proc_cmd_msg_len);
+	if (NULL == proc_cmd_msg)
+		return;
 
-		/* find out the one with old mac address, should be only one */
-		psta = NULL;
-		while ((rtw_end_of_queue_search(phead, plist)) == _FALSE) {
-			psta = LIST_CONTAINOR(plist, struct sta_info, hash_list);
+	_rtw_memset(&proc_cmd, 0, sizeof(proc_cmd));
+	proc_cmd.in_type = RTW_ARG_TYPE_BUF;
+	proc_cmd.in_cnt_len = strlen(pstr_dump_hw_map_str);
+	proc_cmd.in.buf = pstr_dump_hw_map_str;
 
-			if (psta->phl_sta == phl_sta_self ||
-			    (_rtw_memcmp(psta->phl_sta->mac_addr, phl_role->mac_addr, ETH_ALEN) == _TRUE)) {
-				break;
-			}
+	rtw_phl_proc_cmd(phl_info, RTW_PROC_CMD_EFUSE,
+		&proc_cmd, proc_cmd_msg, proc_cmd_msg_len);
 
-			psta = NULL;
-			plist = get_next(plist);
-		}
+	rtw_efuse_str_out_raw(proc_cmd_msg, proc_cmd_msg_len);
 
-		if (psta) {
-			rtw_list_delete(&psta->hash_list);
-			rtw_list_insert_tail(&psta->hash_list, &(pstapriv->sta_hash[new_index]));
-		}
-
-		_rtw_spinunlock_bh(&pstapriv->sta_hash_lock);
-	}
-
-	rtw_phl_cmd_wrole_change(phl,
-				 padapter->phl_role,
-				 NULL,
-				 WR_CHG_MADDR,
-				 mac_addr,
-				 ETH_ALEN,
-				 PHL_CMD_DIRECTLY,
-				 0);
+	if (proc_cmd_msg)
+		rtw_mfree(proc_cmd_msg, PROC_MSG_LEN);
+#endif
 }
+
