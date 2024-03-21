@@ -54,7 +54,7 @@ MODULE_PARM_DESC(debug, "debug level (0-3)");
 #define EDID_NUM_BLOCKS_MAX		2
 #define EDID_BLOCK_SIZE			128
 
-#define RK628_CSI_LINK_FREQ_LOW		350000000
+#define RK628_CSI_LINK_FREQ_LOW		400000000
 #define RK628_CSI_LINK_FREQ_HIGH	600000000
 #define RK628_CSI_PIXEL_RATE_LOW	400000000
 #define RK628_CSI_PIXEL_RATE_HIGH	600000000
@@ -462,8 +462,8 @@ __retry:
 		bt->il_vsync = bt->vsync + 1;
 		bt->pixelclock /= 2;
 	}
-
-	if (vact == 1080 && vtotal > 1500)
+	
+	if ((vact == 1080 && vtotal > 1500) || (vact == 2160 && vtotal > 2600))
 		goto __retry;
 
 	v4l2_dbg(1, debug, sd, "SCDC_REGS1:%#x, act:%dx%d, total:%dx%d, fps:%d, pixclk:%llu\n",
@@ -472,6 +472,7 @@ __retry:
 		 bt->hfrontporch, bt->hsync, bt->hbackporch, bt->vfrontporch, bt->vsync,
 		 bt->vbackporch, bt->interlaced);
 
+	csi->timings = *timings;
 	csi->src_timings = *timings;
 	if (csi->scaler_en)
 		*timings = csi->timings;
@@ -1473,11 +1474,16 @@ static int rk628_csi_g_mbus_config(struct v4l2_subdev *sd, unsigned int pad,
 static int rk628_csi_s_stream(struct v4l2_subdev *sd, int enable)
 {
 	struct rk628_csi *csi = to_csi(sd);
-
+	if(enable)
+		printk("starting stream...\r\n");
 	if (csi->plat_data->tx_mode == CSI_MODE)
 		enable_stream(sd, enable);
 	else
 		rk628_dsi_enable_stream(sd, enable);
+	if(enable){
+		msleep(1000);
+		printk("started stream...\r\n");
+	}
 
 	return 0;
 }

@@ -15,6 +15,7 @@
 #include <linux/bug.h>
 #include <linux/compat.h>
 #include <linux/elf.h>
+#include <linux/of.h>
 #include <linux/init.h>
 #include <linux/kernel.h>
 #include <linux/personality.h>
@@ -145,8 +146,14 @@ static const char *const compat_hwcap2_str[] = {
 static int c_show(struct seq_file *m, void *v)
 {
 	int i, j;
+	struct device_node *root = of_root;
+	const char *model;
 	bool compat = personality(current->personality) == PER_LINUX32 ||
 		      is_compat_task();
+    
+	if (of_property_read_string(root, "model", &model)) {
+    	pr_err("Failed to get model property\n");
+	}
 
 	for_each_online_cpu(i) {
 		struct cpuinfo_arm64 *cpuinfo = &per_cpu(cpu_data, i);
@@ -207,6 +214,7 @@ static int c_show(struct seq_file *m, void *v)
 		seq_printf(m, "CPU revision\t: %d\n\n", MIDR_REVISION(midr));
 	}
 
+	seq_printf(m, "Hardware\t: %s\n",model);
 	seq_printf(m, "Serial\t\t: %08x%08x\n",
 		   system_serial_high, system_serial_low);
 
@@ -385,6 +393,7 @@ static void __cpuinfo_store_cpu_32bit(struct cpuinfo_32bit *info)
 
 static void __cpuinfo_store_cpu(struct cpuinfo_arm64 *info)
 {
+
 	info->reg_cntfrq = arch_timer_get_cntfrq();
 	/*
 	 * Use the effective value of the CTR_EL0 than the raw value
