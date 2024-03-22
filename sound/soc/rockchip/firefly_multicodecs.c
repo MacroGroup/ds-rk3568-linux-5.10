@@ -178,15 +178,15 @@ static struct jack_zone aio_3588q_zone[] ={
 	{
 		.min_mv = 0,
 		.max_mv = 200,
-		.type = INPUT_LIN2_DIFF,
+		.type = INPUT_LIN1_DIFF,//useless
 	}, {
 		.min_mv = 300,
 		.max_mv = 800,
-		.type = INPUT_LIN2,
+		.type = INPUT_LIN2_DIFF,
 	}, {
 		.min_mv = 1000,
 		.max_mv = UINT_MAX,
-		.type = INPUT_LIN1,
+		.type = INPUT_LIN1_DIFF,
 
 	}
 };
