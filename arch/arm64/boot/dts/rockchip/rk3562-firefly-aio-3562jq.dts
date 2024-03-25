@@ -1,0 +1,11 @@
+// SPDX-License-Identifier: (GPL-2.0+ OR MIT)
+/*
+ * Copyright (c) 2022 Rockchip Electronics Co., Ltd.
+ *
+ */
+
+#include "rk3562-firefly-aio-3562jq.dtsi"
+#include "rk3562-linux.dtsi"
+#include "rk3562-rk809.dtsi"
+#include "rk3562-firefly-aio-3562jq-mipi101_M101014_BE45_A1.dtsi"
+#include "rk3562-firefly-aio-3562jq-dual-xc7160.dtsi"

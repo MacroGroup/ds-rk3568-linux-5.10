@@ -549,6 +549,13 @@ config CHARGER_SC8551
 	help
 	  Say Y to enable support for the SC8551 battery pump charger.
 
+config SC8815_AIO_3562JQ
+	tristate "SC8815 battery charger driver for Firefly AIO-3562JQ"
+	depends on I2C
+	help
+	  Say Y to enable support for the SC8815 battery charger.
+	  This driver is for Firefly AIO-3562JQ.
+
 config CHARGER_SC89890
 	tristate "SC89890 battery charger driver"
 	depends on I2C

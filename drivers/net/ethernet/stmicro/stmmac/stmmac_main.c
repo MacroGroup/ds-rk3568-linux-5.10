@@ -47,6 +47,9 @@
 #include "dwxgmac2.h"
 #include "hwif.h"
 
+#define YT8531_PHY_ID 0x4f51e91b // YT8531C, RK631
+#define YT8512_PHY_ID 0x00000128 // YT8512B, YT8512C, YT8512H
+
 /* As long as the interface is active, we keep the timestamping counter enabled
  * with fine resolution and binary rollover. This avoid non-monotonic behavior
  * (clock jumps) when changing timestamping settings at runtime.
@@ -4986,6 +4989,36 @@ int stmmac_reinit_ringparam(struct net_device *dev, u32 rx_size, u32 tx_size)
 	return ret;
 }
 
+static int phy_yt8531_led_fixup(struct phy_device *phydev)
+{
+	printk("ffdebug phy_id is 0x%x, enter %s\n", phydev->phy_id, __func__);
+
+	/* led1 keep on at 1000M link */
+	phy_write(phydev, 0x1e, 0xa00d);
+	phy_write(phydev, 0x1f, 0x40);
+
+	/* led2 blink when tx/rx is active */
+	phy_write(phydev, 0x1e, 0xa00e);
+	phy_write(phydev, 0x1f, 0x640);
+
+	return 0;
+}
+
+static int phy_yt8512_led_fixup(struct phy_device *phydev)
+{
+	printk("ffdebug phy_id is 0x%x, enter %s\n", phydev->phy_id, __func__);
+
+	/* led0 blink when tx/rx is active */
+	phy_write(phydev, 0x1e, 0x40c0);
+	phy_write(phydev, 0x1f, 0x320);
+
+	/* led1 keep on at 100M link */
+	phy_write(phydev, 0x1e, 0x40c3);
+	phy_write(phydev, 0x1f, 0x20);
+
+	return 0;
+}
+
 /**
  * stmmac_dvr_probe
  * @device: device pointer
@@ -5218,6 +5251,14 @@ int stmmac_dvr_probe(struct device *device,
 			__func__, ret);
 		goto error_netdev_register;
 	}
+
+	ret = phy_register_fixup_for_uid(YT8531_PHY_ID, 0xffffffff, phy_yt8531_led_fixup);
+	if (ret)
+		pr_warn("Cannot register RK631 PHY board fixup.\n");
+
+	ret = phy_register_fixup_for_uid(YT8512_PHY_ID, 0xffffffff, phy_yt8512_led_fixup);
+	if (ret)
+		pr_warn("Cannot register YT8512 PHY board fixup.\n");
 
 #ifdef CONFIG_DEBUG_FS
 	stmmac_init_fs(ndev);

@@ -225,6 +225,7 @@ obj-$(CONFIG_VIDEO_MAX96722)	+= max96722.o
 rdacm20-camera_module-objs	:= rdacm20.o max9271.o
 obj-$(CONFIG_VIDEO_RDACM20)	+= rdacm20-camera_module.o
 obj-$(CONFIG_VIDEO_ST_MIPID02) += st-mipid02.o
+obj-$(CONFIG_VIDEO_XC7160) += xc7160.o
 
 obj-$(CONFIG_SDR_MAX2175) += max2175.o
 

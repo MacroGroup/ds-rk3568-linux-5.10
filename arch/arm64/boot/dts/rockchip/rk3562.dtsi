@@ -59,6 +59,9 @@
 		spi1 = &spi1;
 		spi2 = &spi2;
 		spi3 = &sfc;
+		mmc0 = &sdhci;
+		mmc1 = &sdmmc0;
+		mmc2 = &sdmmc1;
 	};
 
 	clocks {
@@ -365,7 +368,7 @@
 		compatible = "rockchip,rk3562-bus";
 		rockchip,busfreq-policy = "smc";
 		rockchip,soc-bus-table = <0 0x00a000a8 0x7001>,
-					 <1 0x00a000a8 0x7c39>,
+					 <1 0x00a000a8 0x6c39>,
 					 <2 0x00a000a8 0x7c39>,
 					 <3 0x00a000a8 0x7c39>,
 					 <4 0x00a000a5 0xb007>,
