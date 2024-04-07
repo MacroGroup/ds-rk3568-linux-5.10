@@ -382,17 +382,34 @@
     status = "okay";
 };
 
-/* SATA */
+#if 1
+/* M2_SATA */
 &sata2 {
-    status = "okay";
-};
-
-&combphy2_psu {
     status = "okay";
 };
 
 &pcie2x1l1{
     status = "disabled";
+};
+
+#else
+
+/* M2_PCIE */
+&sata2 {
+    status = "disabled";
+};
+
+&pcie2x1l1{
+    reset-gpios = <&gpio4 RK_PA2 GPIO_ACTIVE_HIGH>;
+    rockchip,skip-scan-in-resume;
+    vpcie3v3-supply = <&vcc_sata_pwr_en>;
+    rockchip,perst-inactive-ms = <600>;
+    status = "okay";
+};
+#endif
+
+&combphy2_psu {
+    status = "okay";
 };
 
 &vcc_sata_pwr_en{
