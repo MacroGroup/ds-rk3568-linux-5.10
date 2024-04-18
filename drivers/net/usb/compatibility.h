@@ -21,6 +21,10 @@
 #endif /* LINUX_VERSION_CODE >= KERNEL_VERSION(3,7,0) */
 #endif /* LINUX_VERSION_CODE >= KERNEL_VERSION(2,6,31) */
 
+#if LINUX_VERSION_CODE < KERNEL_VERSION(5,19,0)
+	#define TSO_LEGACY_MAX_SIZE		65536
+	#define netif_napi_add_weight		netif_napi_add
+	#define netif_set_tso_max_size		netif_set_gso_max_size
 #if LINUX_VERSION_CODE < KERNEL_VERSION(5,15,0)
 #if LINUX_VERSION_CODE < KERNEL_VERSION(5,12,0)
 	#define PHY_MAC_INTERRUPT		PHY_IGNORE_INTERRUPT
@@ -608,11 +612,12 @@
 #endif /* LINUX_VERSION_CODE < KERNEL_VERSION(5,8,0) */
 #endif /* LINUX_VERSION_CODE < KERNEL_VERSION(5,9,0) */
 #endif /* LINUX_VERSION_CODE < KERNEL_VERSION(5,12,0) */
-//	static inline void eth_hw_addr_set(struct net_device *dev, const u8 *addr)
-//	{
-//		memcpy(dev->dev_addr, addr, 6);
-//	}
+	static inline void r8152_eth_hw_addr_set(struct net_device *dev, const u8 *addr)
+	{
+		memcpy(dev->dev_addr, addr, 6);
+	}
 #endif /* LINUX_VERSION_CODE < KERNEL_VERSION(5,15,0) */
+#endif /* LINUX_VERSION_CODE < KERNEL_VERSION(5,19,0) */
 
 #ifndef FALSE
 	#define TRUE	1
