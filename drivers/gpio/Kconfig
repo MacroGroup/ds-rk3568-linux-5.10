@@ -1640,4 +1640,10 @@ config GPIO_MOCKUP
 	  tools/testing/selftests/gpio/gpio-mockup.sh. Reference the usage in
 	  it.
 
+config GPIO_FIREFLY
+	tristate "Firefly gpio driver demo"
+	default y
+	help
+	  Firefly gpio driver demo
+
 endif
