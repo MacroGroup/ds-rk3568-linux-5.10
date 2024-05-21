@@ -60,6 +60,8 @@
 #define V4L2_CID_DIGITAL_GAIN		V4L2_CID_GAIN
 #endif
 
+
+#define MIPI_FREQ_1782M			1782000000
 #define MIPI_FREQ_1188M			1188000000
 #define MIPI_FREQ_891M			891000000
 #define MIPI_FREQ_446M			446000000
@@ -69,7 +71,7 @@
 #define IMX415_4LANES			4
 #define IMX415_2LANES			2
 
-#define IMX415_MAX_PIXEL_RATE		(MIPI_FREQ_891M / 10 * 2 * IMX415_4LANES)
+#define IMX415_MAX_PIXEL_RATE		(MIPI_FREQ_1782M / 10 * 2 * IMX415_4LANES)
 #define OF_CAMERA_HDR_MODE		"rockchip,camera-hdr-mode"
 
 #define IMX415_XVCLK_FREQ_37M		37125000
@@ -677,6 +679,42 @@ static __maybe_unused const struct regval imx415_linear_10bit_3864x2192_891M_reg
 	{REG_NULL, 0x00},
 };
 
+static __maybe_unused const struct regval imx415_linear_10bit_3864x2192_1782M_regs[] = {
+	{0x3020, 0x00},
+	{0x3021, 0x00},
+	{0x3022, 0x00},
+	{0x3024, 0xCA},
+	{0x3025, 0x08},
+	{0x3028, 0x26},
+	{0x3029, 0x02},
+	{0x302C, 0x00},
+	{0x302D, 0x00},
+	{0x3033, 0x04},
+	{0x3050, 0x08},
+	{0x3051, 0x00},
+	{0x3054, 0x19},
+	{0x3058, 0x3E},
+	{0x3060, 0x25},
+	{0x3064, 0x4a},
+	{0x30CF, 0x00},
+	{0x3118, 0xC0},
+	{0x3260, 0x01},
+	{0x400C, 0x00},
+	{0x4018, 0xB7},
+	{0x401A, 0x67},
+	{0x401C, 0x67},
+	{0x401E, 0xDF},
+	{0x401F, 0x01},
+	{0x4020, 0x6F},
+	{0x4022, 0xCF},
+	{0x4024, 0x6F},
+	{0x4026, 0xB7},
+	{0x4028, 0x5F},
+	{0x4074, 0x00},
+	{REG_NULL, 0x00},
+};
+
+
 static __maybe_unused const struct regval imx415_linear_12bit_1932x1096_594M_regs[] = {
 	{0x3020, 0x01},
 	{0x3021, 0x01},
@@ -1076,7 +1114,25 @@ static const struct imx415_mode supported_modes[] = {
 	/*
 	 * frame rate = 1 / (Vtt * 1H) = 1 / (VMAX * 1H)
 	 * VMAX >= (PIX_VWIDTH / 2) + 46 = height + 46
-	 */
+	 */{
+		.bus_fmt = MEDIA_BUS_FMT_SGBRG10_1X10,
+		.width = 3864,
+		.height = 2192,
+		.max_fps = {
+			.numerator = 10000,
+			.denominator = 600000,
+		},
+		.exp_def = 0x08ca - 0x08,
+		.hts_def = 0x044c * IMX415_4LANES * 2,
+		.vts_def = 0x08ca,
+		.global_reg_list = imx415_global_10bit_3864x2192_regs,
+		.reg_list = imx415_linear_10bit_3864x2192_1782M_regs,
+		.hdr_mode = NO_HDR,
+		.mipi_freq_idx = 1,
+		.bpp = 10,
+		.vc[PAD0] = V4L2_MBUS_CSI2_CHANNEL_0,
+		.xvclk = IMX415_XVCLK_FREQ_37M,
+	},
 	{
 		.bus_fmt = MEDIA_BUS_FMT_SGBRG10_1X10,
 		.width = 3864,
@@ -1096,7 +1152,7 @@ static const struct imx415_mode supported_modes[] = {
 		.vc[PAD0] = V4L2_MBUS_CSI2_CHANNEL_0,
 		.xvclk = IMX415_XVCLK_FREQ_37M,
 	},
-	{
+		{
 		.bus_fmt = MEDIA_BUS_FMT_SGBRG10_1X10,
 		.width = 3864,
 		.height = 2192,
@@ -1342,6 +1398,7 @@ static const s64 link_freq_items[] = {
 	MIPI_FREQ_743M,
 	MIPI_FREQ_891M,
 	MIPI_FREQ_1188M,
+	MIPI_FREQ_1782M,
 };
 
 /* Write registers up to 4 at a time */
