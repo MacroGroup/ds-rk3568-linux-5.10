@@ -112,6 +112,7 @@ struct rk817_codec_priv {
 	bool use_ext_amplifier;
 	bool adc_for_loopback;
 	bool resume_path;
+	bool board_spk_from_hp;
 
 	bool out_l2spk_r2hp;
 	long int playback_path;
@@ -721,9 +722,15 @@ static int rk817_playback_path_config(struct snd_soc_component *component,
 
 		if (!rk817->use_ext_amplifier) {
 			/* CLASS D mode */
-			snd_soc_component_write(component,
-						RK817_CODEC_DDAC_MUTE_MIXCTL,
-						0x10);
+                        if(rk817->board_spk_from_hp == true)
+                                /*the speaker sound source of the bottom board comes from the earphone output */
+                                snd_soc_component_write(component,
+                                                RK817_CODEC_DDAC_MUTE_MIXCTL,
+                                                0x18);
+                        else
+                                snd_soc_component_write(component,
+                                                RK817_CODEC_DDAC_MUTE_MIXCTL,
+                                                0x10);
 			/* CLASS D enable */
 			snd_soc_component_write(component,
 						RK817_CODEC_ACLASSD_CFG1,
@@ -1618,6 +1625,9 @@ static int rk817_codec_parse_dt_property(struct device *dev,
 		    __func__);
 		rk817->capture_volume = CAPTURE_VOLUME;
 	}
+
+        rk817->board_spk_from_hp =
+                        of_property_read_bool(node, "board-spk-from-hp");
 
 	rk817->mic_in_differential =
 			of_property_read_bool(node, "mic-in-differential");
