@@ -2384,6 +2384,12 @@ static int dw_hdmi_connector_get_modes(struct drm_connector *connector)
 		info->hdmi.y420_dc_modes = 0;
 		info->color_formats = 0;
 
+	if (of_property_read_bool(hdmi->dev->of_node, "force-off-mode")) {
+			connector->force = DRM_FORCE_OFF;
+			dev_info(hdmi->dev,"failed to get edid,use force off mode");
+			return ret;
+	}
+
 		dev_info(hdmi->dev, "failed to get edid\n");
 	}
 
