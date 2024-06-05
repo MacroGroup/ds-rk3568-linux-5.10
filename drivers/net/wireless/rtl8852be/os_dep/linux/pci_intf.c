@@ -1,6 +1,6 @@
 /******************************************************************************
  *
- * Copyright(c) 2007 - 2019 Realtek Corporation.
+ * Copyright(c) 2007 - 2022 Realtek Corporation.
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of version 2 of the GNU General Public License as
@@ -15,9 +15,15 @@
 #define _HCI_INTF_C_
 
 #include <drv_types.h>
-
+#include <platform_ops.h>
 #include <linux/pci_regs.h>
 #include <rtw_trx_pci.h>
+#ifdef CONFIG_RTW_DEDICATED_CMA_POOL
+#include <linux/of_reserved_mem.h>
+#include <linux/platform_device.h>
+#endif
+
+MODULE_IMPORT_NS(VFS_internal_I_am_really_a_filesystem_and_am_NOT_a_driver);
 #ifndef CONFIG_PCI_HCI
 
 	#error "CONFIG_PCI_HCI shall be on!\n"
@@ -58,7 +64,17 @@ struct pci_device_id rtw_pci_id_tbl[] = {
 	{PCI_DEVICE(PCI_VENDER_ID_REALTEK, 0x885C), .driver_data = RTL8852A},
 #endif
 #ifdef CONFIG_RTL8852B
-	{PCI_DEVICE(PCI_VENDER_ID_REALTEK, 0xB852), .driver_data = RTL8852B},/*FPGA*/
+	{PCI_DEVICE(PCI_VENDER_ID_REALTEK, 0xB852), .driver_data = RTL8852B},
+	{PCI_DEVICE(PCI_VENDER_ID_REALTEK, 0xB85B), .driver_data = RTL8852B},
+#endif
+#ifdef CONFIG_RTL8852BP
+	{PCI_DEVICE(PCI_VENDER_ID_REALTEK, 0xA85C), .driver_data = RTL8852BP},/*FPGA*/
+#endif
+#ifdef CONFIG_RTL8851B
+	{PCI_DEVICE(PCI_VENDER_ID_REALTEK, 0xB851), .driver_data = RTL8851B},
+#endif
+#ifdef CONFIG_RTL8852C
+	{PCI_DEVICE(PCI_VENDER_ID_REALTEK, 0xC852), .driver_data = RTL8852C},
 #endif
 	{},
 };
@@ -422,11 +438,11 @@ static irqreturn_t rtw_pci_interrupt(int irq, void *priv, struct pt_regs *regs)
 	if (pci_data->irq_enabled == 0)
 		return IRQ_HANDLED;
 
-	_rtw_spinlock_irq(&pci_data->irq_th_lock, &sp_flags);
+	_rtw_spinlock_irq(&dvobj->phl_com->imr_lock, &sp_flags);
 	if (rtw_phl_recognize_interrupt(dvobj->phl)) {
 		pstatus = rtw_phl_interrupt_handler(dvobj->phl);
 	}
-	_rtw_spinunlock_irq(&pci_data->irq_th_lock, &sp_flags);
+	_rtw_spinunlock_irq(&dvobj->phl_com->imr_lock, &sp_flags);
 
 	if (pstatus == RTW_PHL_STATUS_FAILURE)
 		return IRQ_HANDLED;
@@ -499,9 +515,9 @@ static struct dvobj_priv *pci_dvobj_init(struct pci_dev *pdev,
 	}
 
 #ifdef CONFIG_64BIT_DMA
-	if (!pci_set_dma_mask(pdev, DMA_BIT_MASK(64))) {
+	if (!dma_set_mask(&pdev->dev, DMA_BIT_MASK(64))) {
 		RTW_INFO("RTL819xCE: Using 64bit DMA\n");
-		err = pci_set_consistent_dma_mask(pdev, DMA_BIT_MASK(64));
+		err = dma_set_coherent_mask(&pdev->dev, DMA_BIT_MASK(64));
 		if (err != 0) {
 			RTW_ERR("Unable to obtain 64bit DMA for consistent allocations\n");
 			goto disable_picdev;
@@ -510,8 +526,8 @@ static struct dvobj_priv *pci_dvobj_init(struct pci_dev *pdev,
 	} else
 #endif
 	{
-		if (!pci_set_dma_mask(pdev, DMA_BIT_MASK(32))) {
-			err = pci_set_consistent_dma_mask(pdev, DMA_BIT_MASK(32));
+		if (!dma_set_mask(&pdev->dev, DMA_BIT_MASK(32))) {
+			err = dma_set_coherent_mask(&pdev->dev, DMA_BIT_MASK(32));
 			if (err != 0) {
 				RTW_ERR("Unable to obtain 32bit DMA for consistent allocations\n");
 				goto disable_picdev;
@@ -870,6 +886,37 @@ static void rtw_pci_primary_adapter_deinit(_adapter *padapter)
 	rtw_vmfree((u8 *)padapter, sizeof(_adapter));
 }
 
+#ifdef CONFIG_PLATFORM_AML_S905
+extern struct device *get_pcie_reserved_mem_dev(void);
+extern struct device * g_pcie_reserved_mem_dev;
+#endif
+
+#ifdef CONFIG_RTW_DEDICATED_CMA_POOL
+struct platform_device *g_pldev;
+static int rtkwifi_probe(struct platform_device *pdev)
+{
+	int ret;
+	ret = of_reserved_mem_device_init(&pdev->dev);
+	if (ret) {
+		RTW_ERR("[%s]get reserved memory fail:%d\n", __func__, ret);
+		return ret;
+	}
+	g_pldev = pdev;
+	return ret;
+}
+static const struct of_device_id rtkwifi_match_table[] = {
+	{.compatible = "realtek,rtkwifi",},
+	{},
+};
+static struct platform_driver rtkwifi_driver = {
+	.driver = {
+		.name = "rtkwifi",
+		.of_match_table = of_match_ptr(rtkwifi_match_table),
+	},
+	.probe = rtkwifi_probe,
+};
+#endif
+
 /*
  * drv_init() - a device potentially for us
  *
@@ -915,6 +962,9 @@ static int rtw_dev_probe(struct pci_dev *pdev, const struct pci_device_id *pdid)
 		goto free_if_vir;
 #endif
 
+	if (rtw_adapter_link_init(dvobj) != _SUCCESS)
+		goto free_adapter_link;
+
 	/*init data of dvobj from registary and ic spec*/
 	if (devobj_data_init(dvobj) == _FAIL) {
 		RTW_ERR("devobj_data_init Failed!\n");
@@ -934,6 +984,9 @@ static int rtw_dev_probe(struct pci_dev *pdev, const struct pci_device_id *pdid)
 		goto free_devobj_data;
 	}
 
+	/* Update link_mlme_priv's ht/vht/he priv from padapter->mlmepriv */
+	rtw_init_link_capab(dvobj);
+
 #ifdef CONFIG_HOSTAPD_MLME
 	hostapd_mode_init(padapter);
 #endif
@@ -944,6 +997,11 @@ static int rtw_dev_probe(struct pci_dev *pdev, const struct pci_device_id *pdid)
 		goto os_ndevs_deinit;
 	}
 
+#ifdef CONFIG_PLATFORM_AML_S905_V2
+	if (g_pcie_reserved_mem_dev)
+		pdev->dev.dma_mask = NULL;
+#endif
+
 	RTW_INFO("-%s success\n", __func__);
 	return 0; /* _SUCCESS;*/
 
@@ -953,6 +1011,9 @@ os_ndevs_deinit:
 
 free_devobj_data:
 	devobj_data_deinit(dvobj);
+
+free_adapter_link:
+	rtw_adapter_link_deinit(dvobj);
 
 free_if_vir:
 #ifdef CONFIG_CONCURRENT_MODE
@@ -977,7 +1038,6 @@ exit:
 /*
  * dev_remove() - our device is being removed
 */
-/* rmmod module & unplug(SurpriseRemoved) will call r871xu_dev_remove() => how to recognize both */
 static void rtw_dev_remove(struct pci_dev *pdev)
 {
 	struct dvobj_priv *dvobj = pci_get_drvdata(pdev);
@@ -996,19 +1056,20 @@ static void rtw_dev_remove(struct pci_dev *pdev)
 	if (unlikely(!padapter))
 		return;
 
+	if (false == pci_device_is_present(pdev)){
+		RTW_INFO("Surprise removed, PCI device unplug\n");
+		dev_set_surprise_removed(dvobj);
+	}
+
+#ifdef RTW_WKARD_PCI_DEVRM_DIS_INT
+	rtw_phl_disable_interrupt(GET_PHL_INFO(dvobj));
+#endif
+
 	/* TODO: use rtw_os_ndevs_deinit instead at the first stage of driver's dev deinit function */
 	rtw_os_ndevs_unregister(dvobj);
 
 #if defined(CONFIG_HAS_EARLYSUSPEND) || defined(CONFIG_ANDROID_POWER)
 	rtw_unregister_early_suspend(dvobj_to_pwrctl(dvobj));
-#endif
-#if 0 /*GEORGIA_TODO_FIXIT*/
-	if (GET_PHL_COM(pdvobjpriv)->fw_ready == _TRUE) {
-		rtw_pm_set_ips(padapter, IPS_NONE);
-		rtw_pm_set_lps(padapter, PM_PS_MODE_ACTIVE);
-
-		LeaveAllPowerSaveMode(padapter);
-	}
 #endif
 	dev_set_drv_stopped(adapter_to_dvobj(padapter));	/*for stop thread*/
 #if 0 /*#ifdef CONFIG_CORE_CMD_THREAD*/
@@ -1023,6 +1084,8 @@ static void rtw_dev_remove(struct pci_dev *pdev)
 
 	rtw_hw_stop(dvobj);
 	dev_set_surprise_removed(dvobj);
+
+	rtw_adapter_link_deinit(dvobj);
 
 	rtw_pci_primary_adapter_deinit(padapter);
 
@@ -1042,11 +1105,6 @@ static void rtw_dev_shutdown(struct pci_dev *pdev)
 {
 	rtw_dev_remove(pdev);
 }
-
-#ifdef CONFIG_PLATFORM_AML_S905
-extern struct device *get_pcie_reserved_mem_dev(void);
-struct device * g_pcie_reserved_mem_dev;
-#endif
 
 static int __init rtw_drv_entry(void)
 {
@@ -1079,6 +1137,12 @@ static int __init rtw_drv_entry(void)
 #if (LINUX_VERSION_CODE >= KERNEL_VERSION(2, 6, 24))
 	/* console_suspend_enabled=0; */
 #endif
+	ret = platform_wifi_power_on();
+	if (ret) {
+		RTW_INFO("%s: power on failed!!(%d)\n", __FUNCTION__, ret);
+		ret = -1;
+		goto exit;
+	}
 
 	pci_drvpriv.drv_registered = _TRUE;
 	rtw_suspend_lock_init();
@@ -1086,6 +1150,15 @@ static int __init rtw_drv_entry(void)
 	rtw_nlrtw_init();
 	rtw_ndev_notifier_register();
 	rtw_inetaddr_notifier_register();
+
+#ifdef CONFIG_RTW_DEDICATED_CMA_POOL
+	ret = platform_driver_register(&rtkwifi_driver);
+	if (ret) {
+		RTW_ERR("register platform driver failed, ret = %d\n", ret);
+		ret = -1;
+		goto exit;
+	}
+#endif
 
 	ret = pci_register_driver(&pci_drvpriv.rtw_pci_drv);
 
@@ -1096,8 +1169,13 @@ static int __init rtw_drv_entry(void)
 		rtw_nlrtw_deinit();
 		rtw_ndev_notifier_unregister();
 		rtw_inetaddr_notifier_unregister();
-		goto exit;
+		goto poweroff;
 	}
+
+	goto exit;
+
+poweroff:
+	platform_wifi_power_off();
 
 exit:
 	RTW_PRINT("module init ret=%d\n", ret);
@@ -1112,6 +1190,11 @@ static void __exit rtw_drv_halt(void)
 
 	pci_unregister_driver(&pci_drvpriv.rtw_pci_drv);
 
+#ifdef CONFIG_RTW_DEDICATED_CMA_POOL
+	platform_driver_unregister(&rtkwifi_driver);
+#endif
+
+	platform_wifi_power_off();
 	rtw_suspend_lock_uninit();
 	rtw_drv_proc_deinit();
 	rtw_nlrtw_deinit();
@@ -1129,59 +1212,5 @@ static void __exit rtw_drv_halt(void)
 #endif /* CONFIG_RTKM */
 }
 
-
-#include <linux/rfkill-wlan.h>
-extern int get_wifi_chip_type(void);
-extern int rockchip_wifi_power(int on);
-extern int rockchip_wifi_set_carddetect(int val);
-
-int rockchip_wifi_init_module_rtkwifi(void)
-{
-#ifdef CONFIG_WIFI_LOAD_DRIVER_WHEN_KERNEL_BOOTUP
-    int type = get_wifi_chip_type();
-    if (type < WIFI_AP6XXX_SERIES || type == WIFI_ESP8089) return 0;
-#endif
-    printk("\n");
-    printk("=======================================================\n");
-    printk("==== Launching Wi-Fi driver! (Powered by Rockchip) ====\n");
-    printk("=======================================================\n");
-    printk("Realtek 8852BE SDIO WiFi driver (Powered by Rockchip,Ver %s) init.\n", DRIVERVERSION);
-
-    rockchip_wifi_power(1);
-    rockchip_wifi_set_carddetect(1);
-
-    return rtw_drv_entry();
-}
-
-void rockchip_wifi_exit_module_rtkwifi(void)
-{
-#ifdef CONFIG_WIFI_LOAD_DRIVER_WHEN_KERNEL_BOOTUP
-    int type = get_wifi_chip_type();
-    if (type < WIFI_AP6XXX_SERIES || type == WIFI_ESP8089) return;
-#endif
-    printk("\n");
-    printk("=======================================================\n");
-    printk("==== Dislaunching Wi-Fi driver! (Powered by Rockchip) ====\n");
-    printk("=======================================================\n");
-    printk("Realtek 8852BE SDIO WiFi driver (Powered by Rockchip,Ver %s) init.\n", DRIVERVERSION);
-
-    rtw_drv_halt();
-
-    rockchip_wifi_set_carddetect(0);
-    rockchip_wifi_power(0);
-}
-#ifdef CONFIG_WIFI_BUILD_MODULE
-module_init(rockchip_wifi_init_module_rtkwifi);
-module_exit(rockchip_wifi_exit_module_rtkwifi);
-#else
-#ifdef CONFIG_WIFI_LOAD_DRIVER_WHEN_KERNEL_BOOTUP
-late_initcall(rockchip_wifi_init_module_rtkwifi);
-module_exit(rockchip_wifi_exit_module_rtkwifi);
-#else
-EXPORT_SYMBOL(rockchip_wifi_init_module_rtkwifi);
-EXPORT_SYMBOL(rockchip_wifi_exit_module_rtkwifi);
-#endif
-#endif
-
-//module_init(rtw_drv_entry);
-//module_exit(rtw_drv_halt);
+module_init(rtw_drv_entry);
+module_exit(rtw_drv_halt);
