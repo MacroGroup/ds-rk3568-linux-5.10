@@ -48,6 +48,8 @@
 
 /* hdmi1 for gpu */
 &hdmi1 {
+	pinctrl-names = "default";
+	pinctrl-0 = <&hdmim0_tx1_hpd &hdmim1_tx1_scl &hdmim1_tx1_sda>;
 	force-off-mode;
 	status = "okay";
 };
@@ -115,7 +117,9 @@
         status = "okay";
         compatible = "firefly,pc9202";
         reg = <0x3c>;
-        wd-en-gpio = <&gpio3 RK_PC4 GPIO_ACTIVE_HIGH>;
+        pinctrl-names = "default";
+		pinctrl-0 =<&wdt_pc92>;
+        wd-en-gpio = <&gpio3 RK_PC4 GPIO_ACTIVE_HIGH>; 
     };
 };
 
@@ -278,6 +282,12 @@
 	hdmirx {
 		hdmirx_det: hdmirx-det {
 			rockchip,pins = <1 RK_PD5 RK_FUNC_GPIO &pcfg_pull_none>;
+		};
+	};
+
+	wdt {
+		wdt_pc92: wdt_pc92 {
+			rockchip,pins = <3 RK_PC4 RK_FUNC_GPIO &pcfg_pull_none>;
 		};
 	};
 
