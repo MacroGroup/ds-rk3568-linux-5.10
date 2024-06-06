@@ -438,8 +438,10 @@ static int dw_mci_rockchip_probe(struct platform_device *pdev)
 	if (!pdev->dev.of_node)
 		return -ENODEV;
 
-	if (!device_property_read_bool(&pdev->dev, "non-removable") &&
-	    !device_property_read_bool(&pdev->dev, "cd-gpios"))
+	if ((!device_property_read_bool(&pdev->dev, "non-removable") &&
+	     !device_property_read_bool(&pdev->dev, "cd-gpios")) ||
+	    (device_property_read_bool(&pdev->dev, "no-sd") &&
+	     device_property_read_bool(&pdev->dev, "no-mmc")))
 		use_rpm = false;
 
 	match = of_match_node(dw_mci_rockchip_match, pdev->dev.of_node);
@@ -496,6 +498,7 @@ static struct platform_driver dw_mci_rockchip_pltfm_driver = {
 	.remove		= dw_mci_rockchip_remove,
 	.driver		= {
 		.name		= "dwmmc_rockchip",
+		.probe_type	= PROBE_PREFER_ASYNCHRONOUS,
 		.of_match_table	= dw_mci_rockchip_match,
 		.pm		= &dw_mci_rockchip_dev_pm_ops,
 	},

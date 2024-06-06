@@ -867,11 +867,14 @@ dtb-$(CONFIG_ARCH_ROCKCHIP) += \
 	rv1126-evb-ddr3-v12-spi-nand.dtb \
 	rv1126-evb-ddr3-v12-spi-nor.dtb \
 	rv1126-evb-ddr3-v12-tb-emmc.dtb \
+	rv1126-evb-ddr3-v12-tb-nofastae-spi-nor.dtb \
 	rv1126-evb-ddr3-v12-tb-spi-nor.dtb \
 	rv1126-evb-ddr3-v13.dtb \
+	rv1126-evb-ddr3-v13-dual-cam-ahd-ext.dtb \
 	rv1126-evb-ddr3-v13-dualcam-tb-emmc.dtb \
 	rv1126-evb-ddr3-v13-robot.dtb \
 	rv1126-evb-ddr3-v13-tb-emmc.dtb \
+	rv1126-evb-ddr3-v13-tb-nofastae-emmc.dtb \
 	rv1126-evb-ddr3-v13-uvc.dtb \
 	rv1126-iotest-v10.dtb \
 	rv1126-ipc2-ddr3-v10.dtb \
@@ -930,7 +933,11 @@ dtb-$(CONFIG_ARCH_ROCKCHIP) += \
 	rk3326-evb-lp3-v10.dtb \
 	rk3326-863-lp3-v10.dtb \
 	rk3326-evb-lp3-v10-avb.dtb \
-	rk3326-863-lp3-v10-avb.dtb
+	rk3326-863-lp3-v10-avb.dtb \
+	rk3528-evb1-ddr4-v10.dtb \
+	rk3528-evb2-ddr3-v10.dtb \
+	rk3528-evb3-lp4x-v10.dtb \
+	rk3528-evb4-ddr4-v10.dtb
 dtb-$(CONFIG_ARCH_S3C24XX) += \
 	s3c2416-smdk2416.dtb
 dtb-$(CONFIG_ARCH_S3C64XX) += \

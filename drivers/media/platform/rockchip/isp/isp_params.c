@@ -235,6 +235,9 @@ static int rkisp_params_fh_open(struct file *filp)
 	struct rkisp_isp_params_vdev *params = video_drvdata(filp);
 	int ret;
 
+	if (!params->dev->is_probe_end)
+		return -EINVAL;
+
 	ret = v4l2_fh_open(filp);
 	if (!ret) {
 		ret = v4l2_pipeline_pm_use(&params->vnode.vdev.entity, 1);
@@ -320,12 +323,13 @@ void rkisp_params_cfg(struct rkisp_isp_params_vdev *params_vdev, u32 frame_id)
 		params_vdev->ops->param_cfg(params_vdev, frame_id, RKISP_PARAMS_IMD);
 }
 
-void rkisp_params_cfgsram(struct rkisp_isp_params_vdev *params_vdev)
+void rkisp_params_cfgsram(struct rkisp_isp_params_vdev *params_vdev, bool is_check)
 {
-	/* multi device to switch sram config */
-	if (params_vdev->dev->hw_dev->is_single)
-		return;
-
+	if (is_check) {
+		/* multi device to switch sram config */
+		if (params_vdev->dev->hw_dev->is_single)
+			return;
+	}
 	if (params_vdev->ops->param_cfgsram)
 		params_vdev->ops->param_cfgsram(params_vdev);
 }

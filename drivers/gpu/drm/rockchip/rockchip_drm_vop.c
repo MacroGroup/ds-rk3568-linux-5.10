@@ -1670,6 +1670,12 @@ static int vop_plane_atomic_check(struct drm_plane *plane,
 	vop = to_vop(crtc);
 	vop_data = vop->data;
 
+	if (VOP_MAJOR(vop->version) == 2 && is_alpha_support(fb->format->format) &&
+	    vop_plane_state->global_alpha != 0xff) {
+		DRM_ERROR("Pixel alpha and global alpha can't be enabled at the same time\n");
+		return -EINVAL;
+	}
+
 	if (state->src_w >> 16 < 4 || state->src_h >> 16 < 4 ||
 	    state->crtc_w < 4 || state->crtc_h < 4) {
 		DRM_ERROR("Invalid size: %dx%d->%dx%d, min size is 4x4\n",
@@ -1737,6 +1743,9 @@ static void vop_plane_atomic_disable(struct drm_plane *plane,
 	struct vop_plane_state *vop_plane_state =
 					to_vop_plane_state(plane->state);
 #endif
+
+	rockchip_drm_dbg(vop->dev, VOP_DEBUG_PLANE, "disable win%d-area%d by %s\n",
+			 win->win_id, win->area_id, current->comm);
 
 	if (!old_state->crtc)
 		return;
@@ -1847,6 +1856,7 @@ static void vop_plane_atomic_update(struct drm_plane *plane,
 	uint32_t val;
 	bool rb_swap, global_alpha_en;
 	int is_yuv = fb->format->is_yuv;
+	struct drm_format_name_buf format_name;
 
 #if defined(CONFIG_ROCKCHIP_DRM_DEBUG)
 	bool AFBC_flag = false;
@@ -2006,6 +2016,13 @@ static void vop_plane_atomic_update(struct drm_plane *plane,
 	VOP_WIN_SET(vop, win, enable, 1);
 	VOP_WIN_SET(vop, win, gate, 1);
 	spin_unlock(&vop->reg_lock);
+
+	drm_get_format_name(fb->format->format, &format_name);
+	rockchip_drm_dbg(vop->dev, VOP_DEBUG_PLANE,
+			 "update win%d-area%d [%dx%d->%dx%d@(%d, %d)] zpos:%d fmt[%s%s] addr[%pad] by %s\n",
+			 win->win_id, win->area_id, actual_w, actual_h,
+			 dsp_w, dsp_h, dsp_stx, dsp_sty, vop_plane_state->zpos, format_name.str,
+			 fb->modifier ? "[AFBC]" : "", &vop_plane_state->yrgb_mst, current->comm);
 	/*
 	 * spi interface(vop_plane_state->yrgb_kvaddr, fb->pixel_format,
 	 * actual_w, actual_h)
@@ -2406,7 +2423,7 @@ static void vop_crtc_cancel_pending_vblank(struct drm_crtc *crtc,
 	spin_unlock_irqrestore(&drm->event_lock, flags);
 }
 
-static int vop_crtc_loader_protect(struct drm_crtc *crtc, bool on)
+static int vop_crtc_loader_protect(struct drm_crtc *crtc, bool on, void *data)
 {
 	struct rockchip_drm_private *private = crtc->dev->dev_private;
 	struct vop *vop = to_vop(crtc);
@@ -3062,6 +3079,12 @@ static void vop_mcu_mode(struct drm_crtc *crtc)
 {
 	struct vop *vop = to_vop(crtc);
 
+	/*
+	 * If mcu_hold_mode is 1, set 1 to mcu_frame_st will
+	 * refresh one frame from ddr. So mcu_frame_st is needed
+	 * to be initialized as 0.
+	 */
+	VOP_CTRL_SET(vop, mcu_frame_st, 0);
 	VOP_CTRL_SET(vop, mcu_clk_sel, 1);
 	VOP_CTRL_SET(vop, mcu_type, 1);
 
@@ -3821,6 +3844,7 @@ static void vop_crtc_atomic_flush(struct drm_crtc *crtc,
 	spin_lock_irqsave(&vop->irq_lock, flags);
 	vop->pre_overlay = s->hdr.pre_overlay;
 	vop_cfg_done(vop);
+	rockchip_drm_dbg(vop->dev, VOP_DEBUG_CFG_DONE, "cfg_done\n\n");
 	/*
 	 * rk322x and rk332x odd-even field will mistake when in interlace mode.
 	 * we must switch to frame effect before switch screen and switch to
@@ -4176,6 +4200,7 @@ static irqreturn_t vop_isr(int irq, void *data)
 		 * frame effective, but actually it's effective immediately, so
 		 * we config this register at frame start.
 		 */
+		rockchip_drm_dbg(vop->dev, VOP_DEBUG_VSYNC, "vsync\n");
 		spin_lock_irqsave(&vop->irq_lock, flags);
 		VOP_CTRL_SET(vop, level2_overlay_en, vop->pre_overlay);
 		VOP_CTRL_SET(vop, alpha_hard_calc, vop->pre_overlay);

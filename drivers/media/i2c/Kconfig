@@ -455,6 +455,7 @@ config VIDEO_RK628_CSI
 	depends on VIDEO_V4L2 && I2C && VIDEO_V4L2_SUBDEV_API
 	select HDMI
 	select V4L2_FWNODE
+	select VIDEO_ROCKCHIP_HDMIRX_CLASS
 	help
 	  Support for the Rockchip RK628 HDMI to MIPI CSI-2 bridge.
 
@@ -477,6 +478,7 @@ config VIDEO_LT6911UXC
 	depends on VIDEO_V4L2 && I2C && VIDEO_V4L2_SUBDEV_API
 	select HDMI
 	select V4L2_FWNODE
+	select VIDEO_ROCKCHIP_HDMIRX_CLASS
 	help
 	  Support for the Lontium LT6911UXC series HDMI to MIPI CSI-2 bridge.
 
@@ -758,6 +760,17 @@ config VIDEO_IMX219
 
 	  To compile this driver as a module, choose M here: the
 	  module will be called imx219.
+
+config VIDEO_IMX241
+	tristate "Sony IMX241 sensor support"
+	depends on I2C && VIDEO_V4L2 && VIDEO_V4L2_SUBDEV_API
+	depends on MEDIA_CAMERA_SUPPORT
+	help
+	  This is a Video4Linux2 sensor driver for the Sony
+	  IMX241 camera.
+
+	  To compile this driver as a module, choose M here: the
+	  module will be called imx241.
 
 config VIDEO_IMX258
 	tristate "Sony IMX258 sensor support"

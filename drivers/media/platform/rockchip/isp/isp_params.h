@@ -67,7 +67,7 @@ struct rkisp_isp_params_vdev {
 	enum v4l2_quantization quantization;
 	enum rkisp_fmt_raw_pat_type raw_type;
 	u32 in_mbus_code;
-
+	u32 cur_frame_id;
 	struct preisp_hdrae_para_s hdrae_para;
 
 	struct rkisp_isp_params_ops *ops;
@@ -134,7 +134,7 @@ void rkisp_params_isr(struct rkisp_isp_params_vdev *params_vdev, u32 isp_mis);
 
 void rkisp_params_cfg(struct rkisp_isp_params_vdev *params_vdev, u32 frame_id);
 
-void rkisp_params_cfgsram(struct rkisp_isp_params_vdev *params_vdev);
+void rkisp_params_cfgsram(struct rkisp_isp_params_vdev *params_vdev, bool is_check);
 void rkisp_params_get_meshbuf_inf(struct rkisp_isp_params_vdev *params_vdev,
 				  void *meshbuf);
 void rkisp_params_set_meshbuf_size(struct rkisp_isp_params_vdev *params_vdev,

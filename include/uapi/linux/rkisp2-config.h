@@ -10,7 +10,7 @@
 #include <linux/types.h>
 #include <linux/v4l2-controls.h>
 
-#define RKISP_API_VERSION		KERNEL_VERSION(1, 8, 0)
+#define RKISP_API_VERSION		KERNEL_VERSION(1, 9, 0)
 
 /****************ISP SUBDEV IOCTL*****************************/
 
@@ -48,6 +48,9 @@
 
 #define RKISP_CMD_SET_CSI_MEMORY_MODE \
 	_IOW('V', BASE_VIDIOC_PRIVATE + 101, int)
+
+#define RKISP_CMD_SET_IQTOOL_CONN_ID \
+	_IOW('V', BASE_VIDIOC_PRIVATE + 102, int)
 
 /*************************************************************/
 
