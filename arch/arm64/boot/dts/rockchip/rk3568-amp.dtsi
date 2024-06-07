@@ -23,6 +23,7 @@
 		status = "okay";
 
 		amp-irqs = /bits/ 64 <
+            GIC_AMP_IRQ_CFG_ROUTE(152, 0xd0, CPU_GET_AFFINITY(3, 0))
 			GIC_AMP_IRQ_CFG_ROUTE(AMP_CPUOFF_REQ_IRQ(3), 0xd0, CPU_GET_AFFINITY(3, 0))
 			GIC_AMP_IRQ_CFG_ROUTE(GIC_TOUCH_REQ_IRQ(3), 0xd0, CPU_GET_AFFINITY(3, 0))>;
 
@@ -30,7 +31,7 @@
 			amp-cpu3 {
 				id = <0x0 0x300>;
 				entry = <0x0 0x2800000>;
-				boot-on = <0>;
+				boot-on = <1>;
 				mode = <0>;
 			};
 		};
@@ -81,4 +82,8 @@
 &mailbox {
 	rockchip,txpoll-period-ms = <1>;
 	status = "okay";
+};
+
+&uart4 {
+    status = "disabled";
 };
