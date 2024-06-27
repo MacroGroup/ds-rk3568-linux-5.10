@@ -24,6 +24,7 @@
 #include <sound/core.h>
 #include <sound/pcm_params.h>
 #include <sound/soc.h>
+#include <sound/tlv.h>
 #include "rk817_codec.h"
 
 #ifdef CONFIG_SND_DEBUG
@@ -94,6 +95,8 @@ struct rk817_codec_priv {
 	int hp_mute_delay;
 	int chip_ver;
 };
+
+static const DECLARE_TLV_DB_SCALE(vol_tlv, -9500, 37, 0);
 
 static const struct reg_default rk817_reg_defaults[] = {
 	{ RK817_CODEC_DTOP_VUCTL, 0x003 },
@@ -891,6 +894,10 @@ static struct snd_kcontrol_new rk817_snd_path_controls[] = {
 
 	SOC_ENUM_EXT("Resume Path", rk817_resume_path_type,
 		     rk817_resume_path_get, rk817_resume_path_put),
+
+	SOC_DOUBLE_R_TLV("Playback Volume", RK817_CODEC_DDAC_VOLL, RK817_CODEC_DDAC_VOLR, 0, 255, 1, vol_tlv),
+
+	SOC_DOUBLE_R_TLV("Capture Volume", RK817_CODEC_DADC_VOLL, RK817_CODEC_DADC_VOLR, 0, 255, 1, vol_tlv),
 };
 
 static int rk817_set_dai_sysclk(struct snd_soc_dai *codec_dai,
