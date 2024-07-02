@@ -1,0 +1,170 @@
+// SPDX-License-Identifier: (GPL-2.0+ OR MIT)
+/*
+ * Copyright (c) 2021 Rockchip Electronics Co., Ltd.
+ *
+ */
+
+/dts-v1/;
+
+#include "aio-3588jd4.dtsi"
+#include "aio-3588jd4-cam-8ms1m.dtsi"
+
+/ {
+	model = "Firefly B1-N10";
+	compatible = "rockchip,aio-3588jd4", "rockchip,rk3588";
+
+
+	leds {
+		compatible = "gpio-leds";
+		status = "okay";
+		/delete-node/ user;
+
+		// BUZZER_CTL {
+		// 	label = "BUZZER_CTL";
+		// 	gpios = <&gpio0 RK_PD5 GPIO_ACTIVE_HIGH>;	//GPIO0_D5
+		// 	default-state = "on";
+		// 	retain-state-shutdown;
+		// };
+		MCU_RESET {
+			label = "MCU_RESET";
+			gpios = <&gpio4 RK_PC6 GPIO_ACTIVE_HIGH>;	//GPIO4_C6
+			default-state = "off";
+			retain-state-shutdown;
+		};
+
+		MCU_BOOT {
+			label = "MCU_LOADER";
+			gpios = <&gpio4 RK_PC1 GPIO_ACTIVE_HIGH>;	//GPIO4_C1
+			default-state = "on";
+			retain-state-shutdown;
+		};
+
+		USB20_HUB_EN {
+			label = "USB20_HUB_EN";
+			gpios = <&gpio1 RK_PC7 GPIO_ACTIVE_HIGH>;	//GPIO1_C7
+			default-state = "on";
+			retain-state-shutdown;
+		};
+
+		USB30_PHY_EN {
+			label = "USB30_PHY_EN";
+			gpios = <&gpio1 RK_PD4 GPIO_ACTIVE_HIGH>;	//GPIO1_D4
+			default-state = "on";
+			retain-state-shutdown;
+		};
+
+		VCC5V0_HOST0_EN {
+			label = "VCC5V0_HOST0_EN";
+			gpios = <&gpio1 RK_PC5 GPIO_ACTIVE_HIGH>;	//GPIO1_C5
+			default-state = "on";
+			retain-state-shutdown;
+		};
+
+		VCC5V0_HOST1_EN {
+			label = "VCC5V0_HOST1_EN";
+			gpios = <&gpio1 RK_PC3 GPIO_ACTIVE_HIGH>;	//GPIO1_C3
+			default-state = "on";
+			retain-state-shutdown;
+		};
+
+		UART_5V_EN {
+			label = "UART_5V_EN";
+			gpios = <&gpio1 RK_PD7 GPIO_ACTIVE_HIGH>;	//GPIO1_D7
+			default-state = "on";
+			retain-state-shutdown;
+		};
+
+
+		BMC_WORK_LED_B {
+			label = "BMC_WORK_LED_B";
+			gpios = <&gpio1 RK_PC2 GPIO_ACTIVE_HIGH>;	//GPIO1_C2
+			default-state = "on";
+			retain-state-shutdown;
+			pinctrl-names = "default";
+			pinctrl-0 = <&BMC_WORK_LED_B_GPIO>;
+		};
+
+		BMC_WORK_LED_R {
+			label = "BMC_WORK_LED_R";
+			gpios = <&gpio3 RK_PA6 GPIO_ACTIVE_HIGH>;	//GPIO3_A6
+			default-state = "on";
+			retain-state-shutdown;
+		};
+
+
+		BMC_WORK_LED_G {
+			label = "BMC_WORK_LED_G";
+			gpios = <&gpio1 RK_PA5 GPIO_ACTIVE_HIGH>;	//GPIO1_A5
+			default-state = "on";
+			retain-state-shutdown;
+		};
+
+
+		VGA_PWR_EN {
+			label = "VGA_PWR_EN";
+			gpios = <&gpio0 RK_PD3 GPIO_ACTIVE_HIGH>;	//GPIO0_D3
+			default-state = "on";
+			retain-state-shutdown;
+		};
+
+		UID_LED {
+			label = "UID_LED";
+			gpios = <&gpio1 RK_PD5 GPIO_ACTIVE_HIGH>;	//GPIO1_D5
+			default-state = "on";
+			retain-state-shutdown;
+		};
+
+
+		SATA_LED {
+			label = "SATA_LED";
+			gpios = <&gpio1 RK_PA0 GPIO_ACTIVE_HIGH>;	//GPIO1_A0
+			default-state = "on";
+			retain-state-shutdown;
+		};
+
+		POWER_ON {
+			label = "POWER_ON";
+			gpios = <&gpio0 RK_PC6 GPIO_ACTIVE_HIGH>;	//GPIO0_C6
+			default-state = "on";
+			retain-state-shutdown;
+		};
+
+		SWITCH_PWR_EN {
+			label = "SWITCH_PWR_EN";
+			gpios = <&gpio2 RK_PC3 GPIO_ACTIVE_HIGH>;	//GPIO2_C3
+			default-state = "on";
+			retain-state-shutdown;
+		};
+
+		SWITCH_PWR_RESET {
+			label = "SWITCH_PWR_RESET";
+			gpios = <&gpio4 RK_PC3 GPIO_ACTIVE_HIGH>;	//GPIO4_C3
+			default-state = "off";
+			retain-state-shutdown;
+		};
+	};
+
+};
+
+
+//debug 115200 232
+&fiq_debugger{
+    rockchip,baudrate = <115200>;  /* Only 115200 and 1500000 */
+};
+
+
+
+/* pinctrl */
+&pinctrl {
+    leds {
+		BMC_WORK_LED_B_GPIO: BMC-WORK-LED-B-GPIO {
+			/* led_power */
+			rockchip,pins = <1 RK_PC2 RK_FUNC_GPIO &pcfg_pull_none>;
+		};
+ 	};
+};
+
+
+&i2s0_8ch{
+ status = "disabled";
+};
