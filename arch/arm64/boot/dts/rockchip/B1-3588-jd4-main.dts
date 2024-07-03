@@ -6,8 +6,7 @@
 
 /dts-v1/;
 
-#include "aio-3588jd4.dtsi"
-#include "aio-3588jd4-cam-8ms1m.dtsi"
+#include "B1-3588-jd4-main.dtsi"
 
 / {
 	model = "Firefly B1-N10";
