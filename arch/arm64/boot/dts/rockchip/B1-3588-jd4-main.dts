@@ -25,6 +25,14 @@
 		// 	default-state = "on";
 		// 	retain-state-shutdown;
 		// };
+
+		PW_OK {
+			label = "PW_OK";
+			gpios = <&gpio0 RK_PC7 GPIO_ACTIVE_HIGH>;	//GPIO0_C7
+			default-state = "on";
+			retain-state-shutdown;
+		};
+
 		MCU_RESET {
 			label = "MCU_RESET";
 			gpios = <&gpio4 RK_PC6 GPIO_ACTIVE_HIGH>;	//GPIO4_C6
@@ -87,7 +95,7 @@
 		BMC_WORK_LED_R {
 			label = "BMC_WORK_LED_R";
 			gpios = <&gpio3 RK_PA6 GPIO_ACTIVE_HIGH>;	//GPIO3_A6
-			default-state = "on";
+			default-state = "off";
 			retain-state-shutdown;
 		};
 
@@ -95,7 +103,7 @@
 		BMC_WORK_LED_G {
 			label = "BMC_WORK_LED_G";
 			gpios = <&gpio1 RK_PA5 GPIO_ACTIVE_HIGH>;	//GPIO1_A5
-			default-state = "on";
+			default-state = "off";
 			retain-state-shutdown;
 		};
 
@@ -124,7 +132,7 @@
 
 		POWER_ON {
 			label = "POWER_ON";
-			gpios = <&gpio1 RK_PC4 GPIO_ACTIVE_HIGH>;	//GPIO0_C6
+			gpios = <&gpio1 RK_PC4 GPIO_ACTIVE_HIGH>;	//GPIO1_C4
 			default-state = "on";
 			retain-state-shutdown;
 			pinctrl-names = "default";
@@ -133,7 +141,7 @@
 
 		SWITCH_PWR_EN {
 			label = "SWITCH_PWR_EN";
-			gpios = <&gpio2 RK_PC3 GPIO_ACTIVE_HIGH>;	//GPIO2_C3
+			gpios = <&gpio2 RK_PC3 GPIO_ACTIVE_LOW>;	//GPIO2_C3
 			default-state = "on";
 			retain-state-shutdown;
 		};
@@ -144,8 +152,45 @@
 			default-state = "off";
 			retain-state-shutdown;
 		};
+
+		BUZZER_CTL {
+			label = "BUZZER";
+			gpios = <&gpio1 RK_PA3 GPIO_ACTIVE_HIGH>;	//GPIO1_A3
+			default-state = "off";
+			retain-state-shutdown;
+		};
 	};
 
+};
+
+
+
+
+
+&spi0 {
+	status = "okay";
+	max-freq = <48000000>;
+	pinctrl-names = "default";
+	pinctrl-0 = <&spi0m3_cs0 &spi0m3_cs1 &spi0m3_pins>;
+	// dev-port = <0>;
+	// num-cs = <1>;
+
+	spi_wk2xxx_2: spi_wk2xxx_2@0{
+		status = "okay";
+		compatible = "wkmic,wk2xxx_spi";
+		reg = <0x00>;
+		index_base = <1>; // 偏移1，即从ttysWK1开始递增，而非ttysWK0
+		num-ports = <8>;  // 8个串口模式
+		spi-max-frequency = <10000000>;
+		//power-gpio = <&gpio2 4 GPIO_ACTIVE_HIGH>;
+		reset-gpio = <&gpio1 RK_PB4 GPIO_ACTIVE_HIGH>;		// WK2124_RST	GPIO1_B4
+		irq-gpio = <&gpio4 RK_PB1 IRQ_TYPE_EDGE_FALLING>;	// WK2124_INT	GPIO4_B1
+		cs-gpio = <&gpio3 RK_PD5 GPIO_ACTIVE_HIGH>;			// SPI0_CS1_M3	GPIO3_D5
+		cs1-gpio = <&gpio3 RK_PD5 GPIO_ACTIVE_HIGH>;		// SPI0_CS0_M3	GPIO3_D4
+
+		pinctrl-0 = <&wk2xxx_2_irq_gpios>;
+		pinctrl-names = "default";
+	};
 };
 
 
@@ -166,12 +211,42 @@
 
 		BMC_WORK_LED_B_GPIO: BMC-WORK-LED-B-GPIO {
 			/* led_power */
-			rockchip,pins = <1 RK_PC2 RK_FUNC_GPIO &pcfg_pull_none>;
+			rockchip,pins = <1 RK_PC2 RK_FUNC_GPIO &pcfg_pull_up>;
 		};
  	};
+	wk2xxx-irq-gpios {
+		// wk2xxx_1_irq_gpios: wk2xxx-1-irq-gpios{
+		// 	rockchip,pins = <1 RK_PB2 RK_FUNC_GPIO &pcfg_pull_none>;
+		// };
+
+		wk2xxx_2_irq_gpios: wk2xxx-2-irq-gpios{
+			rockchip,pins = <4 RK_PB1 RK_FUNC_GPIO &pcfg_pull_none>; // GPIO4_B1
+		};
+	};
 };
 
 
+// CORE10_DEBUG
+&uart5 {
+	status = "okay";
+};
+
+
+// // CORE9_DEBUG
+// &uart2 {
+// 	status = "okay";
+// };
+
+
+
+
+&pwm5 {
+//  pinctrl-0 = <&pwm5m1_pins>;
+	status = "disabled";
+};
+
+
+
 &i2s0_8ch{
- status = "disabled";
+	status = "disabled";
 };
