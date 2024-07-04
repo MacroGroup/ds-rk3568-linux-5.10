@@ -7,6 +7,7 @@
 /dts-v1/;
 
 #include "B1-3588-jd4-main.dtsi"
+#include "B1-3588-jd4-main-EDPtoVGA_LT8711V.dtsi"
 
 / {
 	model = "Firefly B1-N10";
@@ -59,12 +60,12 @@
 			retain-state-shutdown;
 		};
 
-		VCC5V0_HOST1_EN {
-			label = "VCC5V0_HOST1_EN";
-			gpios = <&gpio1 RK_PC3 GPIO_ACTIVE_HIGH>;	//GPIO1_C3
-			default-state = "on";
-			retain-state-shutdown;
-		};
+		// VCC5V0_HOST1_EN {
+		// 	label = "VCC5V0_HOST1_EN";
+		// 	gpios = <&gpio1 RK_PC3 GPIO_ACTIVE_HIGH>;	//GPIO1_C3
+		// 	default-state = "on";
+		// 	retain-state-shutdown;
+		// };
 
 		UART_5V_EN {
 			label = "UART_5V_EN";
@@ -123,9 +124,11 @@
 
 		POWER_ON {
 			label = "POWER_ON";
-			gpios = <&gpio0 RK_PC6 GPIO_ACTIVE_HIGH>;	//GPIO0_C6
+			gpios = <&gpio1 RK_PC4 GPIO_ACTIVE_HIGH>;	//GPIO0_C6
 			default-state = "on";
 			retain-state-shutdown;
+			pinctrl-names = "default";
+			pinctrl-0 = <&POWER_ON_GPIO>;
 		};
 
 		SWITCH_PWR_EN {
@@ -156,6 +159,11 @@
 /* pinctrl */
 &pinctrl {
     leds {
+		POWER_ON_GPIO: POWER-ON-GPIO {
+			/* led_power */
+			rockchip,pins = <1 RK_PC4 RK_FUNC_GPIO &pcfg_pull_none>;
+		};
+
 		BMC_WORK_LED_B_GPIO: BMC-WORK-LED-B-GPIO {
 			/* led_power */
 			rockchip,pins = <1 RK_PC2 RK_FUNC_GPIO &pcfg_pull_none>;
