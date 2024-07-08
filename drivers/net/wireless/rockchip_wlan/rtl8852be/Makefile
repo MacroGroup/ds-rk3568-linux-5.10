@@ -223,7 +223,7 @@ CONFIG_LAYER2_ROAMING = y
 CONFIG_ROAMING_FLAG = 0x3
 
 ###################### Platform Related #######################
-CONFIG_PLATFORM_I386_PC = y
+CONFIG_PLATFORM_I386_PC = n
 CONFIG_PLATFORM_RTL8198D = n
 CONFIG_PLATFORM_ANDROID_X86 = n
 CONFIG_PLATFORM_ANDROID_INTEL_X86 = n
@@ -235,7 +235,7 @@ CONFIG_PLATFORM_RTK16XXB = n
 CONFIG_PLATFORM_AML_S905 = n
 CONFIG_PLATFORM_AML_S905_L3A = n
 CONFIG_PLATFORM_HUANGLONG = n
-CONFIG_PLATFORM_ARM_ROCKCHIP = n
+CONFIG_PLATFORM_ARM_ROCKCHIP = y
 CONFIG_PLATFORM_AML_S928X = n
 
 ########### CUSTOMER ################################
@@ -269,6 +269,8 @@ endif
 
 ifeq ($(CONFIG_PLATFORM_RTL8198D), y)
 DRV_PATH = $(src)
+else ifeq ($(CONFIG_PLATFORM_ARM_ROCKCHIP), y)
+DRV_PATH = $(TopDIR)/drivers/net/wireless/rockchip_wlan/rtl8852be
 else
 DRV_PATH = $(TopDIR)
 endif
@@ -292,13 +294,13 @@ endif
 ifeq ($(CONFIG_RTL8852B), y)
 IC_NAME := rtl8852b
 ifeq ($(CONFIG_USB_HCI), y)
-MODULE_NAME = 8852bu
+MODULE_NAME = rtl8852bu
 endif
 ifeq ($(CONFIG_PCI_HCI), y)
-MODULE_NAME = 8852be
+MODULE_NAME = rtl8852be
 endif
 ifeq ($(CONFIG_SDIO_HCI), y)
-MODULE_NAME = 8852bs
+MODULE_NAME = rtl8852bs
 endif
 
 endif
