@@ -7,11 +7,13 @@
 /dts-v1/;
 
 #include "B1-3588-jd4-main.dtsi"
-#include "B1-3588-jd4-main-EDPtoVGA_LT8711V.dtsi"
+// #include "B1-3588-jd4-main-EDPtoVGA_LT8711V.dtsi"
 
 / {
 	model = "Firefly B1-N10";
 	compatible = "rockchip,aio-3588jd4", "rockchip,rk3588";
+
+	/delete-node/ es8388_sound;
 
 
 	leds {
@@ -159,6 +161,96 @@
 			default-state = "off";
 			retain-state-shutdown;
 		};
+
+		USB30_HUB_RST {
+			label = "USB30_HUB_RST";
+			gpios = <&gpio1 RK_PA2 GPIO_ACTIVE_HIGH>;	//GPIO1_A2
+			default-state = "off";
+			retain-state-shutdown;
+		};
+	};
+
+	// gpio-keys {
+	// 	compatible = "gpio-keys";
+	// 	#address-cells = <1>;
+	// 	#size-cells = <0>;
+	// 	autorepeat;
+	// 	status = "okay";
+
+	// 	pinctrl-names = "default";
+	// 	pinctrl-0 = <&SWITCH_SYS_DET_BUTTON>;
+
+	// 	button@SWITCH_SYS_DET {
+	// 		gpios = <&gpio1 RK_PA5 GPIO_ACTIVE_LOW>;            //power_key       GPIO1_A7
+	// 		linux,code = <KEY_POWER>;
+	// 		label = "SWITCH_SYS_DET KEY";
+	// 		linux,input-type = <1>;
+	// 		gpio-key,wakeup = <1>;
+	// 		debounce-interval = <100>;
+	// 	};
+	// };
+
+	gpio-keys {
+		compatible = "gpio-keys";
+		autorepeat;
+
+		// button@SWITCH_SYS_DET {
+		// 	gpios = <&gpio1 RK_PA7 GPIO_ACTIVE_LOW>;            //power_key       GPIO1_A7
+		// 	linux,code = <KEY_1>;
+		// 	label = "SWITCH_SYS_DET KEY";
+		// 	linux,input-type = <0x3f>;
+		// 	// gpio-key,wakeup = <1>;
+		// 	// debounce-interval = <100>;
+		// };
+
+
+		// button@SFP2_ACT_DET {
+		// 	gpios = <&gpio0 RK_PB7 GPIO_ACTIVE_LOW>;            //power_key       GPIO0_B7
+		// 	linux,code = <KEY_1>;
+		// 	label = "SFP2_ACT_DET KEY";
+		// 	linux,input-type = <0x3f>;
+		// 	// gpio-key,wakeup = <1>;
+		// 	// debounce-interval = <100>;
+		// };
+
+		// button@P2_ACT_DET {
+		// 	gpios = <&gpio0 RK_PC0 GPIO_ACTIVE_LOW>;            //power_key       GPIO0_C0
+		// 	linux,code = <KEY_1>;
+		// 	label = "P2_ACT_DET KEY";
+		// 	linux,input-type = <0x3f>;
+		// 	// gpio-key,wakeup = <1>;
+		// 	// debounce-interval = <100>;
+		// };
+
+
+		button@RESET {
+			gpios = <&gpio0 RK_PC6 GPIO_ACTIVE_LOW>;            //power_key       GPIO0_C6
+			linux,code = <10000>;
+			label = "P2_ACT_DET KEY";
+			linux,input-type = <EV_KEY>;
+			// gpio-key,wakeup = <1>;
+			debounce-interval = <100>;
+		};
+
+		// 错了！！！
+		// button@SFP3_ACT_DET {
+		// 	gpios = <&gpio1 RK_PA7 GPIO_ACTIVE_LOW>;            //power_key       GPIO1_A7
+		// 	linux,code = <KEY_1>;
+		// 	label = "SFP3_ACT_DET KEY";
+		// 	linux,input-type = <0x3f>;
+		// 	// gpio-key,wakeup = <1>;
+		// 	debounce-interval = <100>;
+		// };
+
+		// 错了！！！
+		// button@P3_ACT {
+		// 	gpios = <&gpio1 RK_PA7 GPIO_ACTIVE_LOW>;            //power_key       GPIO1_A7
+		// 	linux,code = <KEY_1>;
+		// 	label = "SFP2_ACT_DET KEY";
+		// 	linux,input-type = <0x3f>;
+		// 	// gpio-key,wakeup = <1>;
+		// 	debounce-interval = <100>;
+		// };
 	};
 
 };
@@ -185,10 +277,10 @@
 		//power-gpio = <&gpio2 4 GPIO_ACTIVE_HIGH>;
 		reset-gpio = <&gpio1 RK_PB4 GPIO_ACTIVE_HIGH>;		// WK2124_RST	GPIO1_B4
 		irq-gpio = <&gpio4 RK_PB1 IRQ_TYPE_EDGE_FALLING>;	// WK2124_INT	GPIO4_B1
-		cs-gpio = <&gpio3 RK_PD5 GPIO_ACTIVE_HIGH>;			// SPI0_CS1_M3	GPIO3_D5
-		cs1-gpio = <&gpio3 RK_PD5 GPIO_ACTIVE_HIGH>;		// SPI0_CS0_M3	GPIO3_D4
+		cs-gpio = <&gpio3 RK_PD4 GPIO_ACTIVE_HIGH>;			// SPI0_CS0_M3	GPIO3_D4
+		cs1-gpio = <&gpio3 RK_PD5 GPIO_ACTIVE_HIGH>;		// SPI0_CS1_M3	GPIO3_D5
 
-		pinctrl-0 = <&wk2xxx_2_irq_gpios>;
+		pinctrl-0 = <&wk2xxx_1_irq_gpios &wk2xxx_2_irq_gpios>;
 		pinctrl-names = "default";
 	};
 };
@@ -215,12 +307,12 @@
 		};
  	};
 	wk2xxx-irq-gpios {
-		// wk2xxx_1_irq_gpios: wk2xxx-1-irq-gpios{
-		// 	rockchip,pins = <1 RK_PB2 RK_FUNC_GPIO &pcfg_pull_none>;
-		// };
+		wk2xxx_1_irq_gpios: wk2xxx-1-irq-gpios{
+			rockchip,pins = <3 RK_PD4 RK_FUNC_GPIO &pcfg_pull_none>; // GPIO3_D4
+		};
 
 		wk2xxx_2_irq_gpios: wk2xxx-2-irq-gpios{
-			rockchip,pins = <4 RK_PB1 RK_FUNC_GPIO &pcfg_pull_none>; // GPIO4_B1
+			rockchip,pins = <3 RK_PD5 RK_FUNC_GPIO &pcfg_pull_none>; // GPIO3_D5
 		};
 	};
 };
@@ -229,6 +321,11 @@
 // CORE10_DEBUG
 &uart5 {
 	status = "okay";
+};
+
+
+&uart6 {
+	status = "disabled";
 };
 
 

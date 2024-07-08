@@ -3,7 +3,7 @@
  * Copyright (c) 2021 Rockchip Electronics Co., Ltd.
  *
  */
- 
+
  #define rk3588
  #include "rk3588-firefly-port-aio-3588jd4.dtsi"
  #include "rk3588-diff-aio-3588jd4.dtsi"
@@ -135,28 +135,80 @@
 };
 
 &vcc_sdcard_pwr_en{
-	gpio = <&gpio1 RK_PA7 GPIO_ACTIVE_HIGH>; 
-	status = "okay";
+	status = "disabled";
 };
 
 /* usb */
 &vcc5v0_host{
 	status = "okay";
-	gpio = <&pca9555 PCA_IO0_2 GPIO_ACTIVE_HIGH>;   
+	gpio = <&pca9555 PCA_IO0_2 GPIO_ACTIVE_HIGH>;
 };
 
 
-//down
+
+// type-c0
+
+
+&usbdrd3_0 {
+	status = "okay";
+};
+
+// 双层USB的下面 // type-c0
+// usb@fc000000
 &usbdrd_dwc3_0{
-	//dr_mode = "host";
+	//dr_mode = "host";"peripheral";
 	dr_mode = "peripheral";
+	phys = <&u2phy0_otg>, <&usbdp_phy0_u3>;
     status = "okay";
 };
 
-//down
-&usbdrd_dwc3_1{
-	dr_mode = "host";
+
+&u2phy0_otg {
     status = "okay";
+};
+
+
+&usbdp_phy0_u3 {
+	status = "okay";
+};
+
+
+
+// --------------
+
+// &usbdrd3_1 {
+// 	status = "okay";
+// };
+
+
+// //上面
+&usbdrd_dwc3_1 {
+	// dr_mode = "host";
+	phys = <&u2phy1_otg>, <&usbdp_phy1_u3>;
+    status = "okay";
+};
+
+&u2phy1_otg {
+	/delete-property/ phy-supply;
+    status = "okay";
+};
+
+// &usbdp_phy1_u3 {
+//     status = "okay";
+// };
+
+
+&u2phy2_host {
+        // phy-supply = <&USB30_HUB_RST>;
+        /delete-property/ phy-supply;
+        status = "okay";
+};
+
+
+&u2phy3_host {
+        // phy-supply = <&USB30_HUB_RST>;
+        /delete-property/ phy-supply;
+        status = "okay";
 };
 
 /* XL9555*/
@@ -166,33 +218,43 @@
 };
 
 &i2c3 {
-        status = "okay";
-        pinctrl-names = "default";
-        pinctrl-0 = <&i2c3m2_xfer>;
-
-        pca9555: gpio@21 {
-                status = "okay";
-                compatible = "nxp,pca9555";
-                reg = <0x21>;
-                gpio-controller;
-                #gpio-cells = <2>;
-                gpio-group-num = <200>;
-        };
-};
-
-#if M2_SATA_OR_PCIE
-&sata0 {
-    //pinctrl-names = "default";
-    //pinctrl-0 = <&sata_reset>;
 	status = "okay";
+	pinctrl-names = "default";
+	pinctrl-0 = <&i2c3m2_xfer>;
+		// clock-frequency = <400000>;
+
+	pca9555: gpio@21 {
+		status = "okay";
+		compatible = "nxp,pca9555";
+		reg = <0x21>;
+		gpio-controller;
+		#gpio-cells = <2>;
+		gpio-group-num = <200>;
+	};
+
+	pc9202: pc9202@3c {
+		status = "okay";
+		compatible = "firefly,pc9202";
+		reg = <0x3c>;
+		wd-en-gpio = <&gpio3 RK_PC4 GPIO_ACTIVE_HIGH>;         // GPIO3_C4
+		pinctrl-names = "default";
+		pinctrl-0 = <&wdt_ctl>;
+	};
 };
-#else
-&pcie2x1l2 {
-	reset-gpios = <&gpio4 RK_PC1 GPIO_ACTIVE_HIGH>;
-	vpcie3v3-supply = <&vcc_sata_pwr_en>;
-	status = "okay";
-};
-#endif
+
+// #if M2_SATA_OR_PCIE
+// &sata0 {
+//     //pinctrl-names = "default";
+//     //pinctrl-0 = <&sata_reset>;
+// 	status = "okay";
+// };
+// #else
+// &pcie2x1l2 {
+// 	reset-gpios = <&gpio4 RK_PC1 GPIO_ACTIVE_HIGH>;
+// 	vpcie3v3-supply = <&vcc_sata_pwr_en>;
+// 	status = "okay";
+// };
+// #endif
 
 &vcc_sata_pwr_en{
 	status = "okay";
@@ -299,22 +361,22 @@
  	};
 };
 
-&es8388_sound{
-	status = "okay";
-	firefly,not-use-dapm;
-	/delete-property/ spk-con-gpio;
-	hp-det-gpio = <&gpio2 RK_PC3 GPIO_ACTIVE_HIGH>;
-	hp-con-gpio = <&pca9555 PCA_IO1_3 GPIO_ACTIVE_HIGH>;  //PCA_IO 13
-	io-channels = <&saradc 6>;
-	linein-type = <4>;
-	pinctrl-names = "default";
-	pinctrl-0 = <&hp_det>;
-	
-};
+// &es8388_sound{
+// 	status = "okay";
+// 	firefly,not-use-dapm;
+// 	/delete-property/ spk-con-gpio;
+// 	hp-det-gpio = <&gpio2 RK_PC3 GPIO_ACTIVE_HIGH>;
+// 	hp-con-gpio = <&pca9555 PCA_IO1_3 GPIO_ACTIVE_HIGH>;  //PCA_IO 13
+// 	io-channels = <&saradc 6>;
+// 	linein-type = <4>;
+// 	pinctrl-names = "default";
+// 	pinctrl-0 = <&hp_det>;
 
-&i2s0_8ch{
-	status = "okay";
-};
+// };
+
+// &i2s0_8ch{
+// 	status = "okay";
+// };
 
 /*pc9202*/
 &i2c0 {
@@ -343,21 +405,21 @@
 
 /* wifi*/
 
-&pcie30phy {
-	status = "okay";
-};
+// &pcie30phy {
+// 	status = "okay";
+// };
 
 
-&pcie3x4 {
-	num-lanes = <1>;
-	reset-gpios = <&gpio1 RK_PB2 GPIO_ACTIVE_HIGH>;
-	vpcie3v3-supply = <&vcc3v3_pcie30>;
+// &pcie3x4 {
+// 	num-lanes = <1>;
+// 	reset-gpios = <&gpio1 RK_PB2 GPIO_ACTIVE_HIGH>;
+// 	vpcie3v3-supply = <&vcc3v3_pcie30>;
 
-	pinctrl-names = "default";
-	pinctrl-0 =<&pcieclk_gpio>;
+// 	pinctrl-names = "default";
+// 	pinctrl-0 =<&pcieclk_gpio>;
 
-	status = "okay";
-};
+// 	status = "okay";
+// };
 
 &vcc3v3_pcie30{
 	gpios = <&pca9555 PCA_IO0_4 GPIO_ACTIVE_HIGH>;
@@ -369,13 +431,20 @@
         wifi_chip_type = "rtl8822ce";
 		/delete-property/ WIFI,poweren_gpio;
 		WIFI,host_wake_irq = <&pca9555 PCA_IO1_2 GPIO_ACTIVE_HIGH>;
-        status = "okay";
+        status = "disabled";
 };
 
 
 
 /* pinctrl */
 &pinctrl {
+
+	watchdog {
+		wdt_ctl: wdt-ctl {
+				rockchip,pins =
+				<3 RK_PC4 RK_FUNC_GPIO &pcfg_pull_none>;            //GPIO3_C4
+		};
+	};
 
     leds {
 		leds_gpio: leds-gpio {
@@ -390,7 +459,7 @@
 			rockchip,pins = <3 22 RK_FUNC_GPIO &pcfg_pull_down>,
 							<3 21 RK_FUNC_GPIO &pcfg_pull_down>,
 							<4 14 RK_FUNC_GPIO &pcfg_pull_down>;
-			
+
 		};
  	};
 
@@ -406,10 +475,10 @@
 		};
 	};
 
-	usb-typec { 
-		usbc0_int: usbc0-int { 
-			rockchip,pins = <0 RK_PD3 RK_FUNC_GPIO &pcfg_pull_none>; 
-		}; 
+	usb-typec {
+		usbc0_int: usbc0-int {
+			rockchip,pins = <0 RK_PD3 RK_FUNC_GPIO &pcfg_pull_none>;
+		};
 	};
 
 	hdmirx {
