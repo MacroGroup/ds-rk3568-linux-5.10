@@ -73,8 +73,8 @@ void enable_wdt(void)
 void disable_wdt(void)
 {
 	printk("====== disabled 9202 wdt ======\n");
-	iWriteByte(SW2001_REG_WDT_CTRL,WDT_KICK_DISABLED);
 	gpiod_direction_output(wd_en_gpio, 0);
+	// iWriteByte(SW2001_REG_WDT_CTRL,WDT_KICK_DISABLED);
 }
 
 /*-------------------------------------------------------------------------*/
@@ -233,9 +233,12 @@ struct file_operations wdt_fops = {
 static int pc9202_wdt_probe(struct i2c_client *client,
         const struct i2c_device_id *id)
 {
+
+	struct device_node *node = client->dev.of_node;
 	struct sw2001	*pEnc;
 	uint8_t reg_value;
 	int retry_count, ret;
+	const char * driver_name =  "wdt_crl";
 
 	dev_info(&client->dev, "Version: %s\n", PC9202_VERSION);
 
@@ -260,29 +263,30 @@ static int pc9202_wdt_probe(struct i2c_client *client,
 	for (retry_count = 0; retry_count < 100; retry_count++) {
 	    ret = iReadByte(SW2001_REG_WDT_CTRL, &reg_value);
 	    if(0 != ret) {
-		printk("====== i2c detect failed watchdog init err: 0x%x ======\n", reg_value);
+		dev_err(dev,"====== i2c detect failed watchdog init err: 0x%x ======\n", reg_value);
 	    } else {
-		printk("====== i2c detect success watchdog init ======\n");
+		dev_err(dev,"====== i2c detect success watchdog init ======\n");
 		break;
 	    }
 	    msleep(10);
 	}
 
 	if (0 != ret) {
-	    printk("====== i2c detect failed watchdog init ======\n");
+	    dev_err(dev,"====== i2c detect failed watchdog init ======\n");
 	    goto err;
 	}
 
-	major = register_chrdev(0, "wdt_crl", &wdt_fops);
+	ret = of_property_read_string(node, "driver-names", &driver_name);
+	major = register_chrdev(0, driver_name, &wdt_fops);
     if (major < 0)
     {
-		printk("Unable to register wdt character device !\n");
+		dev_err(dev,"Unable to register wdt character device !\n");
 		goto err;
     }
 	// 创建类
-	cls = class_create(THIS_MODULE, "wdt_crl");
+	cls = class_create(THIS_MODULE, driver_name);
 	// 创建设备节点
-	dev = device_create(cls, NULL, MKDEV(major, 0), NULL, "wdt_crl");
+	dev = device_create(cls, NULL, MKDEV(major, 0), NULL, driver_name);
 
 	wd_en_gpio = devm_gpiod_get_optional(&client->dev, "wd-en", GPIOD_ASIS);
 
