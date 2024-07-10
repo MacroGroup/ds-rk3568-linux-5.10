@@ -315,10 +315,6 @@
 	num-lanes = <1>;
 	reset-gpios = <&gpio1 RK_PB2 GPIO_ACTIVE_HIGH>;
 	vpcie3v3-supply = <&vcc3v3_pcie30>;
-
-	pinctrl-names = "default";
-	pinctrl-0 =<&pcieclk_gpio>;
-
 	status = "okay";
 };
 
@@ -344,16 +340,6 @@
 		leds_gpio: leds-gpio {
 			/* led_power */
 			rockchip,pins = <0 20 RK_FUNC_GPIO &pcfg_pull_none>;
-		};
- 	};
-
-	pcie {
-		pcieclk_gpio: pcieclk-gpio {
-			/* led_power */
-			rockchip,pins = <3 22 RK_FUNC_GPIO &pcfg_pull_down>,
-							<3 21 RK_FUNC_GPIO &pcfg_pull_down>,
-							<4 14 RK_FUNC_GPIO &pcfg_pull_down>;
-
 		};
  	};
 

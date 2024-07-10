@@ -8,6 +8,61 @@
 #include "rk3588-firefly-core.dtsi"
 #include "rk3588-linux.dtsi"
 
+/ {
+	pcie_essd: pcie-essd {
+               compatible = "regulator-fixed";
+               regulator-name = "pcie_essd";
+               regulator-min-microvolt = <2500000>;
+               regulator-max-microvolt = <2500000>;
+               enable-active-high;
+               gpios = <&gpio3 RK_PB7 GPIO_ACTIVE_HIGH>;
+               startup-delay-us = <5000>;
+               vin-supply = <&vcc12v_dcin>;
+               status = "okay";
+       };
+
+	   pcie_clk1: pcie-clk1 {
+                       compatible = "regulator-fixed";
+                       regulator-name = "pcie_clk1";
+                       regulator-boot-on;
+                       regulator-always-on;
+                       gpios = <&gpio3 RK_PC5 GPIO_ACTIVE_LOW>;
+                       vin-supply = <&vcc12v_dcin>;
+                       status = "okay";
+       };
+
+	   pcie_clk2: pcie-clk2 {
+                       compatible = "regulator-fixed";
+                       regulator-name = "pcie_clk2";
+                       regulator-boot-on;
+                       regulator-always-on;
+                       gpios = <&gpio3 RK_PC6 GPIO_ACTIVE_LOW>;
+                       status = "okay";
+       };
+
+	   pcie_clk3: pcie-clk3 {
+                       compatible = "regulator-fixed";
+                       regulator-name = "pcie_clk3";
+                       regulator-boot-on;
+                       regulator-always-on;
+                       gpios = <&gpio4 RK_PB6 GPIO_ACTIVE_LOW>;
+                       status = "okay";
+       };
+
+};
+
+
+&pcie3x2 {
+       status = "okay";
+       num-lanes = <2>;
+       reset-gpios = <&gpio4 RK_PB0 GPIO_ACTIVE_HIGH>;
+       vpcie3v3-supply = <&pcie_essd>;
+};
+
+&pcie30phy {
+       rockchip,pcie30-phymode = <PHY_MODE_PCIE_NANBBI>;
+	   status = "okay";
+};
 
 /*pc9202*/
 &i2c0 {
