@@ -16,6 +16,26 @@
 	/delete-node/ es8388_sound;
 
 
+	ds18b20_1 {
+		// Front sersonr
+		compatible = "firefly,ds1820";
+		status = "okay";
+		ds1820-dq = <&gpio4 RK_PB2 GPIO_ACTIVE_LOW>; //GPIO4_B2 TEMP_DET_1
+		ds18b20-id = <1>;
+		pinctrl-names = "default";
+		pinctrl-0 = <&ds18b20_dp_1_pin>;
+	};
+
+	ds18b20_2 {
+		compatible = "firefly,ds1820";
+		ds1820-dq = <&gpio4 RK_PB3 GPIO_ACTIVE_LOW>; //GPIO4_B3 TEMP_DET_2
+		ds18b20-id = <2>;
+		status = "okay";
+		pinctrl-names = "default";
+		pinctrl-0 = <&ds18b20_dp_2_pin>;
+	};
+
+
 	leds {
 		compatible = "gpio-leds";
 		status = "okay";
@@ -256,6 +276,16 @@
 };
 
 
+&rgb {
+	status = "disabled";
+};
+
+
+
+&i2s1_8ch {
+	status = "disabled";
+};
+
 
 
 
@@ -264,27 +294,29 @@
 	max-freq = <48000000>;
 	pinctrl-names = "default";
 	pinctrl-0 = <&spi0m3_cs0 &spi0m3_cs1 &spi0m3_pins>;
-	// dev-port = <0>;
-	// num-cs = <1>;
 
-	spi_wk2xxx_2: spi_wk2xxx_2@0{
+	spi_wk2xxx_1: spi_wk2xxx_1@0{
 		status = "okay";
 		compatible = "wkmic,wk2xxx_spi";
 		reg = <0x00>;
 		index_base = <1>; // 偏移1，即从ttysWK1开始递增，而非ttysWK0
-		num-ports = <8>;  // 8个串口模式
+		num-ports = <4>;  // 4个串口模式
 		spi-max-frequency = <10000000>;
-		//power-gpio = <&gpio2 4 GPIO_ACTIVE_HIGH>;
-		reset-gpio = <&gpio1 RK_PB4 GPIO_ACTIVE_HIGH>;		// WK2124_RST	GPIO1_B4
-		irq-gpio = <&gpio4 RK_PB1 IRQ_TYPE_EDGE_FALLING>;	// WK2124_INT	GPIO4_B1
-		cs-gpio = <&gpio3 RK_PD4 GPIO_ACTIVE_HIGH>;			// SPI0_CS0_M3	GPIO3_D4
-		cs1-gpio = <&gpio3 RK_PD5 GPIO_ACTIVE_HIGH>;		// SPI0_CS1_M3	GPIO3_D5
+		irq-gpio = <&gpio4 RK_PB1 IRQ_TYPE_EDGE_FALLING>;       // WK2124_INT   GPIO4_B1
+		firefly,spi0;
+	};
 
-		pinctrl-0 = <&wk2xxx_1_irq_gpios &wk2xxx_2_irq_gpios>;
-		pinctrl-names = "default";
+	spi_wk2xxx_2: spi_wk2xxx_2@1{
+		status = "okay";
+		compatible = "wkmic,wk2xxx_spi";
+		reg = <0x01>;
+		index_base = <5>; // 偏移1，即从ttysWK1开始递增，而非ttysWK0
+		num-ports = <4>;  // 4个串口模式
+		spi-max-frequency = <10000000>;
+		irq-gpio = <&gpio1 RK_PB0 IRQ_TYPE_EDGE_FALLING>;       // WK2124_INT   GPIO1_B0
+		firefly,spi0;
 	};
 };
-
 
 //debug 115200 232
 &fiq_debugger{
@@ -295,6 +327,17 @@
 
 /* pinctrl */
 &pinctrl {
+	ds18b20-dp-1 {
+		ds18b20_dp_1_pin: ds18b20-dp-1-pin {
+			rockchip,pins = <4 RK_PB2 RK_FUNC_GPIO &pcfg_pull_none>;  //GPIO4_B2
+		};
+	};
+
+	ds18b20-dp-2 {
+		ds18b20_dp_2_pin: ds18b20-dp-2-pin {
+			rockchip,pins = <4 RK_PB3 RK_FUNC_GPIO &pcfg_pull_none>;  //GPIO4_B3
+		};
+	};
     leds {
 		POWER_ON_GPIO: POWER-ON-GPIO {
 			/* led_power */
@@ -311,18 +354,22 @@
 			rockchip,pins = <3 RK_PD4 RK_FUNC_GPIO &pcfg_pull_none>; // GPIO3_D4
 		};
 
-		wk2xxx_2_irq_gpios: wk2xxx-2-irq-gpios{
-			rockchip,pins = <3 RK_PD5 RK_FUNC_GPIO &pcfg_pull_none>; // GPIO3_D5
-		};
+		// wk2xxx_2_irq_gpios: wk2xxx-2-irq-gpios{
+		// 	rockchip,pins = <3 RK_PD5 RK_FUNC_GPIO &pcfg_pull_none>; // GPIO3_D5
+		// };
 	};
 };
 
 
 // CORE10_DEBUG
 &uart5 {
-	status = "okay";
+        status = "okay";
+        pinctrl-0 = <&uart5m0_xfer>;
 };
 
+&sdmmc {
+status = "disabled";
+};
 
 &uart6 {
 	status = "disabled";

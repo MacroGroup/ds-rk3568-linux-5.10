@@ -4,6 +4,7 @@
  *
  */
 
+#define rk3588
 #include "rk3588-firefly-core.dtsi"
 #include "rk3588-linux.dtsi"
 
