@@ -1,0 +1,34 @@
+// SPDX-License-Identifier: (GPL-2.0+ OR MIT)
+/*
+ * Copyright (c) 2021 Rockchip Electronics Co., Ltd.
+ *
+ */
+
+#include "rk3588-firefly-core.dtsi"
+#include "rk3588-linux.dtsi"
+
+
+/*pc9202*/
+&i2c0 {
+	pinctrl-0 = <&i2c0m2_xfer>;
+	pc9202@3c {
+		status = "okay";
+		compatible = "firefly,pc9202";
+		reg = <0x3c>;
+		wd-en-gpio = <&gpio2 RK_PC5 GPIO_ACTIVE_HIGH>;
+	};
+
+	hym8563: hym8563@51 {
+		status = "okay";
+		compatible = "haoyu,hym8563";
+		reg = <0x51>;
+		#clock-cells = <0>;
+		clock-frequency = <32768>;
+		clock-output-names = "hym8563";
+		pinctrl-names = "default";
+		pinctrl-0 = <&hym8563_int>;
+		interrupt-parent = <&gpio0>;
+		interrupts = <RK_PB0 IRQ_TYPE_LEVEL_LOW>;
+		wakeup-source;
+	};
+};

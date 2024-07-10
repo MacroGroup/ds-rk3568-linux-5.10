@@ -3,7 +3,7 @@
  * Copyright (c) 2021 Rockchip Electronics Co., Ltd.
  *
  */
- 
+
  #define rk3588
  #include "rk3588-firefly-port-aio-3588jd4.dtsi"
  #include "rk3588-diff-aio-3588jd4.dtsi"
@@ -135,14 +135,14 @@
 };
 
 &vcc_sdcard_pwr_en{
-	gpio = <&gpio1 RK_PA7 GPIO_ACTIVE_HIGH>; 
+	gpio = <&gpio1 RK_PA7 GPIO_ACTIVE_HIGH>;
 	status = "okay";
 };
 
 /* usb */
 &vcc5v0_host{
 	status = "okay";
-	gpio = <&pca9555 PCA_IO0_2 GPIO_ACTIVE_HIGH>;   
+	gpio = <&pca9555 PCA_IO0_2 GPIO_ACTIVE_HIGH>;
 };
 
 
@@ -165,20 +165,6 @@
 	/delete-node/ pca9555;
 };
 
-&i2c3 {
-        status = "okay";
-        pinctrl-names = "default";
-        pinctrl-0 = <&i2c3m2_xfer>;
-
-        pca9555: gpio@21 {
-                status = "okay";
-                compatible = "nxp,pca9555";
-                reg = <0x21>;
-                gpio-controller;
-                #gpio-cells = <2>;
-                gpio-group-num = <200>;
-        };
-};
 
 #if M2_SATA_OR_PCIE
 &sata0 {
@@ -309,37 +295,14 @@
 	linein-type = <4>;
 	pinctrl-names = "default";
 	pinctrl-0 = <&hp_det>;
-	
+
 };
 
 &i2s0_8ch{
 	status = "okay";
 };
 
-/*pc9202*/
-&i2c0 {
-	pinctrl-0 = <&i2c0m2_xfer>;
-	pc9202@3c {
-		status = "okay";
-		compatible = "firefly,pc9202";
-		reg = <0x3c>;
-		wd-en-gpio = <&gpio2 RK_PC5 GPIO_ACTIVE_HIGH>;
-	};
 
-	hym8563: hym8563@51 {
-		status = "okay";
-		compatible = "haoyu,hym8563";
-		reg = <0x51>;
-		#clock-cells = <0>;
-		clock-frequency = <32768>;
-		clock-output-names = "hym8563";
-		pinctrl-names = "default";
-		pinctrl-0 = <&hym8563_int>;
-		interrupt-parent = <&gpio0>;
-		interrupts = <RK_PB0 IRQ_TYPE_LEVEL_LOW>;
-		wakeup-source;
-	};
-};
 
 /* wifi*/
 
@@ -390,7 +353,7 @@
 			rockchip,pins = <3 22 RK_FUNC_GPIO &pcfg_pull_down>,
 							<3 21 RK_FUNC_GPIO &pcfg_pull_down>,
 							<4 14 RK_FUNC_GPIO &pcfg_pull_down>;
-			
+
 		};
  	};
 
@@ -406,10 +369,10 @@
 		};
 	};
 
-	usb-typec { 
-		usbc0_int: usbc0-int { 
-			rockchip,pins = <0 RK_PD3 RK_FUNC_GPIO &pcfg_pull_none>; 
-		}; 
+	usb-typec {
+		usbc0_int: usbc0-int {
+			rockchip,pins = <0 RK_PD3 RK_FUNC_GPIO &pcfg_pull_none>;
+		};
 	};
 
 	hdmirx {

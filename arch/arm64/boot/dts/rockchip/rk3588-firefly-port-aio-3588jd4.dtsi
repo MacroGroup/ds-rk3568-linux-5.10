@@ -4,8 +4,7 @@
  *
  */
 
-#include "rk3588-firefly-core.dtsi"
-#include "rk3588-linux.dtsi"
+#include "core-3588-jd4.dtsi"
 
 / {
 	firefly_leds: leds {
@@ -146,12 +145,12 @@
 	};
 
 	vcc_hub_reset: vcc-hub-reset-regulator {
-		compatible = "regulator-fixed"; 
+		compatible = "regulator-fixed";
 		regulator-name = "vcc_hub_reset";
 		regulator-boot-on;
-		regulator-always-on; 
+		regulator-always-on;
 		enable-active-high;
-		status = "disabled"; 
+		status = "disabled";
 		gpio = <&pca9555 PCA_IO0_4 GPIO_ACTIVE_HIGH>;  //PCA_IO 04
 	};
 
@@ -207,16 +206,16 @@
 	};
 };
 
-&u2phy0_otg { 
-	rockchip,typec-vbus-det; 
-}; 
+&u2phy0_otg {
+	rockchip,typec-vbus-det;
+};
 
-&u2phy2_host { 
-	phy-supply = <&vcc5v0_host>; 
-}; 
+&u2phy2_host {
+	phy-supply = <&vcc5v0_host>;
+};
 
-&u2phy3_host { 
-	phy-supply = <&vcc5v0_host>; 
+&u2phy3_host {
+	phy-supply = <&vcc5v0_host>;
 };
 
 &usbdp_phy0 {
@@ -320,4 +319,19 @@
 &usbdrd_dwc3_0 {
 	dr_mode = "otg";
 	status = "okay";
+};
+
+&i2c3 {
+	status = "okay";
+	pinctrl-names = "default";
+	pinctrl-0 = <&i2c3m2_xfer>;
+
+	pca9555: gpio@21 {
+		status = "okay";
+		compatible = "nxp,pca9555";
+		reg = <0x21>;
+		gpio-controller;
+		#gpio-cells = <2>;
+		gpio-group-num = <200>;
+	};
 };
