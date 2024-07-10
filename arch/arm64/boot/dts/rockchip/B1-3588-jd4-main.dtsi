@@ -211,7 +211,7 @@
 
 
 &usbdp_phy0 {
-	status = "disabled";
+	status = "okay";
 	orientation-switch;
 	svid = <0xff01>;
 	sbu1-dc-gpios = <&gpio4 RK_PA6 GPIO_ACTIVE_HIGH>;
@@ -310,6 +310,10 @@
 
 &usbdrd_dwc3_1 {
 	status = "okay";
+};
+
+&combphy2_psu{
+        status = "okay";
 };
 
 // /* gamc0 */
