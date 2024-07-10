@@ -22,28 +22,24 @@
         //     default-state = "off";
 		// };
 	};
-};
 
+	// firefly_leds: leds {
+	// 	compatible = "gpio-leds";
+	// 	status = "okay";
+	// 	power_led: power {
+	// 		label = ":power"; //green led
+	// 		linux,default-trigger = "ir-power-click";
+	// 		default-state = "on";
+	// 		gpios = <&gpio1 RK_PB3 GPIO_ACTIVE_HIGH>;
+	// 	};
 
-
-/ {
-	firefly_leds: leds {
-		compatible = "gpio-leds";
-		status = "okay";
-		power_led: power {
-			label = ":power"; //green led
-			linux,default-trigger = "ir-power-click";
-			default-state = "on";
-			gpios = <&gpio1 RK_PB3 GPIO_ACTIVE_HIGH>;
-		};
-
-		user_led: user {
-			label = ":user"; //yellow led
-			linux,default-trigger = "ir-user-click";
-			default-state = "off";
-			gpios = <&pca9555 PCA_IO0_3 GPIO_ACTIVE_HIGH>;
-		};
-	};
+	// 	user_led: user {
+	// 		label = ":user"; //yellow led
+	// 		linux,default-trigger = "ir-user-click";
+	// 		default-state = "off";
+	// 		gpios = <&pca9555 PCA_IO0_3 GPIO_ACTIVE_HIGH>;
+	// 	};
+	// };
 
 
 	adc_keys: adc-keys {
@@ -58,6 +54,53 @@
 			label = "F12";
 			linux,code = <KEY_F12>;
 			press-threshold-microvolt = <17000>;
+		};
+	};
+
+	vcc3v3_pcie30: vcc3v3-pcie30 {
+		compatible = "regulator-fixed";
+		regulator-name = "vcc3v3_pcie30";
+		regulator-min-microvolt = <3300000>;
+		regulator-max-microvolt = <3300000>;
+		enable-active-high;
+		gpios = <&gpio2 RK_PC5 GPIO_ACTIVE_HIGH>;
+		startup-delay-us = <5000>;
+		vin-supply = <&vcc12v_dcin>;
+		status = "disabled";
+	};
+
+	pcie30_avdd1v8: pcie30-avdd1v8 {
+		compatible = "regulator-fixed";
+		regulator-name = "pcie30_avdd1v8";
+		regulator-boot-on;
+		regulator-always-on;
+		regulator-min-microvolt = <1800000>;
+		regulator-max-microvolt = <1800000>;
+		vin-supply = <&avcc_1v8_s0>;
+	};
+
+	pcie30_avdd0v75: pcie30-avdd0v75 {
+		compatible = "regulator-fixed";
+		regulator-name = "pcie30_avdd0v75";
+		regulator-boot-on;
+		regulator-always-on;
+		regulator-min-microvolt = <750000>;
+		regulator-max-microvolt = <750000>;
+		vin-supply = <&avdd_0v75_s0>;
+	};
+
+	/* If hdmirx node is disabled, delete the reserved-memory node here. */
+	reserved-memory {
+		#address-cells = <2>;
+		#size-cells = <2>;
+		ranges;
+
+		/* Reserve 256MB memory for hdmirx-controller@fdee0000 */
+		cma {
+			compatible = "shared-dma-pool";
+			reusable;
+			reg = <0x0 (256 * 0x100000) 0x0 (256 * 0x100000)>;
+			linux,cma-default;
 		};
 	};
 };
@@ -109,37 +152,12 @@
 	rockchip,typec-vbus-det;
 };
 
-&usbdp_phy0 {
-	orientation-switch;
-	svid = <0xff01>;
-	sbu1-dc-gpios = <&gpio4 RK_PA6 GPIO_ACTIVE_HIGH>;
-	sbu2-dc-gpios = <&gpio4 RK_PA7 GPIO_ACTIVE_HIGH>;
-
-	port {
-		#address-cells = <1>;
-		#size-cells = <0>;
-		// usbdp_phy0_orientation_switch: endpoint@0 {
-		// 	reg = <0>;
-		// 	remote-endpoint = <&usbc0_orien_sw>;
-		// };
-
-		// usbdp_phy0_dp_altmode_mux: endpoint@1 {
-		// 	reg = <1>;
-		// 	remote-endpoint = <&dp_altmode_mux>;
-		// };
-	};
-};
-
 &usbdrd_dwc3_0 {
 	dr_mode = "otg";
 	usb-role-switch;
 	port {
 		#address-cells = <1>;
 		#size-cells = <0>;
-		// dwc3_0_role_switch: endpoint@0 {
-		// 	reg = <0>;
-		// 	remote-endpoint = <&usbc0_role_sw>;
-		// };
 	};
 };
 
@@ -191,15 +209,21 @@
 	status = "okay";
 };
 
+
 &usbdp_phy0 {
-	status = "okay";
+	status = "disabled";
+	orientation-switch;
+	svid = <0xff01>;
+	sbu1-dc-gpios = <&gpio4 RK_PA6 GPIO_ACTIVE_HIGH>;
+	sbu2-dc-gpios = <&gpio4 RK_PA7 GPIO_ACTIVE_HIGH>;
+
+	port {
+		#address-cells = <1>;
+		#size-cells = <0>;
+	};
 };
 
 &usbdp_phy0_dp {
-	status = "okay";
-};
-
-&usbdp_phy0_u3 {
 	status = "okay";
 };
 
@@ -210,80 +234,6 @@
 &usbdrd_dwc3_0 {
 	dr_mode = "otg";
 	status = "okay";
-};
-
-
-/ {
-	vcc3v3_pcie30: vcc3v3-pcie30 {
-		compatible = "regulator-fixed";
-		regulator-name = "vcc3v3_pcie30";
-		regulator-min-microvolt = <3300000>;
-		regulator-max-microvolt = <3300000>;
-		enable-active-high;
-		gpios = <&gpio2 RK_PC5 GPIO_ACTIVE_HIGH>;
-		startup-delay-us = <5000>;
-		vin-supply = <&vcc12v_dcin>;
-		status = "disabled";
-	};
-
-	pcie30_avdd1v8: pcie30-avdd1v8 {
-		compatible = "regulator-fixed";
-		regulator-name = "pcie30_avdd1v8";
-		regulator-boot-on;
-		regulator-always-on;
-		regulator-min-microvolt = <1800000>;
-		regulator-max-microvolt = <1800000>;
-		vin-supply = <&avcc_1v8_s0>;
-	};
-
-	pcie30_avdd0v75: pcie30-avdd0v75 {
-		compatible = "regulator-fixed";
-		regulator-name = "pcie30_avdd0v75";
-		regulator-boot-on;
-		regulator-always-on;
-		regulator-min-microvolt = <750000>;
-		regulator-max-microvolt = <750000>;
-		vin-supply = <&avdd_0v75_s0>;
-	};
-
-	wireless_bluetooth: wireless-bluetooth {
-		compatible = "bluetooth-platdata";
-		clocks = <&hym8563>;
-		clock-names = "ext_clock";
-		uart_rts_gpios = <&gpio1 RK_PA2 GPIO_ACTIVE_LOW>;
-		pinctrl-names = "default", "rts_gpio";
-		pinctrl-0 = <&uart6m1_rtsn>,  <&bt_reset_gpio>, <&bt_wake_gpio>, <&bt_irq_gpio>;
-		pinctrl-1 = <&uart6_gpios>;
-		BT,power_gpio    = <&gpio0 RK_PC6 GPIO_ACTIVE_HIGH>;
-		BT,wake_gpio     = <&gpio0 RK_PC5 GPIO_ACTIVE_HIGH>;
-		BT,wake_host_irq = <&gpio0 RK_PA0 GPIO_ACTIVE_HIGH>;
-		status = "disabled";
-	};
-
-	wireless_wlan: wireless-wlan {
-		compatible = "wlan-platdata";
-		wifi_chip_type = "ap6275p";
-		pinctrl-names = "default";
-		pinctrl-0 = <&wifi_host_wake_irq>, <&wifi_poweren_gpio>;
-		WIFI,host_wake_irq = <&gpio0 RK_PB2 GPIO_ACTIVE_HIGH>;
-		WIFI,poweren_gpio = <&gpio0 RK_PC4 GPIO_ACTIVE_HIGH>;
-		status = "disabled";
-	};
-
-	/* If hdmirx node is disabled, delete the reserved-memory node here. */
-	reserved-memory {
-		#address-cells = <2>;
-		#size-cells = <2>;
-		ranges;
-
-		/* Reserve 256MB memory for hdmirx-controller@fdee0000 */
-		cma {
-			compatible = "shared-dma-pool";
-			reusable;
-			reg = <0x0 (256 * 0x100000) 0x0 (256 * 0x100000)>;
-			linux,cma-default;
-		};
-	};
 };
 
 &i2s6_8ch {
@@ -545,7 +495,7 @@
 		reg = <0x3c>;
 		wd-en-gpio = <&gpio3 RK_PC4 GPIO_ACTIVE_HIGH>;         // GPIO3_C4
 		pinctrl-names = "default";
-		pinctrl-0 = <&wdt_ctl>;
+		pinctrl-0 = <&wdt_ctl1>;
 		driver-names = "wdtdiban";
 	};
 };
@@ -603,9 +553,8 @@
 
 /* pinctrl */
 &pinctrl {
-
 	watchdog {
-		wdt_ctl: wdt-ctl {
+		wdt_ctl1: wdt-ctl {
 				rockchip,pins =
 				<3 RK_PC4 RK_FUNC_GPIO &pcfg_pull_none>;            //GPIO3_C4
 		};
@@ -631,47 +580,6 @@
 	headphone {
 		hp_det: hp-det {
 			rockchip,pins = <2 RK_PC3 RK_FUNC_GPIO &pcfg_pull_none>;
-		};
-	};
-
- 	hym8563 {
-		hym8563_int: hym8563-int {
-			rockchip,pins = <0 RK_PB0 RK_FUNC_GPIO &pcfg_pull_none>;
-		};
-	};
-
-	usb-typec {
-		usbc0_int: usbc0-int {
-			rockchip,pins = <0 RK_PD3 RK_FUNC_GPIO &pcfg_pull_none>;
-		};
-	};
-
-
-	wireless-bluetooth {
-		uart6_gpios: uart6-gpios {
-			rockchip,pins = <1 RK_PA2 RK_FUNC_GPIO &pcfg_pull_none>;
-		};
-
-		bt_reset_gpio: bt-reset-gpio {
-			rockchip,pins = <0 RK_PC6 RK_FUNC_GPIO &pcfg_pull_none>;
-		};
-
-		bt_wake_gpio: bt-wake-gpio {
-			rockchip,pins = <0 RK_PC5 RK_FUNC_GPIO &pcfg_pull_none>;
-		};
-
-		bt_irq_gpio: bt-irq-gpio {
-			rockchip,pins = <0 RK_PA0 RK_FUNC_GPIO &pcfg_pull_none>;
-		};
-	};
-
-	wireless-wlan {
-		wifi_host_wake_irq: wifi-host-wake-irq {
-			rockchip,pins = <0 RK_PB2 RK_FUNC_GPIO &pcfg_pull_none>;
-		};
-
-		wifi_poweren_gpio: wifi-poweren-gpio {
-			rockchip,pins = <0 RK_PC4 RK_FUNC_GPIO &pcfg_pull_none>;
 		};
 	};
 
