@@ -17,10 +17,10 @@
             default-state = "on";
 		};
 
-		user_led: user {
-			gpios = <&pca9555 PCA_IO0_3 GPIO_ACTIVE_HIGH>; //yellow led
-            default-state = "off";
-		};
+		// user_led: user {
+		// 	gpios = <&pca9555 PCA_IO0_3 GPIO_ACTIVE_HIGH>; //yellow led
+        //     default-state = "off";
+		// };
 	};
 };
 
@@ -59,38 +59,6 @@
 			linux,code = <KEY_F12>;
 			press-threshold-microvolt = <17000>;
 		};
-	};
-
-
-	vcc5v0_host: vcc5v0-host {
-		compatible = "regulator-fixed";
-		regulator-name = "vcc5v0_host";
-		regulator-boot-on;
-		regulator-always-on;
-		regulator-min-microvolt = <5000000>;
-		regulator-max-microvolt = <5000000>;
-		enable-active-high;
-		gpio = <&pca9555 PCA_IO0_5 GPIO_ACTIVE_HIGH>;
-		vin-supply = <&vcc5v0_usb>;
-		status = "disabled";
-	};
-
-	vcc_hub_reset: vcc-hub-reset-regulator {
-		compatible = "regulator-fixed";
-		regulator-name = "vcc_hub_reset";
-		regulator-boot-on;
-		regulator-always-on;
-		enable-active-high;
-		status = "disabled";
-		gpio = <&pca9555 PCA_IO0_4 GPIO_ACTIVE_HIGH>;  //PCA_IO 04
-	};
-
-	vbus5v0_typec_pwr_en: vbus5v0-typec-pwr-en-regulator {
-		compatible = "regulator-fixed";
-		regulator-name = "vbus5v0_typec_pwr_en";
-		enable-active-high;
-		status = "disabled";
-		gpio = <&pca9555 PCA_IO1_4 GPIO_ACTIVE_HIGH>;  //PCA_IO 14
 	};
 };
 
@@ -141,14 +109,6 @@
 	rockchip,typec-vbus-det;
 };
 
-&u2phy2_host {
-	phy-supply = <&vcc5v0_host>;
-};
-
-&u2phy3_host {
-	phy-supply = <&vcc5v0_host>;
-};
-
 &usbdp_phy0 {
 	orientation-switch;
 	svid = <0xff01>;
@@ -158,15 +118,15 @@
 	port {
 		#address-cells = <1>;
 		#size-cells = <0>;
-		usbdp_phy0_orientation_switch: endpoint@0 {
-			reg = <0>;
-			remote-endpoint = <&usbc0_orien_sw>;
-		};
+		// usbdp_phy0_orientation_switch: endpoint@0 {
+		// 	reg = <0>;
+		// 	remote-endpoint = <&usbc0_orien_sw>;
+		// };
 
-		usbdp_phy0_dp_altmode_mux: endpoint@1 {
-			reg = <1>;
-			remote-endpoint = <&dp_altmode_mux>;
-		};
+		// usbdp_phy0_dp_altmode_mux: endpoint@1 {
+		// 	reg = <1>;
+		// 	remote-endpoint = <&dp_altmode_mux>;
+		// };
 	};
 };
 
@@ -176,19 +136,19 @@
 	port {
 		#address-cells = <1>;
 		#size-cells = <0>;
-		dwc3_0_role_switch: endpoint@0 {
-			reg = <0>;
-			remote-endpoint = <&usbc0_role_sw>;
-		};
+		// dwc3_0_role_switch: endpoint@0 {
+		// 	reg = <0>;
+		// 	remote-endpoint = <&usbc0_role_sw>;
+		// };
 	};
 };
 
 &usbhost3_0 {
-	status = "disabled";
+	status = "okay";
 };
 
 &usbhost_dwc3_0 {
-	status = "disabled";
+	status = "okay";
 };
 
 &u2phy0 {
@@ -252,77 +212,8 @@
 	status = "okay";
 };
 
-&i2c3 {
-	status = "okay";
-	pinctrl-names = "default";
-	pinctrl-0 = <&i2c3m2_xfer>;
-
-	pca9555: gpio@21 {
-		status = "okay";
-		compatible = "nxp,pca9555";
-		reg = <0x21>;
-		gpio-controller;
-		#gpio-cells = <2>;
-		gpio-group-num = <200>;
-	};
-};
-
-
-
 
 / {
-	vcc_hub3_reset: vcc-hub3-reset-regulator {
-		compatible = "regulator-fixed";
-		regulator-name = "vcc_hub3_reset";
-		regulator-always-on;
-		enable-active-high;
-		status = "disabled";
-		gpio = <&pca9555 PCA_IO0_6 GPIO_ACTIVE_HIGH>;  //PCA_IO 06
-	};
-
-	vcc5v0_host3: vcc5v0-host3 {
-		compatible = "regulator-fixed";
-		regulator-name = "vcc5v0_host3";
-		regulator-boot-on;
-		regulator-always-on;
-		regulator-min-microvolt = <5000000>;
-		regulator-max-microvolt = <5000000>;
-		enable-active-high;
-		gpio = <&pca9555 PCA_IO0_7 GPIO_ACTIVE_HIGH>;  //PCA_IO 07
-		vin-supply = <&vcc5v0_usb>;
-		status = "disabled";
-	};
-
-	vcc_sata_pwr_en: vcc-sata-pwr-en-regulator {
-		compatible = "regulator-fixed";
-		regulator-name = "vcc_sata_pwr_en";
-		regulator-boot-on;
-		regulator-always-on;
-		enable-active-high;
-		status = "disabled";
-		gpio = <&pca9555 PCA_IO1_2 GPIO_ACTIVE_HIGH>;  //PCA_IO 12
-	};
-
-	vcc_fan_pwr_en: vcc-fan-pwr-en-regulator {
-		compatible = "regulator-fixed";
-		regulator-name = "vcc_fan_pwr_en";
-		regulator-boot-on;
-		regulator-always-on;
-		enable-active-high;
-		status = "disabled";
-		gpio = <&pca9555 PCA_IO1_3 GPIO_ACTIVE_HIGH>;  //PCA_IO 13
-	};
-
-	vcc_sdcard_pwr_en: vcc-sdcard-pwr-en-regulator {
-		compatible = "regulator-fixed";
-		regulator-name = "vcc_sdcard_pwr_en";
-		regulator-boot-on;
-		regulator-always-on;
-		enable-active-high;
-		gpio = <&pca9555 PCA_IO1_5 GPIO_ACTIVE_HIGH>;  //PCA_IO 15
-		status = "disabled";
-	};
-
 	vcc3v3_pcie30: vcc3v3-pcie30 {
 		compatible = "regulator-fixed";
 		regulator-name = "vcc3v3_pcie30";
@@ -440,7 +331,7 @@
 };
 
 &u2phy1_otg {
-	phy-supply = <&vcc5v0_host>;
+	/delete-property/ phy-supply;
 };
 
 &u2phy1 {
@@ -469,78 +360,6 @@
 
 &usbdrd_dwc3_1 {
 	status = "okay";
-};
-
-&i2c6 {
-	status = "disabled";
-	pinctrl-names = "default";
-	pinctrl-0 = <&i2c6m0_xfer>;
-
-	usbc0: fusb302@22 {
-		compatible = "fcs,fusb302";
-		reg = <0x22>;
-		interrupt-parent = <&gpio0>;
-		interrupts = <RK_PD3 IRQ_TYPE_LEVEL_LOW>;
-		pinctrl-names = "default";
-		pinctrl-0 = <&usbc0_int>;
-		vbus-supply = <&vbus5v0_typec_pwr_en>;
-		status = "disabled";
-
-		ports {
-			#address-cells = <1>;
-			#size-cells = <0>;
-
-			port@0 {
-				reg = <0>;
-				usbc0_role_sw: endpoint@0 {
-					remote-endpoint = <&dwc3_0_role_switch>;
-				};
-			};
-		};
-
-		usb_con: connector {
-			compatible = "usb-c-connector";
-			label = "USB-C";
-			data-role = "dual";
-			power-role = "dual";
-			try-power-role = "sink";
-			op-sink-microwatt = <1000000>;
-			sink-pdos =
-				<PDO_FIXED(5000, 1000, PDO_FIXED_USB_COMM)>;
-			source-pdos =
-				<PDO_FIXED(5000, 3000, PDO_FIXED_USB_COMM)>;
-
-			altmodes {
-				#address-cells = <1>;
-				#size-cells = <0>;
-
-				altmode@0 {
-					reg = <0>;
-					svid = <0xff01>;
-					vdo = <0xffffffff>;
-				};
-			};
-
-			ports {
-				#address-cells = <1>;
-				#size-cells = <0>;
-
-				port@0 {
-					reg = <0>;
-					usbc0_orien_sw: endpoint {
-						remote-endpoint = <&usbdp_phy0_orientation_switch>;
-					};
-				};
-
-				port@1 {
-					reg = <1>;
-					dp_altmode_mux: endpoint {
-						remote-endpoint = <&usbdp_phy0_dp_altmode_mux>;
-					};
-				};
-			};
-		};
-	};
 };
 
 // /* gamc0 */
@@ -631,21 +450,6 @@
 	status = "okay";
 };
 
-// &vcc_sdcard_pwr_en{
-// 	status = "disabled";
-// };
-
-/* usb */
-&vcc5v0_host{
-	status = "okay";
-	gpio = <&pca9555 PCA_IO0_2 GPIO_ACTIVE_HIGH>;
-};
-
-
-
-// type-c0
-
-
 &usbdrd3_0 {
 	status = "okay";
 };
@@ -665,22 +469,6 @@
 		reg = <0x1>;
 	};
 };
-
-
-// &dwc3_0_role_switch {
-// 	/delete-property/ remote-endpoint;
-// };
-
-// &usbdp_phy0_orientation_switch {
-// 	/delete-property/ remote-endpoint;
-// };
-// &usbdp_phy0_dp_altmode_mux {
-// 	/delete-property/ remote-endpoint;
-// };
-
-
-
-
 
 &u2phy0_otg {
     status = "okay";
@@ -742,7 +530,7 @@
 	pinctrl-0 = <&i2c3m2_xfer>;
 		// clock-frequency = <400000>;
 
-	pca9555: gpio@21 {
+	pca95551: gpio@21 {
 		status = "okay";
 		compatible = "nxp,pca9555";
 		reg = <0x21>;
@@ -776,16 +564,16 @@
 // };
 // #endif
 
-&vcc_sata_pwr_en{
-	status = "okay";
-	gpio = <&pca9555 PCA_IO1_4 GPIO_ACTIVE_HIGH>;  //PCA_IO 14
-	regulator-min-microvolt = <3300000>;
-	regulator-max-microvolt = <3300000>;
-	regulator-always-on;
-	enable-active-high;
-	startup-delay-us = <5000>;
-	vin-supply = <&vcc12v_dcin>;
-};
+// &vcc_sata_pwr_en{
+// 	status = "okay";
+// 	gpio = <&pca9555 PCA_IO1_4 GPIO_ACTIVE_HIGH>;  //PCA_IO 14
+// 	regulator-min-microvolt = <3300000>;
+// 	regulator-max-microvolt = <3300000>;
+// 	regulator-always-on;
+// 	enable-active-high;
+// 	startup-delay-us = <5000>;
+// 	vin-supply = <&vcc12v_dcin>;
+// };
 
 &combphy0_ps{
 	status = "okay";
@@ -811,21 +599,6 @@
 	pinctrl-0 = <&uart1m1_xfer>;
 	status = "okay";
 };
-
-
-&vcc3v3_pcie30{
-	gpios = <&pca9555 PCA_IO0_4 GPIO_ACTIVE_HIGH>;
-	startup-delay-us = <5000>;
-	status = "okay";
-};
-
-&wireless_wlan{
-        wifi_chip_type = "rtl8822ce";
-		/delete-property/ WIFI,poweren_gpio;
-		WIFI,host_wake_irq = <&pca9555 PCA_IO1_2 GPIO_ACTIVE_HIGH>;
-        status = "disabled";
-};
-
 
 
 /* pinctrl */
