@@ -45,65 +45,6 @@
 		};
 	};
 
-	bt_sco: bt-sco {
-		status = "disabled";
-		compatible = "delta,dfbmcs320";
-		#sound-dai-cells = <1>;
-	};
-
-	bt_sound: bt-sound {
-		status = "disabled";
-		compatible = "simple-audio-card";
-		simple-audio-card,format = "dsp_a";
-		simple-audio-card,bitclock-inversion = <0>;
-		simple-audio-card,mclk-fs = <256>;
-		simple-audio-card,name = "rockchip,bt";
-		simple-audio-card,cpu {
-			sound-dai = <&i2s1_8ch>;
-		};
-		simple-audio-card,codec {
-			sound-dai = <&bt_sco 1>;
-		};
-	};
-
-	hdmi0_sound: hdmi0-sound {
-		status = "disabled";
-		compatible = "rockchip,hdmi";
-		rockchip,mclk-fs = <128>;
-		rockchip,card-name = "rockchip-hdmi0";
-		rockchip,cpu = <&i2s5_8ch>;
-		rockchip,codec = <&hdmi0>;
-		rockchip,jack-det;
-	};
-
-	dp0_sound: dp0-sound {
-		status = "disabled";
-		compatible = "rockchip,hdmi";
-		rockchip,card-name= "rockchip-dp0";
-		rockchip,mclk-fs = <512>;
-		rockchip,cpu = <&spdif_tx2>;
-		rockchip,codec = <&dp0 1>;
-		rockchip,jack-det;
-	};
-
-	spdif_tx1_dc: spdif-tx1-dc {
-		status = "disabled";
-		compatible = "linux,spdif-dit";
-		#sound-dai-cells = <0>;
-	};
-
-	spdif_tx1_sound: spdif-tx1-sound {
-		status = "disabled";
-		compatible = "simple-audio-card";
-		simple-audio-card,mclk-fs = <128>;
-		simple-audio-card,name = "rockchip,spdif-tx1";
-		simple-audio-card,cpu {
-			sound-dai = <&spdif_tx1>;
-		};
-		simple-audio-card,codec {
-			sound-dai = <&spdif_tx1_dc>;
-		};
-	};
 
 	adc_keys: adc-keys {
 		status = "okay";
@@ -120,36 +61,6 @@
 		};
 	};
 
-	es8388_sound: es8388-sound {
-		status = "disabled";
-		compatible = "firefly,multicodecs-card";
-		rockchip,card-name = "rockchip-es8388";
-		hp-det-gpio = <&gpio1 RK_PC4 GPIO_ACTIVE_LOW>;
-		io-channels = <&saradc 3>;
-		io-channel-names = "adc-detect";
-		spk-con-gpio = <&gpio3 RK_PB2 GPIO_ACTIVE_HIGH>;
-		hp-con-gpio = <&gpio4 RK_PB0 GPIO_ACTIVE_HIGH>;
-		linein-type = <0>;
-		rockchip,format = "i2s";
-		rockchip,mclk-fs = <384>;
-		rockchip,cpu = <&i2s0_8ch>;
-		rockchip,codec = <&es8388>;
-		rockchip,audio-routing =
-			"Headphone", "LOUT1",
-			"Headphone", "ROUT1",
-			"Speaker", "LOUT2",
-			"Speaker", "ROUT2",
-			"Headphone", "Headphone Power",
-			"Headphone", "Headphone Power",
-			"Speaker", "Speaker Power",
-			"Speaker", "Speaker Power",
-			"LINPUT2", "Main Mic",
-			"RINPUT2", "Main Mic",
-			"LINPUT1", "Headset Mic",
-			"RINPUT1", "Headset Mic";
-		pinctrl-names = "default";
-		pinctrl-0 = <&hp_det>;
-	};
 
 	vcc5v0_host: vcc5v0-host {
 		compatible = "regulator-fixed";
@@ -444,26 +355,6 @@
 		vin-supply = <&avdd_0v75_s0>;
 	};
 
-	hdmi1_sound: hdmi1-sound {
-		status = "disabled";
-		compatible = "rockchip,hdmi";
-		rockchip,mclk-fs = <128>;
-		rockchip,card-name = "rockchip-hdmi1";
-		rockchip,cpu = <&i2s6_8ch>;
-		rockchip,codec = <&hdmi1>;
-		rockchip,jack-det;
-	};
-
-	dp1_sound: dp1-sound {
-		status = "disabled";
-		compatible = "rockchip,hdmi";
-		rockchip,card-name= "rockchip,dp1";
-		rockchip,mclk-fs = <512>;
-		rockchip,cpu = <&spdif_tx5>;
-		rockchip,codec = <&dp1 1>;
-		rockchip,jack-det;
-	};
-
 	wireless_bluetooth: wireless-bluetooth {
 		compatible = "bluetooth-platdata";
 		clocks = <&hym8563>;
@@ -502,19 +393,6 @@
 			linux,cma-default;
 		};
 	};
-
-	hdmiin_sound: hdmiin-sound {
-		compatible = "rockchip,hdmi";
-		rockchip,mclk-fs = <128>;
-		rockchip,format = "i2s";
-		rockchip,bitclock-master = <&hdmirx_ctrler>;
-		rockchip,frame-master = <&hdmirx_ctrler>;
-		rockchip,card-name = "rockchip,hdmiin";
-		rockchip,cpu = <&i2s7_8ch>;
-		rockchip,codec = <&hdmirx_ctrler 0>;
-		rockchip,jack-det;
-	};
-
 };
 
 &i2s6_8ch {
@@ -523,18 +401,6 @@
 
 &i2s7_8ch {
 	status = "okay";
-};
-
-/* Should work with at least 128MB cma reserved above. */
-&hdmirx_ctrler {
-	status = "disabled";
-	#sound-dai-cells = <1>;
-	//memory-region = <&hdmirx>;
-	pinctrl-names = "default";
-	pinctrl-0 = <&hdmim1_rx &hdmirx_det>;
-	/* Effective level used to trigger HPD: 0-low, 1-high */
-	hpd-trigger-level = <1>;
-	hdmirx-det-gpios = <&gpio1 RK_PD5 GPIO_ACTIVE_LOW>;
 };
 
 &usbdp_phy1 {
@@ -676,35 +542,6 @@
 		};
 	};
 };
-
-
-// &i2c0 {
-// 	pinctrl-0 = <&i2c0m2_xfer>;
-// 	pc9202@3c {
-// 		status = "okay";
-// 		compatible = "firefly,pc9202";
-// 		reg = <0x3c>;
-// 		wd-en-gpio = <&gpio2 RK_PC5 GPIO_ACTIVE_HIGH>;
-// 	};
-
-// 	hym8563: hym8563@51 {
-// 		status = "okay";
-// 		compatible = "haoyu,hym8563";
-// 		reg = <0x51>;
-// 		#clock-cells = <0>;
-// 		clock-frequency = <32768>;
-// 		clock-output-names = "hym8563";
-// 		pinctrl-names = "default";
-// 		pinctrl-0 = <&hym8563_int>;
-// 		interrupt-parent = <&gpio0>;
-// 		interrupts = <RK_PB0 IRQ_TYPE_LEVEL_LOW>;
-// 		wakeup-source;
-// 	};
-// };
-
-
-
-
 
 // /* gamc0 */
 &gmac0 {
@@ -976,134 +813,6 @@
 };
 
 
-/* hdmi1 */
-&hdmi1 {
-    enable-gpios = <&gpio4 RK_PB4 GPIO_ACTIVE_HIGH>;
-    pinctrl-0 = <&hdmim0_tx1_cec &hdmim0_tx1_hpd &hdmim0_tx1_scl &hdmim0_tx1_sda>;
-	//pinctrl-0 = <&hdmim0_tx1_cec &hdmim0_tx1_hpd>;
-	//ddc-i2c-bus = <&i2c4>;
-	status = "okay";
-};
-
-/*
-&i2c4{
-	pinctrl-0 = <&i2c4m1_xfer>;
-	i2c-scl-rising-time-ns = <450>;
-	i2c-scl-falling-time-ns = <15>;
-	status = "okay";
-};*/
-
-
-&hdmi1_sound {
-	status = "okay";
-};
-
-&hdmi1_in_vp0 {
-        status = "okay";
-};
-
-&hdptxphy_hdmi1 {
-	status = "okay";
-};
-
-&route_hdmi1{
-	status = "okay";
-	connect = <&vp0_out_hdmi1>;
-};
-
-
-/*
-&hdmim0_tx1_scl{
-    rockchip,pins =
-
-        <2 13 4 &pcfg_pull_none_drv_level_5_smt>;
-};
-
-&hdmim0_tx1_sda {
-    rockchip,pins =
-
-        <2 12 4 &pcfg_pull_none_drv_level_1_smt>;
-};*/
-
-
-/* es8323 audio codec */
-
-&i2c6 {
-		status = "okay";
-		es8388: es8388@11 {
-			status = "okay";
-			#sound-dai-cells = <0>;
-			compatible = "everest,es8388", "everest,es8323";
-			reg = <0x11>;
-			clocks = <&mclkout_i2s0>;
-			clock-names = "mclk";
-			assigned-clocks = <&mclkout_i2s0>;
-			assigned-clock-rates = <12288000>;
-			pinctrl-names = "default";
-			pinctrl-0 = <&i2s0_mclk>;
- 	};
-};
-
-// &es8388_sound{
-// 	status = "okay";
-// 	firefly,not-use-dapm;
-// 	/delete-property/ spk-con-gpio;
-// 	hp-det-gpio = <&gpio2 RK_PC3 GPIO_ACTIVE_HIGH>;
-// 	hp-con-gpio = <&pca9555 PCA_IO1_3 GPIO_ACTIVE_HIGH>;  //PCA_IO 13
-// 	io-channels = <&saradc 6>;
-// 	linein-type = <4>;
-// 	pinctrl-names = "default";
-// 	pinctrl-0 = <&hp_det>;
-
-// };
-
-// &i2s0_8ch{
-// 	status = "okay";
-// };
-
-/*pc9202*/
-&i2c0 {
-	pinctrl-0 = <&i2c0m2_xfer>;
-	pc9202@3c {
-		status = "okay";
-		compatible = "firefly,pc9202";
-		reg = <0x3c>;
-		wd-en-gpio = <&gpio2 RK_PC5 GPIO_ACTIVE_HIGH>;
-	};
-
-	hym8563: hym8563@51 {
-		status = "okay";
-		compatible = "haoyu,hym8563";
-		reg = <0x51>;
-		#clock-cells = <0>;
-		clock-frequency = <32768>;
-		clock-output-names = "hym8563";
-		pinctrl-names = "default";
-		pinctrl-0 = <&hym8563_int>;
-		interrupt-parent = <&gpio0>;
-		interrupts = <RK_PB0 IRQ_TYPE_LEVEL_LOW>;
-		wakeup-source;
-	};
-};
-
-/* wifi*/
-
-// &pcie30phy {
-// 	status = "okay";
-// };
-
-
-// &pcie3x4 {
-// 	num-lanes = <1>;
-// 	reset-gpios = <&gpio1 RK_PB2 GPIO_ACTIVE_HIGH>;
-// 	vpcie3v3-supply = <&vcc3v3_pcie30>;
-
-// 	pinctrl-names = "default";
-// 	pinctrl-0 =<&pcieclk_gpio>;
-
-// 	status = "okay";
-// };
-
 &vcc3v3_pcie30{
 	gpios = <&pca9555 PCA_IO0_4 GPIO_ACTIVE_HIGH>;
 	startup-delay-us = <5000>;
@@ -1164,11 +873,6 @@
 		};
 	};
 
-	hdmirx {
-		hdmirx_det: hdmirx-det {
-			rockchip,pins = <1 RK_PD5 RK_FUNC_GPIO &pcfg_pull_none>;
-		};
-	};
 
 	wireless-bluetooth {
 		uart6_gpios: uart6-gpios {

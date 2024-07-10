@@ -76,10 +76,6 @@
 	status = "disabled";
 };
 
-&hdmi1_sound {
-	status = "disabled";
-};
-
 &hdmi1_in_vp0 {
     status = "disabled";
 };

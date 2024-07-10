@@ -7,7 +7,7 @@
 /dts-v1/;
 
 #include "B1-3588-jd4-main.dtsi"
-// #include "B1-3588-jd4-main-EDPtoVGA_LT8711V.dtsi"
+#include "B1-3588-jd4-main-EDPtoVGA_LT8711V.dtsi"
 
 / {
 	model = "Firefly B1-N10";
