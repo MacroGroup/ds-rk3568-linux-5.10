@@ -122,12 +122,12 @@
 		};
 
 
-		BMC_WORK_LED_G {
-			label = "BMC_WORK_LED_G";
-			gpios = <&gpio1 RK_PA5 GPIO_ACTIVE_HIGH>;	//GPIO1_A5
-			default-state = "off";
-			retain-state-shutdown;
-		};
+		// BMC_WORK_LED_G {
+		// 	label = "BMC_WORK_LED_G";
+		// 	gpios = <&gpio1 RK_PA5 GPIO_ACTIVE_HIGH>;	//GPIO1_A5
+		// 	default-state = "off";
+		// 	retain-state-shutdown;
+		// };
 
 
 		VGA_PWR_EN {
