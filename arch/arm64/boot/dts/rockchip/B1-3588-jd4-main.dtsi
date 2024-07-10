@@ -13,7 +13,7 @@
 		pinctrl-names = "default";
 		pinctrl-0 =<&leds_gpio>;
 		power_led: power {
-			gpios = <&gpio0 RK_PC4 GPIO_ACTIVE_HIGH>;//green led
+			gpios = <&gpio1 RK_PA5 GPIO_ACTIVE_LOW>;//green led
             default-state = "on";
 		};
 
