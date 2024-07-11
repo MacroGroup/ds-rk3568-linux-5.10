@@ -39,6 +39,13 @@
 	// 	};
 	// };
 
+	fan: pwm-fan {
+		compatible = "pwm-fan";
+		#cooling-cells = <2>;
+		fan-supply = <&vcc12v_dcin>;
+		pwms = <&pwm13 0 50000 1>;
+	};
+
 
 	adc_keys: adc-keys {
 		status = "okay";
@@ -393,6 +400,12 @@
 
 &pwm5 {
 	pinctrl-0 = <&pwm5m1_pins>;
+	status = "okay";
+};
+
+// fan
+&pwm13 {
+	pinctrl-0 = <&pwm13m0_pins>;
 	status = "okay";
 };
 
