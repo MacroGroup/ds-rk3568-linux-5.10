@@ -515,30 +515,19 @@
 	};
 };
 
-// #if M2_SATA_OR_PCIE
-// &sata0 {
-//     //pinctrl-names = "default";
-//     //pinctrl-0 = <&sata_reset>;
-// 	status = "okay";
-// };
-// #else
-// &pcie2x1l2 {
-// 	reset-gpios = <&gpio4 RK_PC1 GPIO_ACTIVE_HIGH>;
-// 	vpcie3v3-supply = <&vcc_sata_pwr_en>;
-// 	status = "okay";
-// };
-// #endif
+// sata
+&pcie2x1l0 {
+	status = "disabled";
+};
 
-// &vcc_sata_pwr_en{
-// 	status = "okay";
-// 	gpio = <&pca9555 PCA_IO1_4 GPIO_ACTIVE_HIGH>;  //PCA_IO 14
-// 	regulator-min-microvolt = <3300000>;
-// 	regulator-max-microvolt = <3300000>;
-// 	regulator-always-on;
-// 	enable-active-high;
-// 	startup-delay-us = <5000>;
-// 	vin-supply = <&vcc12v_dcin>;
-// };
+&sata1 {
+	status = "okay";
+};
+
+&combphy1_ps {
+	status = "okay"; 
+};
+// sata end
 
 &combphy0_ps{
 	status = "okay";
