@@ -10,8 +10,6 @@
  / {
 /* led */
 	firefly_leds: leds {
-		pinctrl-names = "default";
-		pinctrl-0 =<&leds_gpio>;
 		power_led: power {
 			gpios = <&gpio1 RK_PA5 GPIO_ACTIVE_LOW>;//green led
             default-state = "on";
@@ -563,13 +561,6 @@
 				<3 RK_PC4 RK_FUNC_GPIO &pcfg_pull_none>;            //GPIO3_C4
 		};
 	};
-
-    leds {
-		leds_gpio: leds-gpio {
-			/* led_power */
-			rockchip,pins = <0 20 RK_FUNC_GPIO &pcfg_pull_none>;
-		};
- 	};
 
 	pcie {
 		pcieclk_gpio: pcieclk-gpio {
