@@ -495,13 +495,22 @@
 	pinctrl-0 = <&i2c3m2_xfer>;
 		// clock-frequency = <400000>;
 
-	pca95551: gpio@21 {
+	xl9555_1: gpio@20 {
 		status = "okay";
 		compatible = "nxp,pca9555";
-		reg = <0x21>;
+		reg = <0x20>;
 		gpio-controller;
 		#gpio-cells = <2>;
 		gpio-group-num = <200>;
+	};
+
+	xl9555_2: gpio@22 {
+		status = "okay";
+		compatible = "nxp,pca9555";
+		reg = <0x22>;
+		gpio-controller;
+		#gpio-cells = <2>;
+		gpio-group-num = <300>;
 	};
 
 	pc9202: pc9202@3c {
