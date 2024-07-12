@@ -251,7 +251,7 @@
 
 /* sata pm */
 &combphy0_ps {
-	status = "disabled";
+	status = "okay";
 };
 
 #if M2_SATA_OR_PCIE
