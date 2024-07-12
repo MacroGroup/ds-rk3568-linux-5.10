@@ -552,14 +552,14 @@
 };
 
 /* RS485 */
-&uart6{
-	pinctrl-0 = <&uart6m1_xfer>;
+&uart1{
+	pinctrl-0 = <&uart1m1_xfer>;
 	status = "okay";
 };
 
 /* RS232 */
-&uart1{
-	pinctrl-0 = <&uart1m1_xfer>;
+&uart7{
+	pinctrl-0 = <&uart7m1_xfer>;
 	status = "okay";
 };
 
