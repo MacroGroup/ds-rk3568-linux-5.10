@@ -74,7 +74,8 @@ void disable_wdt(void)
 {
 	printk("====== disabled 9202 wdt ======\n");
 	gpiod_direction_output(wd_en_gpio, 0);
-	// iWriteByte(SW2001_REG_WDT_CTRL,WDT_KICK_DISABLED);
+	msleep(10);
+	iWriteByte(SW2001_REG_WDT_CTRL,WDT_KICK_DISABLED);
 }
 
 /*-------------------------------------------------------------------------*/
