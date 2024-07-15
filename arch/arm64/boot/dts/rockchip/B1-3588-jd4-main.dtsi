@@ -534,7 +534,7 @@
 };
 
 &combphy1_ps {
-	status = "okay"; 
+	status = "okay";
 };
 // sata end
 
@@ -544,7 +544,7 @@
 
 /* can1 */
 &can1 {
-	status = "okay";
+	status = "disabled";
 	assigned-clocks = <&cru CLK_CAN1>;
 	assigned-clock-rates = <200000000>;
 	pinctrl-names = "default";
