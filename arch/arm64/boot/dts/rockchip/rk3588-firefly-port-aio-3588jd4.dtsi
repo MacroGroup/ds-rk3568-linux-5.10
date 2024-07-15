@@ -163,6 +163,23 @@
 	};
 };
 
+/* es8323 audio codec */
+&i2c6 {
+	status = "disabled";
+	es8388: es8388@11 {
+		status = "disabled";
+		#sound-dai-cells = <0>;
+		compatible = "everest,es8388", "everest,es8323";
+		reg = <0x11>;
+		clocks = <&mclkout_i2s0>;
+		clock-names = "mclk";
+		assigned-clocks = <&mclkout_i2s0>;
+		assigned-clock-rates = <12288000>;
+		pinctrl-names = "default";
+		pinctrl-0 = <&i2s0_mclk>;
+	};
+};
+
 &i2s0_8ch {
 	status = "disabled";
 	pinctrl-0 = <&i2s0_lrck
