@@ -60,7 +60,7 @@
 		reg = <0x3c>;
 		pinctrl-names = "default";
 		pinctrl-0 = <&base_pc9202_en_pin>;
-		wd-en-gpio = <&gpio3 RK_PC4 GPIO_ACTIVE_HIGH>;
+		wd-en-gpio = <&gpio3 RK_PC4 GPIO_ACTIVE_LOW>;
 	};
 };
 
