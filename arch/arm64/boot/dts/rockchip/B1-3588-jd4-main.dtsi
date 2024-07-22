@@ -524,6 +524,12 @@
 	};
 };
 
+&i2c5 {
+	status = "okay";
+	pinctrl-names = "default";
+	pinctrl-0 = <&i2c5m0_xfer>;
+};
+
 // sata
 &pcie2x1l0 {
 	status = "disabled";
