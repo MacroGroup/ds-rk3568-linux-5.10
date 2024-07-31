@@ -12036,6 +12036,8 @@ err_out:
         goto out;
 }
 
+static int check_err_count = 0;
+
 static void
 rtl8125_esd_checker(struct rtl8125_private *tp)
 {
@@ -12061,6 +12063,11 @@ rtl8125_esd_checker(struct rtl8125_private *tp)
 
         pci_read_config_byte(pdev, PCI_COMMAND, &cmd);
         if (cmd != tp->pci_cfg_space.cmd) {
+                check_err_count ++;
+                if (check_err_count < 3) {
+                        goto exit;
+                }
+
                 printk(KERN_ERR "%s: cmd = 0x%02x, should be 0x%02x \n.", dev->name, cmd, tp->pci_cfg_space.cmd);
                 pci_write_config_byte(pdev, PCI_COMMAND, tp->pci_cfg_space.cmd);
                 tp->esd_flag |= BIT_0;
@@ -12074,6 +12081,11 @@ rtl8125_esd_checker(struct rtl8125_private *tp)
 
         pci_read_config_word(pdev, PCI_BASE_ADDRESS_0, &io_base_l);
         if (io_base_l != tp->pci_cfg_space.io_base_l) {
+                check_err_count ++;
+                if (check_err_count < 3) {
+                        goto exit;
+                }
+
                 printk(KERN_ERR "%s: io_base_l = 0x%04x, should be 0x%04x \n.", dev->name, io_base_l, tp->pci_cfg_space.io_base_l);
                 pci_write_config_word(pdev, PCI_BASE_ADDRESS_0, tp->pci_cfg_space.io_base_l);
                 tp->esd_flag |= BIT_1;
@@ -12081,6 +12093,11 @@ rtl8125_esd_checker(struct rtl8125_private *tp)
 
         pci_read_config_word(pdev, PCI_BASE_ADDRESS_2, &mem_base_l);
         if (mem_base_l != tp->pci_cfg_space.mem_base_l) {
+                check_err_count ++;
+                if (check_err_count < 3) {
+                        goto exit;
+                }
+
                 printk(KERN_ERR "%s: mem_base_l = 0x%04x, should be 0x%04x \n.", dev->name, mem_base_l, tp->pci_cfg_space.mem_base_l);
                 pci_write_config_word(pdev, PCI_BASE_ADDRESS_2, tp->pci_cfg_space.mem_base_l);
                 tp->esd_flag |= BIT_2;
@@ -12088,6 +12105,11 @@ rtl8125_esd_checker(struct rtl8125_private *tp)
 
         pci_read_config_word(pdev, PCI_BASE_ADDRESS_2 + 2, &mem_base_h);
         if (mem_base_h!= tp->pci_cfg_space.mem_base_h) {
+                check_err_count ++;
+                if (check_err_count < 3) {
+                        goto exit;
+                }
+
                 printk(KERN_ERR "%s: mem_base_h = 0x%04x, should be 0x%04x \n.", dev->name, mem_base_h, tp->pci_cfg_space.mem_base_h);
                 pci_write_config_word(pdev, PCI_BASE_ADDRESS_2 + 2, tp->pci_cfg_space.mem_base_h);
                 tp->esd_flag |= BIT_3;
@@ -12095,6 +12117,11 @@ rtl8125_esd_checker(struct rtl8125_private *tp)
 
         pci_read_config_word(pdev, PCI_BASE_ADDRESS_3, &resv_0x1c_l);
         if (resv_0x1c_l != tp->pci_cfg_space.resv_0x1c_l) {
+                check_err_count ++;
+                if (check_err_count < 3) {
+                        goto exit;
+                }
+
                 printk(KERN_ERR "%s: resv_0x1c_l = 0x%04x, should be 0x%04x \n.", dev->name, resv_0x1c_l, tp->pci_cfg_space.resv_0x1c_l);
                 pci_write_config_word(pdev, PCI_BASE_ADDRESS_3, tp->pci_cfg_space.resv_0x1c_l);
                 tp->esd_flag |= BIT_4;
@@ -12102,6 +12129,11 @@ rtl8125_esd_checker(struct rtl8125_private *tp)
 
         pci_read_config_word(pdev, PCI_BASE_ADDRESS_3 + 2, &resv_0x1c_h);
         if (resv_0x1c_h != tp->pci_cfg_space.resv_0x1c_h) {
+                check_err_count ++;
+                if (check_err_count < 3) {
+                        goto exit;
+                }
+
                 printk(KERN_ERR "%s: resv_0x1c_h = 0x%04x, should be 0x%04x \n.", dev->name, resv_0x1c_h, tp->pci_cfg_space.resv_0x1c_h);
                 pci_write_config_word(pdev, PCI_BASE_ADDRESS_3 + 2, tp->pci_cfg_space.resv_0x1c_h);
                 tp->esd_flag |= BIT_5;
@@ -12109,6 +12141,11 @@ rtl8125_esd_checker(struct rtl8125_private *tp)
 
         pci_read_config_word(pdev, PCI_BASE_ADDRESS_4, &resv_0x20_l);
         if (resv_0x20_l != tp->pci_cfg_space.resv_0x20_l) {
+                check_err_count ++;
+                if (check_err_count < 3) {
+                        goto exit;
+                }
+
                 printk(KERN_ERR "%s: resv_0x20_l = 0x%04x, should be 0x%04x \n.", dev->name, resv_0x20_l, tp->pci_cfg_space.resv_0x20_l);
                 pci_write_config_word(pdev, PCI_BASE_ADDRESS_4, tp->pci_cfg_space.resv_0x20_l);
                 tp->esd_flag |= BIT_6;
@@ -12116,6 +12153,11 @@ rtl8125_esd_checker(struct rtl8125_private *tp)
 
         pci_read_config_word(pdev, PCI_BASE_ADDRESS_4 + 2, &resv_0x20_h);
         if (resv_0x20_h != tp->pci_cfg_space.resv_0x20_h) {
+                check_err_count ++;
+                if (check_err_count < 3) {
+                        goto exit;
+                }
+
                 printk(KERN_ERR "%s: resv_0x20_h = 0x%04x, should be 0x%04x \n.", dev->name, resv_0x20_h, tp->pci_cfg_space.resv_0x20_h);
                 pci_write_config_word(pdev, PCI_BASE_ADDRESS_4 + 2, tp->pci_cfg_space.resv_0x20_h);
                 tp->esd_flag |= BIT_7;
@@ -12123,6 +12165,11 @@ rtl8125_esd_checker(struct rtl8125_private *tp)
 
         pci_read_config_word(pdev, PCI_BASE_ADDRESS_5, &resv_0x24_l);
         if (resv_0x24_l != tp->pci_cfg_space.resv_0x24_l) {
+                check_err_count ++;
+                if (check_err_count < 3) {
+                        goto exit;
+                }
+
                 printk(KERN_ERR "%s: resv_0x24_l = 0x%04x, should be 0x%04x \n.", dev->name, resv_0x24_l, tp->pci_cfg_space.resv_0x24_l);
                 pci_write_config_word(pdev, PCI_BASE_ADDRESS_5, tp->pci_cfg_space.resv_0x24_l);
                 tp->esd_flag |= BIT_8;
@@ -12130,6 +12177,11 @@ rtl8125_esd_checker(struct rtl8125_private *tp)
 
         pci_read_config_word(pdev, PCI_BASE_ADDRESS_5 + 2, &resv_0x24_h);
         if (resv_0x24_h != tp->pci_cfg_space.resv_0x24_h) {
+                check_err_count ++;
+                if (check_err_count < 3) {
+                        goto exit;
+                }
+
                 printk(KERN_ERR "%s: resv_0x24_h = 0x%04x, should be 0x%04x \n.", dev->name, resv_0x24_h, tp->pci_cfg_space.resv_0x24_h);
                 pci_write_config_word(pdev, PCI_BASE_ADDRESS_5 + 2, tp->pci_cfg_space.resv_0x24_h);
                 tp->esd_flag |= BIT_9;
@@ -12137,6 +12189,11 @@ rtl8125_esd_checker(struct rtl8125_private *tp)
 
         pci_read_config_byte(pdev, PCI_INTERRUPT_LINE, &ilr);
         if (ilr != tp->pci_cfg_space.ilr) {
+                check_err_count ++;
+                if (check_err_count < 3) {
+                        goto exit;
+                }
+
                 printk(KERN_ERR "%s: ilr = 0x%02x, should be 0x%02x \n.", dev->name, ilr, tp->pci_cfg_space.ilr);
                 pci_write_config_byte(pdev, PCI_INTERRUPT_LINE, tp->pci_cfg_space.ilr);
                 tp->esd_flag |= BIT_10;
@@ -12144,6 +12201,11 @@ rtl8125_esd_checker(struct rtl8125_private *tp)
 
         pci_read_config_word(pdev, PCI_SUBSYSTEM_VENDOR_ID, &resv_0x2c_l);
         if (resv_0x2c_l != tp->pci_cfg_space.resv_0x2c_l) {
+                check_err_count ++;
+                if (check_err_count < 3) {
+                        goto exit;
+                }
+
                 printk(KERN_ERR "%s: resv_0x2c_l = 0x%04x, should be 0x%04x \n.", dev->name, resv_0x2c_l, tp->pci_cfg_space.resv_0x2c_l);
                 pci_write_config_word(pdev, PCI_SUBSYSTEM_VENDOR_ID, tp->pci_cfg_space.resv_0x2c_l);
                 tp->esd_flag |= BIT_11;
@@ -12151,6 +12213,11 @@ rtl8125_esd_checker(struct rtl8125_private *tp)
 
         pci_read_config_word(pdev, PCI_SUBSYSTEM_VENDOR_ID + 2, &resv_0x2c_h);
         if (resv_0x2c_h != tp->pci_cfg_space.resv_0x2c_h) {
+                check_err_count ++;
+                if (check_err_count < 3) {
+                        goto exit;
+                }
+
                 printk(KERN_ERR "%s: resv_0x2c_h = 0x%04x, should be 0x%04x \n.", dev->name, resv_0x2c_h, tp->pci_cfg_space.resv_0x2c_h);
                 pci_write_config_word(pdev, PCI_SUBSYSTEM_VENDOR_ID + 2, tp->pci_cfg_space.resv_0x2c_h);
                 tp->esd_flag |= BIT_12;
@@ -12184,6 +12251,9 @@ rtl8125_esd_checker(struct rtl8125_private *tp)
                 rtl8125_enable_hw_linkchg_interrupt(tp);
                 rtl8125_set_speed(dev, tp->autoneg, tp->speed, tp->duplex, tp->advertising);
                 tp->esd_flag = 0;
+                check_err_count = 0;
+        } else {
+                check_err_count = 0;
         }
 exit:
         return;
