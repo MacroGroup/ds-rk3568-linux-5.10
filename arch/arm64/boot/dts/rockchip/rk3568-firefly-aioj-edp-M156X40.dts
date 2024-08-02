@@ -9,7 +9,7 @@
 #include "rk3568-firefly-aioj.dtsi"
 
 / {
-    model = "AIO-3568J HDMI+EDP156 (Linux)";
+    model = "Firefly AIO-3568J HDMI+EDP156 (Linux)";
     compatible = "rockchip,rk3568-firefly-aioj-edp-m156x40", "rockchip,rk3568";
 
 	vcc3v3_lcd_edp: vcc3v3-lcd-edp {

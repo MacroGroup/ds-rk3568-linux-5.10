@@ -19,7 +19,7 @@
 #include "rk3568-firefly-aioj-cam-2ms2m.dtsi"
 
 / {
-    model = "AIO-3568J HDMI (Linux)";
+    model = "Firefly AIO-3568J HDMI (Linux)";
     compatible = "rockchip,rk3568-firefly-aioj", "rockchip,rk3568";
 
 };

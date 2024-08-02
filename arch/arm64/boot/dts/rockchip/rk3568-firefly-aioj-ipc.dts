@@ -10,7 +10,7 @@
 #include "rk3568-firefly-aioj-cam-2ms2m.dtsi"
 
 / {
-    model = "IPC-M10R800-A3568J MIPI M101014-BE45-A1 (Linux)";
+    model = "Firefly IPC-M10R800-A3568J MIPI M101014-BE45-A1 (Linux)";
     compatible = "rockchip,rk3568-firefly-aioj", "rockchip,rk3568";
 
     vcc1v8_lcd1_power: vcc1v8-lcd1-power-regulator {

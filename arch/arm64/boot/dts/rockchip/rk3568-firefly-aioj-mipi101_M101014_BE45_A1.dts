@@ -20,7 +20,7 @@
 #include "rk3568-firefly-aioj-cam-imx415.dtsi"
 
 / {
-    model = "AIO-3568J MIPI + HDMI (Linux)";
+    model = "Firefly AIO-3568J MIPI + HDMI (Linux)";
     compatible = "rockchip,rk3568-firefly-aioj", "rockchip,rk3568";
 
     vcc1v8_lcd1_power: vcc1v8-lcd1-power-regulator {

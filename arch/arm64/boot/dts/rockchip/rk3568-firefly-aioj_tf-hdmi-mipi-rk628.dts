@@ -19,7 +19,7 @@
 #include "rk3568-firefly-aioj-tf-hdmi-mipi-rk628.dtsi"
 
 / {
-    model = "AIO-3568J HDMI (Linux)";
+    model = "Firefly AIO-3568J HDMI (Linux)";
     compatible = "rockchip,rk3568-firefly-aioj", "rockchip,rk3568";
 
 };

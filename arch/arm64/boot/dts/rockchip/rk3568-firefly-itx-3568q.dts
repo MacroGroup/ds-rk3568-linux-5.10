@@ -29,7 +29,7 @@
 
 
 / {
-    model = "ITX-3568Q HDMI (Linux)";
+    model = "Firefly ITX-3568Q HDMI (Linux)";
     compatible = "rockchip,rk3568-firefly-itx-3568q", "rockchip,rk3568";
 };
 
