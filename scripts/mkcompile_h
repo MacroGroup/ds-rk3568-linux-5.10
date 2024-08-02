@@ -40,8 +40,10 @@ else
 	LINUX_COMPILE_HOST=$KBUILD_BUILD_HOST
 fi
 
-LINUX_BRANCH=$(git branch | grep "\*" | awk -F ' ' '{print $2}')
-LINUX_COMMIT=$(git log -1 | grep "commit" | head -n 1 | awk -F ' ' '{print $2}')
+LINUX_BRANCH=$(git branch --show-current)
+LINUX_COMMIT=$(git rev-parse --short=12 HEAD)
+LINUX_COMPILE_TIME=$(date +%y%m%d%H%M)
+
 XML_PATH=$(readlink -f ../.repo/manifest.xml)
 XML_NAME=${XML_PATH##*/}
 
@@ -69,6 +71,7 @@ UTS_VERSION="$(echo $UTS_VERSION $CONFIG_FLAGS $TIMESTAMP | cut -b -$UTS_LEN)"
 
   echo \#define LINUX_BRANCH \"$(echo $LINUX_BRANCH | cut -b -$UTS_LEN)\"
   echo \#define LINUX_COMMIT \"$(echo $LINUX_COMMIT | cut -b -$UTS_LEN)\"
+  echo \#define LINUX_COMPILE_TIME \"$(echo $LINUX_COMPILE_TIME | cut -b -$UTS_LEN)\"
   echo \#define XML_NAME \"$(echo sdk version: $XML_NAME | cut -b -$UTS_LEN)\"
 
   LD_VERSION=$($LD -v | head -n1 | sed 's/(compatible with [^)]*)//' \
