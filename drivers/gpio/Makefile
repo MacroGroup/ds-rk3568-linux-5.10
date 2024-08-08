@@ -186,3 +186,4 @@ obj-$(CONFIG_GPIO_ZYNQ)			+= gpio-zynq.o
 obj-$(CONFIG_GPIO_FIREFLY_GL3321G)  += gpio-firefly-gl3321g.o
 obj-$(CONFIG_GPIO_FIREFLY)      += gpio-firefly.o
 obj-$(CONFIG_GPIO_SUB_POSITION)		+= gpio-sub-position.o
+obj-$(CONFIG_GPIO_FIREFLY_DETECT_POSITION)		+= gpio-firefly-detect-position.o

@@ -1666,4 +1666,10 @@ config GPIO_SUB_POSITION
 	help
 	  Sample code of Cluster_Server_R2 sub position .
 
+config GPIO_FIREFLY_DETECT_POSITION
+	tristate "Firefly GPIO SUB Detect position driver support"
+	default y
+	help
+	  Sample code of Cluster_Server(All Model) sub position .
+
 endif
