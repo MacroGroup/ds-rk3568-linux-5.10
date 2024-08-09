@@ -7,12 +7,9 @@
 /dts-v1/;
 
 #include "roc-rk3588s-pc.dtsi"
-
-#include "rk3588-roc-pc-cam-8ms1m.dtsi"
-#include "roc-rk3588s-pc-tf-hdmi-mipi-rk628.dtsi"
-#include "roc-rk3588s-pc-cam-2ms2mf.dtsi"
-#include "roc-rk3588s-pc-cam-imx415.dtsi"
+#include "roc-rk3588s-pc-ext.dtsi"
 #include "roc-rk3588s-pc-v10-diff.dtsi"
+//#include "rk3588-roc-pc-cam-8ms1m.dtsi"
 #define WHICHDSI 0 /* dsi0 = 0,dsi1 = 1*/
 
 / {
@@ -154,7 +151,7 @@
 
 &dsi1 {
     status = "okay";
-    //firefly-check;
+    firefly-check;
     //rockchip,lane-rate = <1000>;
     dsi1_panel: panel@0 {
         status = "okay";
@@ -179,7 +176,7 @@
         dsi,lanes  = <4>;
 
         panel-init-sequence = [
-            39 00 04 FF 98 81 01
+        39 00 04 FF 98 81 01
             99 00 02 00 98
             39 00 04 FF 98 81 03
             15 00 02 01 00
@@ -395,7 +392,6 @@
             05 78 01 10                //Delay 120ms
         ];
 
-
         disp_timings0: display-timings {
             native-mode = <&dsi1_timing0>;
             dsi1_timing0: timing0 {
@@ -407,7 +403,7 @@
                 hfront-porch = <40>;//50, 30,180
                 vsync-len = <4>;//4
                 vback-porch = <20>;//4
-                vfront-porch = <8200>;//8
+                vfront-porch = <20>;//8
                 hsync-active = <0>;
                 vsync-active = <0>;
                 de-active = <0>;
@@ -550,7 +546,7 @@
         dsi,lanes  = <4>;
 
         panel-init-sequence = [
-            39 00 04 FF 98 81 01
+        39 00 04 FF 98 81 01
             99 00 02 00 98
             39 00 04 FF 98 81 03
             15 00 02 01 00
@@ -865,5 +861,5 @@
 };
 
 &check_version {
-	dtb-name = "roc-rk3588s-pc-mipi101-M101014-BE45-A1";
+	dtb-name = "roc-rk3588s-pc-ext-mipi101-M101014-BE45-A1";
 };

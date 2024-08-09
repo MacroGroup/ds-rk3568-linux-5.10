@@ -426,9 +426,8 @@
         status = "okay";
         compatible = "goodix,gt9xxx";
         reg = <0x14>;
-        interrupt-parent = <&gpio1>;
-        interrupts = <0 17 0x2008 0>;
-        //interrupts = <RK_PD6 IRQ_TYPE_LEVEL_LOW>;
+        interrupt-parent = <&gpio3>;
+        interrupts = <RK_PC6 IRQ_TYPE_LEVEL_LOW>;
         //goodix,pwr-gpio = <&pca9555 PCA_IO0_7 GPIO_ACTIVE_HIGH>;
         goodix,rst-gpio = <&pca9555_1 PCA_IO0_4 GPIO_ACTIVE_HIGH>;
         goodix,irq-gpio = <&gpio3 RK_PC6 IRQ_TYPE_LEVEL_LOW>;
@@ -775,9 +774,8 @@
         status = "okay";
         compatible = "goodix,gt9xxx";
         reg = <0x14>;
-        interrupt-parent = <&gpio1>;
-        interrupts = <0 17 0x2008 0>;
-        //interrupts = <RK_PD6 IRQ_TYPE_LEVEL_LOW>;
+        interrupt-parent = <&gpio3>;
+        interrupts = <RK_PC0 IRQ_TYPE_LEVEL_LOW>;
         //goodix,pwr-gpio = <&pca9555 PCA_IO0_7 GPIO_ACTIVE_HIGH>;
         goodix,rst-gpio = <&gpio3 RK_PC1 GPIO_ACTIVE_HIGH>;
         goodix,irq-gpio = <&gpio3 RK_PC0 IRQ_TYPE_LEVEL_LOW>;
