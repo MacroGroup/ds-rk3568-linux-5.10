@@ -9,7 +9,7 @@
  #include "rk3588-diff-aio-3588jd4.dtsi"
 
 
-#define M2_SATA_OR_PCIE 0 /*1 = SATA , 0 = PCIe */
+#define M2_SATA_OR_PCIE	1 /*1 = SATA , 0 = PCIe */
 
  / {
 /* led */
@@ -164,6 +164,17 @@
 &i2c6 {
 	/delete-node/ pca9555;
 };
+/* wdt on mb */
+&i2c3 {
+	pinctrl-0 = <&i2c3m2_xfer>;
+	pc9202@3c {
+		status = "disabled";
+		compatible = "firefly,pc9202";
+		reg = <0x3c>;
+		wd-en-gpio = <&gpio0 RK_PC4 GPIO_ACTIVE_HIGH>;
+	};
+};
+
 
 
 #if M2_SATA_OR_PCIE
@@ -217,55 +228,29 @@
 };
 
 
-/* hdmi1 */
-&hdmi1 {
-    enable-gpios = <&gpio4 RK_PB4 GPIO_ACTIVE_HIGH>;
-    pinctrl-0 = <&hdmim0_tx1_cec &hdmim0_tx1_hpd &hdmim0_tx1_scl &hdmim0_tx1_sda>;
-	//pinctrl-0 = <&hdmim0_tx1_cec &hdmim0_tx1_hpd>;
-	//ddc-i2c-bus = <&i2c4>;
+/* hdmi0 */
+&hdmi0 {
+    enable-gpios = <&gpio1 RK_PB0 GPIO_ACTIVE_HIGH>;
+    status = "okay";
+};
+
+
+&hdmi0_sound {
 	status = "okay";
 };
 
-/*
-&i2c4{
-	pinctrl-0 = <&i2c4m1_xfer>;
-	i2c-scl-rising-time-ns = <450>;
-	i2c-scl-falling-time-ns = <15>;
-	status = "okay";
-};*/
-
-
-&hdmi1_sound {
-	status = "okay";
-};
-
-&hdmi1_in_vp0 {
+&hdmi0_in_vp0 {
         status = "okay";
 };
 
-&hdptxphy_hdmi1 {
+&hdptxphy_hdmi0 {
 	status = "okay";
 };
 
-&route_hdmi1{
+&route_hdmi0{
 	status = "okay";
-	connect = <&vp0_out_hdmi1>;
+	connect = <&vp0_out_hdmi0>;
 };
-
-
-/*
-&hdmim0_tx1_scl{
-    rockchip,pins =
-
-        <2 13 4 &pcfg_pull_none_drv_level_5_smt>;
-};
-
-&hdmim0_tx1_sda {
-    rockchip,pins =
-
-        <2 12 4 &pcfg_pull_none_drv_level_1_smt>;
-};*/
-
 
 /* es8323 audio codec */
 
