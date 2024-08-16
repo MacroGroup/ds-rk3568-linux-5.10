@@ -10,7 +10,7 @@
 #include "rk3568-firefly-test-3568jq.dtsi"
 
 / {
-    model = "TEST-3568JQ HDMI (Linux)";
+    model = "Firefly TEST-3568JQ HDMI (Linux)";
     compatible = "rockchip,rk3568-firefly-test-3568jq", "rockchip,rk3568";
 };
 
