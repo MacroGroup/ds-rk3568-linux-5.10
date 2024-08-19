@@ -125,3 +125,4 @@ obj-$(CONFIG_TOUCHSCREEN_VTL_CT36X)	+= vtl_ts/
 obj-$(CONFIG_TOUCHSCREEN_GT1X)		+= gt1x/
 obj-$(CONFIG_TOUCHSCREEN_HYN_CST2XX)	+= hyn_cst2xx/
 obj-$(CONFIG_TOUCHSCREEN_HX83102)      += hxchipset/
+obj-$(CONFIG_TOUCHSCREEN_GT9XXX)	+= gt9xxx/
