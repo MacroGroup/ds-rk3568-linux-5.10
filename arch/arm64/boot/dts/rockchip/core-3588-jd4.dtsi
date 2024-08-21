@@ -45,7 +45,7 @@
                        regulator-name = "pcie_clk3";
                        regulator-boot-on;
                        regulator-always-on;
-                       gpios = <&gpio4 RK_PB6 GPIO_ACTIVE_LOW>;
+                       gpios = <&gpio1 RK_PB1 GPIO_ACTIVE_LOW>;
                        status = "okay";
        };
 

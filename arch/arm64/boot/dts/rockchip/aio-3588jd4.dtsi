@@ -14,10 +14,10 @@
  / {
 /* led */
 	firefly_leds: leds {
-		pinctrl-names = "default";
-		pinctrl-0 =<&leds_gpio>;
 		power_led: power {
-			gpios = <&gpio0 RK_PC4 GPIO_ACTIVE_HIGH>;//green led
+			status = "disabled";
+
+			gpios = <&gpio0 RK_PC5 GPIO_ACTIVE_HIGH>;//green led
             default-state = "on";
 		};
 
@@ -41,7 +41,21 @@
             70000   5
         >;
 	};
-
+   
+    mod_sleep: mod-sleep-regulator {
+            compatible = "regulator-fixed";
+            regulator-name = "mod_sleep";
+            regulator-boot-on;
+            regulator-always-on;
+            enable-active-high;
+            status = "okay";
+	    gpio = <&gpio0 RK_PC5 GPIO_ACTIVE_HIGH>;//green led
+	    pinctrl-names = "default";
+	    pinctrl-0 =<&leds_gpio>;
+		regulator-state-mem {
+			regulator-on-in-suspend;
+		};
+    };
 
     vcc_hub: vcc-hub-regulator {
             compatible = "regulator-fixed";
@@ -148,8 +162,8 @@
 
 //down
 &usbdrd_dwc3_0{
-	//dr_mode = "host";
-	dr_mode = "peripheral";
+	dr_mode = "host";
+	//dr_mode = "peripheral";
     status = "okay";
 };
 
@@ -164,6 +178,7 @@
 &i2c6 {
 	/delete-node/ pca9555;
 };
+
 /* wdt on mb */
 &i2c3 {
 	pinctrl-0 = <&i2c3m2_xfer>;
@@ -174,8 +189,6 @@
 		wd-en-gpio = <&gpio0 RK_PC4 GPIO_ACTIVE_HIGH>;
 	};
 };
-
-
 
 #if M2_SATA_OR_PCIE
 &sata0 {
@@ -276,10 +289,23 @@
 	/delete-property/ spk-con-gpio;
 	hp-det-gpio = <&gpio2 RK_PC3 GPIO_ACTIVE_HIGH>;
 	hp-con-gpio = <&pca9555 PCA_IO1_3 GPIO_ACTIVE_HIGH>;  //PCA_IO 13
-	io-channels = <&saradc 6>;
-	linein-type = <4>;
 	pinctrl-names = "default";
 	pinctrl-0 = <&hp_det>;
+        /delete-property/ io-channels;
+        /delete-property/ io-channel-names;
+        rockchip,audio-routing =
+                        "Headphone", "LOUT1",
+                        "Headphone", "ROUT1",
+                        "Speaker", "LOUT2",
+                        "Speaker", "ROUT2",
+                        "Headphone", "Headphone Power",
+                        "Headphone", "Headphone Power",
+                        "LINPUT2", "Main Mic",
+                        "RINPUT2", "Main Mic",
+                        "LINPUT1", "Headset Mic",
+                        "RINPUT1", "Headset Mic";
+        linein-type = <1>;
+        pinctrl-names = "default";
 
 };
 
@@ -298,7 +324,7 @@
 
 &pcie3x4 {
 	num-lanes = <1>;
-	reset-gpios = <&gpio1 RK_PB2 GPIO_ACTIVE_HIGH>;
+	reset-gpios = <&gpio4 RK_PB6 GPIO_ACTIVE_HIGH>;
 	vpcie3v3-supply = <&vcc3v3_pcie30>;
 	status = "okay";
 };
@@ -324,7 +350,7 @@
     leds {
 		leds_gpio: leds-gpio {
 			/* led_power */
-			rockchip,pins = <0 20 RK_FUNC_GPIO &pcfg_pull_none>;
+			rockchip,pins = <0 RK_PC5 RK_FUNC_GPIO &pcfg_pull_none>;
 		};
  	};
 
