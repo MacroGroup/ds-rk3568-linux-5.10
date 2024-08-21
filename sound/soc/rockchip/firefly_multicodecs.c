@@ -281,7 +281,7 @@ static void mic_det_work(struct work_struct *work)
 	if(mc_data->mic_status != status || first_init_status == 0 ){
 		printk("mic_det_work value:%d,status:%d\n",value,status);
 		
-		if(mc_data->linein_ch == 0 && mc_data->mic_ch == 0){
+		if(mc_data->linein_ch == -1 && mc_data->mic_ch == -1){
 			if ( status == INPUT_LIN2 || status == INPUT_LIN1 ){
 				snd_soc_jack_report(jack_headset, SND_JACK_LINEIN, SND_JACK_LINEIN);
 				snd_soc_jack_report(jack_headset, 0, SND_JACK_MICROPHONE);
@@ -394,7 +394,7 @@ static void adc_jack_handler(struct work_struct *work)
 		snd_soc_jack_report(jack_headset, SND_JACK_LINEOUT, SND_JACK_LINEOUT);
 		//extcon_set_state_sync(mc_data->extcon,EXTCON_JACK_HEADPHONE, false);
 		//extcon_set_state_sync(mc_data->extcon,EXTCON_JACK_MICROPHONE, false);
-		if(mc_data->linein_ch){
+		if(mc_data->linein_ch != -1){
 			snd_soc_jack_report(jack_headset, SND_JACK_LINEIN, SND_JACK_LINEIN);
 			snd_soc_jack_report(jack_headset, 0, SND_JACK_MICROPHONE);
 			es8323_line1_line2_line2diff_switch(mc_data->linein_ch);
@@ -408,7 +408,7 @@ static void adc_jack_handler(struct work_struct *work)
 	snd_soc_jack_report(jack_headset, 0, SND_JACK_LINEOUT);
 	//extcon_set_state_sync(mc_data->extcon, EXTCON_JACK_HEADPHONE, true);
 	//extcon_set_state_sync(mc_data->extcon, EXTCON_JACK_MICROPHONE, true);
-	if(mc_data->mic_ch){
+	if(mc_data->mic_ch != -1){
 		snd_soc_jack_report(jack_headset, 0, SND_JACK_LINEIN);
 		snd_soc_jack_report(jack_headset, SND_JACK_MICROPHONE, SND_JACK_MICROPHONE);
 		es8323_line1_line2_line2diff_switch(mc_data->mic_ch);
@@ -875,8 +875,8 @@ static int rk_multicodecs_probe(struct platform_device *pdev)
 
 	snd_soc_card_set_drvdata(card, mc_data);
 	
-	mc_data->mic_ch = 0;
-	mc_data->linein_ch = 0;
+	mc_data->mic_ch = -1;
+	mc_data->linein_ch = -1;
 
 #define FIREFLY_DET_MIC_LINEIN 1
 #ifdef FIREFLY_DET_MIC_LINEIN
@@ -909,8 +909,8 @@ static int rk_multicodecs_probe(struct platform_device *pdev)
 		if (mc_data->adc->channel->type != IIO_VOLTAGE)
 			return -EINVAL;
 		// if mic det fun by adc, skip irq contrl
-		mc_data->mic_ch = 0;
-		mc_data->linein_ch = 0;
+		mc_data->mic_ch = -1;
+		mc_data->linein_ch = -1;
 		mic_det_fun(mc_data);
 	}
 
