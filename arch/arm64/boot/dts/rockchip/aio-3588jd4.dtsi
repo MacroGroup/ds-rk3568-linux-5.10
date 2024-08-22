@@ -342,7 +342,10 @@
         status = "okay";
 };
 
-
+//debug 115200
+&fiq_debugger{
+	rockchip,baudrate = <115200>;  /* Only 115200 and 1500000 */
+};
 
 /* pinctrl */
 &pinctrl {
