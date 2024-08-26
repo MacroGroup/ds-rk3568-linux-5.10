@@ -32,7 +32,7 @@
 		#cooling-cells = <2>;
 		fan-supply = <&vcc5v0_sys>;
 		pwms = <&pwm5 0 50000 0>;
-		cooling-levels = <0 50 100 150 200 255>;
+		cooling-levels = <50 50 100 150 200 255>;
         rockchip,temp-trips = <
             50000   1
             55000   2
