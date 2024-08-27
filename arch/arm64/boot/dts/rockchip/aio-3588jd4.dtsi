@@ -180,13 +180,19 @@
 };
 
 /* wdt on mb */
-&i2c3 {
-	pinctrl-0 = <&i2c3m2_xfer>;
+&i2c4 {
+	status = "okay";
+	pinctrl-0 = <&i2c4m1_xfer>;
 	pc9202@3c {
-		status = "disabled";
+		status = "okay";
 		compatible = "firefly,pc9202";
 		reg = <0x3c>;
+		index = <1>;
+		pinctrl-names = "default";
+		pinctrl-0 = <&wdt_en_base>;
+
 		wd-en-gpio = <&gpio0 RK_PC4 GPIO_ACTIVE_HIGH>;
+		driver-names = "wdt_base";
 	};
 };
 
@@ -398,9 +404,14 @@
 			rockchip,pins = <0 RK_PB2 RK_FUNC_GPIO &pcfg_pull_none>;
 		};
 
-		wifi_poweren_gpio: wifi-poweren-gpio {
+		};
+
+	wdt-pc9202 {
+		
+		wdt_en_base: wdt-en-base {
 			rockchip,pins = <0 RK_PC4 RK_FUNC_GPIO &pcfg_pull_none>;
 		};
+
 	};
 
 	sata {

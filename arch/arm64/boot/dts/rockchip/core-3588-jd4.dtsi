@@ -71,7 +71,9 @@
 		status = "okay";
 		compatible = "firefly,pc9202";
 		reg = <0x3c>;
+		index = <0>;
 		wd-en-gpio = <&gpio2 RK_PC5 GPIO_ACTIVE_HIGH>;
+		driver-names = "wdt_core";
 	};
 
 	hym8563: hym8563@51 {
