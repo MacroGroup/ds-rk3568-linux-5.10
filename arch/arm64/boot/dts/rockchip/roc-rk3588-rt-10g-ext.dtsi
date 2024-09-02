@@ -30,6 +30,10 @@
 
 };
 
+&fan {
+      pwms = <&pwm15 0 50000 1>;
+};
+
 
 /* pcie3.0 x 4 slot */
 &pcie30phy {
