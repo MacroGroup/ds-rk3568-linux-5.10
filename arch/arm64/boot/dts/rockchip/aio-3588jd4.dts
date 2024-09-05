@@ -7,8 +7,8 @@
 /dts-v1/;
 
 #define CAM0_OR_CAM1 1 /*1 = CAM0 , 0 = CAM1 */
-#define IMX415_0_OR_SPI0 0 /* 1 = IMX415_0 , 0 = SPI0 */
-#define IMX415_1_OR_SPI1 0 /* 1 = IMX415_1 , 0 = SPI1 */
+#define IMX415_0_OR_SPI0 1 /* 1 = IMX415_0 , 0 = SPI0 */
+#define IMX415_1_OR_SPI1 1 /* 1 = IMX415_1 , 0 = SPI1 */
 
 #include "aio-3588jd4.dtsi"
 
