@@ -100,8 +100,8 @@
 
 
 		//子板的reset脚，写0会reset子板
-		PWR_EN_SUB1 {
-			label = "PWR_EN_SUB1";
+		PWR_EN_SUB5 {
+			label = "PWR_EN_SUB5";
 			gpios = <&sub_core_pca9555 PCA_IO0_0 GPIO_ACTIVE_HIGH>;	///GPIO4_B3
 			default-state = "on";
 			retain-state-shutdown;
@@ -128,8 +128,8 @@
 			retain-state-shutdown;
 		};
 
-		PWR_EN_SUB5 {
-			label = "PWR_EN_SUB5";
+		PWR_EN_SUB1 {
+			label = "PWR_EN_SUB1";
 			gpios = <&sub_core_pca9555 PCA_IO0_4 GPIO_ACTIVE_HIGH>;	//GPIO4_D4
 			default-state = "on";
 			retain-state-shutdown;
@@ -158,8 +158,8 @@
 
 		////////////////////////RESET////////////////////////////
 
-		RESET_SUB1 {
-			label = "RESET_SUB1";
+		RESET_SUB5 {
+			label = "RESET_SUB5";
 			gpios = <&sub_core_pca9555 PCA_IO1_0 GPIO_ACTIVE_HIGH>;	//GPIO1_C2
 			default-state = "off";
 			retain-state-shutdown;
@@ -186,8 +186,8 @@
 			retain-state-shutdown;
 		};
 
-		RESET_SUB5 {
-			label = "RESET_SUB5";
+		RESET_SUB1 {
+			label = "RESET_SUB1";
 			gpios = <&sub_core_pca9555 PCA_IO1_4 GPIO_ACTIVE_HIGH>;	//GPIO1_C3
 			default-state = "off";
 			retain-state-shutdown;
