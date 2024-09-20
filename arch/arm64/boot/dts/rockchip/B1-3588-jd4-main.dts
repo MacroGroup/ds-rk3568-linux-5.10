@@ -258,6 +258,76 @@
 			default-state = "off";
 			retain-state-shutdown;
 		};
+
+		CORE1_RESET {
+			label = "CORE1_RESET";
+			gpios = <&xl9555_1 PCA_IO1_1 GPIO_ACTIVE_HIGH>;
+			default-state = "off";
+			retain-state-shutdown;
+		};
+
+		CORE2_RESET {
+			label = "CORE2_RESET";
+			gpios = <&xl9555_1 PCA_IO1_2 GPIO_ACTIVE_HIGH>;
+			default-state = "off";
+			retain-state-shutdown;
+		};
+
+		CORE3_RESET {
+			label = "CORE3_RESET";
+			gpios = <&xl9555_1 PCA_IO1_3 GPIO_ACTIVE_HIGH>;
+			default-state = "off";
+			retain-state-shutdown;
+		};
+
+		CORE4_RESET {
+			label = "CORE4_RESET";
+			gpios = <&xl9555_1 PCA_IO1_4 GPIO_ACTIVE_HIGH>;
+			default-state = "off";
+			retain-state-shutdown;
+		};
+
+		CORE5_RESET {
+			label = "CORE5_RESET";
+			gpios = <&xl9555_1 PCA_IO1_5 GPIO_ACTIVE_HIGH>;
+			default-state = "off";
+			retain-state-shutdown;
+		};
+
+		CORE6_RESET {
+			label = "CORE6_RESET";
+			gpios = <&xl9555_2 PCA_IO0_6 GPIO_ACTIVE_HIGH>;
+			default-state = "off";
+			retain-state-shutdown;
+		};
+
+		CORE7_RESET {
+			label = "CORE7_RESET";
+			gpios = <&xl9555_2 PCA_IO0_7 GPIO_ACTIVE_HIGH>;
+			default-state = "off";
+			retain-state-shutdown;
+		};
+
+		CORE8_RESET {
+			label = "CORE8_RESET";
+			gpios = <&xl9555_2 PCA_IO1_0 GPIO_ACTIVE_HIGH>;
+			default-state = "off";
+			retain-state-shutdown;
+		};
+
+		CORE9_RESET {
+			label = "CORE9_RESET";
+			gpios = <&xl9555_2 PCA_IO1_1 GPIO_ACTIVE_HIGH>;
+			default-state = "off";
+			retain-state-shutdown;
+		};
+
+		CORE10_RESET {
+			label = "CORE10_RESET";
+			gpios = <&xl9555_2 PCA_IO1_2 GPIO_ACTIVE_HIGH>;
+			default-state = "off";
+			retain-state-shutdown;
+		};
 	};
 
 	// gpio-keys {
