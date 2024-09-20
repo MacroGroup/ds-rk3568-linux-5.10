@@ -10,7 +10,7 @@
 #include "B1-3588-jd4-main-EDPtoVGA_LT8711V.dtsi"
 
 / {
-	model = "Firefly B1-N10";
+	model = "Firefly CS-B1-N10-RK3588-MAIN Board";
 	compatible = "rockchip,aio-3588jd4", "rockchip,rk3588";
 
 	/delete-node/ es8388_sound;
