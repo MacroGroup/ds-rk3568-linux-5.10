@@ -523,7 +523,7 @@
 		index_base = <5>; // 偏移1，即从ttysWK1开始递增，而非ttysWK0
 		num-ports = <4>;  // 4个串口模式
 		spi-max-frequency = <10000000>;
-		irq-gpio = <&gpio1 RK_PB0 IRQ_TYPE_EDGE_FALLING>;       // WK2124_INT   GPIO1_B0
+		irq-gpio = <&gpio4 RK_PB4 IRQ_TYPE_EDGE_FALLING>;       // WK2124_INT   GPIO4_B4
 		firefly,spi0;
 	};
 };
