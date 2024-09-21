@@ -7,7 +7,7 @@
 /dts-v1/;
 
 #include "B1-3588-jd4-main.dtsi"
-// #include "B1-3588-jd4-main-EDPtoVGA_LT8711V.dtsi"
+#include "B1-3588-jd4-main-EDPtoVGA_LT8711V.dtsi"
 
 / {
 	model = "Firefly CS-B1-N10-RK3588-MAIN Board";
@@ -62,12 +62,12 @@
 			retain-state-shutdown;
 		};
 
-		MCU_BOOT {
-			label = "MCU_LOADER";
-			gpios = <&gpio4 RK_PC1 GPIO_ACTIVE_HIGH>;	//GPIO4_C1
-			default-state = "off";
-			retain-state-shutdown;
-		};
+		// MCU_BOOT {
+		// 	label = "MCU_LOADER";
+		// 	gpios = <&gpio4 RK_PC1 GPIO_ACTIVE_HIGH>;	//GPIO4_C1
+		// 	default-state = "off";
+		// 	retain-state-shutdown;
+		// };
 
 		USB20_HUB_EN {
 			label = "USB20_HUB_EN";
