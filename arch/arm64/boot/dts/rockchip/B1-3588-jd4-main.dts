@@ -90,12 +90,12 @@
 			retain-state-shutdown;
 		};
 
-		// VCC5V0_HOST1_EN {
-		// 	label = "VCC5V0_HOST1_EN";
-		// 	gpios = <&gpio1 RK_PC3 GPIO_ACTIVE_HIGH>;	//GPIO1_C3
-		// 	default-state = "on";
-		// 	retain-state-shutdown;
-		// };
+		VCC5V0_HOST1_EN {
+			label = "VCC5V0_HOST1_EN";
+			gpios = <&gpio1 RK_PC3 GPIO_ACTIVE_HIGH>;	//GPIO1_C3
+			default-state = "on";
+			retain-state-shutdown;
+		};
 
 		UART_5V_EN {
 			label = "UART_5V_EN";
