@@ -328,6 +328,76 @@
 			default-state = "off";
 			retain-state-shutdown;
 		};
+
+		CORE1_MASKROM {
+			label = "CORE1_MASKROM";
+			gpios = <&xl9555_1 PCA_IO0_6 GPIO_ACTIVE_HIGH>;
+			default-state = "off";
+			retain-state-shutdown;
+		};
+
+		CORE2_MASKROM {
+			label = "CORE2_MASKROM";
+			gpios = <&xl9555_1 PCA_IO0_7 GPIO_ACTIVE_HIGH>;
+			default-state = "off";
+			retain-state-shutdown;
+		};
+
+		CORE3_MASKROM {
+			label = "CORE3_MASKROM";
+			gpios = <&xl9555_1 PCA_IO1_0 GPIO_ACTIVE_HIGH>;
+			default-state = "off";
+			retain-state-shutdown;
+		};
+
+		CORE4_MASKROM {
+			label = "CORE4_MASKROM";
+			gpios = <&xl9555_1 PCA_IO1_6 GPIO_ACTIVE_HIGH>;
+			default-state = "off";
+			retain-state-shutdown;
+		};
+
+		CORE5_MASKROM {
+			label = "CORE5_MASKROM";
+			gpios = <&xl9555_1 PCA_IO1_7 GPIO_ACTIVE_HIGH>;
+			default-state = "off";
+			retain-state-shutdown;
+		};
+
+		CORE6_MASKROM {
+			label = "CORE6_MASKROM";
+			gpios = <&xl9555_2 PCA_IO1_3 GPIO_ACTIVE_HIGH>;
+			default-state = "off";
+			retain-state-shutdown;
+		};
+
+		CORE7_MASKROM {
+			label = "CORE7_MASKROM";
+			gpios = <&xl9555_2 PCA_IO1_4 GPIO_ACTIVE_HIGH>;
+			default-state = "off";
+			retain-state-shutdown;
+		};
+
+		CORE8_MASKROM {
+			label = "CORE8_MASKROM";
+			gpios = <&xl9555_2 PCA_IO1_5 GPIO_ACTIVE_HIGH>;
+			default-state = "off";
+			retain-state-shutdown;
+		};
+
+		CORE9_MASKROM {
+			label = "CORE10_RESET";
+			gpios = <&xl9555_2 PCA_IO1_6 GPIO_ACTIVE_HIGH>;
+			default-state = "off";
+			retain-state-shutdown;
+		};
+
+		CORE10_MASKROM {
+			label = "CORE10_RESET";
+			gpios = <&xl9555_2 PCA_IO1_7 GPIO_ACTIVE_HIGH>;
+			default-state = "off";
+			retain-state-shutdown;
+		};
 	};
 
 	// gpio-keys {
