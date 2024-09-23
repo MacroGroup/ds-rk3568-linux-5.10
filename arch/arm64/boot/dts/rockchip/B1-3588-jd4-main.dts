@@ -41,13 +41,6 @@
 		status = "okay";
 		/delete-node/ user;
 
-		// BUZZER_CTL {
-		// 	label = "BUZZER_CTL";
-		// 	gpios = <&gpio0 RK_PD5 GPIO_ACTIVE_HIGH>;	//GPIO0_D5
-		// 	default-state = "on";
-		// 	retain-state-shutdown;
-		// };
-
 		PW_OK {
 			label = "PW_OK";
 			gpios = <&gpio0 RK_PC7 GPIO_ACTIVE_HIGH>;	//GPIO0_C7
@@ -62,12 +55,12 @@
 			retain-state-shutdown;
 		};
 
-		// MCU_BOOT {
-		// 	label = "MCU_LOADER";
-		// 	gpios = <&gpio4 RK_PC1 GPIO_ACTIVE_HIGH>;	//GPIO4_C1
-		// 	default-state = "off";
-		// 	retain-state-shutdown;
-		// };
+		MCU_BOOT {
+			label = "MCU_LOADER";
+			gpios = <&gpio4 RK_PA3 GPIO_ACTIVE_HIGH>;	//GPIO4_A3
+			default-state = "off";
+			retain-state-shutdown;
+		};
 
 		USB20_HUB_EN {
 			label = "USB20_HUB_EN";
