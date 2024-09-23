@@ -158,8 +158,8 @@
 
 		////////////////////////RESET////////////////////////////
 
-		RESET_SUB5 {
-			label = "RESET_SUB5";
+		RESET_SUB1 {
+			label = "RESET_SUB1";
 			gpios = <&sub_core_pca9555 PCA_IO1_0 GPIO_ACTIVE_HIGH>;	//GPIO1_C2
 			default-state = "off";
 			retain-state-shutdown;
@@ -186,8 +186,8 @@
 			retain-state-shutdown;
 		};
 
-		RESET_SUB1 {
-			label = "RESET_SUB1";
+		RESET_SUB5 {
+			label = "RESET_SUB5";
 			gpios = <&sub_core_pca9555 PCA_IO1_4 GPIO_ACTIVE_HIGH>;	//GPIO1_C3
 			default-state = "off";
 			retain-state-shutdown;
