@@ -153,17 +153,10 @@
 	};
 };
 
-&u2phy0_otg {
-	rockchip,typec-vbus-det;
-};
-
 &usbdrd_dwc3_0 {
-	dr_mode = "otg";
-	usb-role-switch;
-	port {
-		#address-cells = <1>;
-		#size-cells = <0>;
-	};
+	dr_mode = "host";
+	phys = <&u2phy0_otg>, <&usbdp_phy0_u3>;
+	status = "okay";
 };
 
 &usbhost3_0 {
@@ -188,14 +181,21 @@
 
 &u2phy0_otg {
 	status = "okay";
+	rockchip,typec-vbus-det;
+};
+
+&usbdp_phy0_u3 {
+	status = "okay";
 };
 
 &u2phy2_host {
 	status = "okay";
+	/delete-property/ phy-supply;
 };
 
 &u2phy3_host {
 	status = "okay";
+	/delete-property/ phy-supply;
 };
 
 &usb_host0_ehci {
@@ -217,15 +217,15 @@
 
 &usbdp_phy0 {
 	status = "okay";
-	orientation-switch;
-	svid = <0xff01>;
-	sbu1-dc-gpios = <&gpio4 RK_PA6 GPIO_ACTIVE_HIGH>;
-	sbu2-dc-gpios = <&gpio4 RK_PA7 GPIO_ACTIVE_HIGH>;
+	// orientation-switch;
+	// svid = <0xff01>;
+	// sbu1-dc-gpios = <&gpio4 RK_PA6 GPIO_ACTIVE_HIGH>;
+	// sbu2-dc-gpios = <&gpio4 RK_PA7 GPIO_ACTIVE_HIGH>;
 
-	port {
-		#address-cells = <1>;
-		#size-cells = <0>;
-	};
+	// port {
+	// 	#address-cells = <1>;
+	// 	#size-cells = <0>;
+	// };
 };
 
 &usbdp_phy0_dp {
@@ -233,11 +233,6 @@
 };
 
 &usbdrd3_0 {
-	status = "okay";
-};
-
-&usbdrd_dwc3_0 {
-	dr_mode = "otg";
 	status = "okay";
 };
 
@@ -285,15 +280,12 @@
 	};
 };
 
-&u2phy1_otg {
-	/delete-property/ phy-supply;
-};
-
 &u2phy1 {
 	status = "okay";
 };
 
 &u2phy1_otg {
+	/delete-property/ phy-supply;
 	status = "okay";
 };
 
@@ -315,6 +307,8 @@
 
 &usbdrd_dwc3_1 {
 	status = "okay";
+	phys = <&u2phy1_otg>, <&usbdp_phy1_u3>;
+    status = "okay";
 };
 
 &combphy2_psu{
@@ -415,19 +409,6 @@
 	status = "okay";
 };
 
-&usbdrd3_0 {
-	status = "okay";
-};
-
-// 双层USB的下面 // type-c0
-// usb@fc000000
-&usbdrd_dwc3_0{
-	//dr_mode = "host";"peripheral";
-	dr_mode = "peripheral";
-	phys = <&u2phy0_otg>, <&usbdp_phy0_u3>;
-    status = "okay";
-};
-
 &mdio0 {
 	rgmii_phy0: phy@1 {
 		compatible = "ethernet-phy-ieee802.3-c22";
@@ -435,66 +416,13 @@
 	};
 };
 
-&u2phy0_otg {
-    status = "okay";
-};
-
-
-&usbdp_phy0_u3 {
-	status = "okay";
-};
-
-
-
-// --------------
-
-// &usbdrd3_1 {
-// 	status = "okay";
-// };
-
-
-// //上面
-&usbdrd_dwc3_1 {
-	// dr_mode = "host";
-	phys = <&u2phy1_otg>, <&usbdp_phy1_u3>;
-    status = "okay";
-};
-
-&u2phy1_otg {
-	/delete-property/ phy-supply;
-    status = "okay";
-};
-
-// &usbdp_phy1_u3 {
-//     status = "okay";
-// };
-
-
-&u2phy2_host {
-        // phy-supply = <&USB30_HUB_RST>;
-        /delete-property/ phy-supply;
-        status = "okay";
-};
-
-
-&u2phy3_host {
-        // phy-supply = <&USB30_HUB_RST>;
-        /delete-property/ phy-supply;
-        status = "okay";
-};
-
-/* XL9555*/
-
-// &i2c6 {
-// 	/delete-node/ pca9555;
-// };
-
 &i2c3 {
 	status = "okay";
 	pinctrl-names = "default";
 	pinctrl-0 = <&i2c3m2_xfer>;
-		// clock-frequency = <400000>;
+	// clock-frequency = <400000>;
 
+	/* XL9555*/
 	xl9555_1: gpio@20 {
 		status = "okay";
 		compatible = "nxp,pca9555";
