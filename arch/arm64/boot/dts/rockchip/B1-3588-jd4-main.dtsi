@@ -445,7 +445,7 @@
 		status = "okay";
 		compatible = "firefly,pc9202";
 		reg = <0x3c>;
-		wd-en-gpio = <&gpio3 RK_PC4 GPIO_ACTIVE_HIGH>;         // GPIO3_C4
+		wd-en-gpio = <&gpio1 RK_PC4 GPIO_ACTIVE_HIGH>;         // GPIO1_C4
 		pinctrl-names = "default";
 		pinctrl-0 = <&wdt_ctl1>;
 		driver-names = "wdtdiban";
@@ -497,7 +497,7 @@
 	watchdog {
 		wdt_ctl1: wdt-ctl {
 				rockchip,pins =
-				<3 RK_PC4 RK_FUNC_GPIO &pcfg_pull_none>;            //GPIO3_C4
+				<1 RK_PC4 RK_FUNC_GPIO &pcfg_pull_none>;            //GPIO1_C4
 		};
 	};
 

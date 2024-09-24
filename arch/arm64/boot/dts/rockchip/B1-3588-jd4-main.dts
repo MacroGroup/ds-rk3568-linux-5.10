@@ -97,7 +97,6 @@
 			retain-state-shutdown;
 		};
 
-
 		BMC_WORK_LED_B {
 			label = "BMC_WORK_LED_B";
 			gpios = <&gpio1 RK_PC2 GPIO_ACTIVE_HIGH>;	//GPIO1_C2
@@ -113,7 +112,6 @@
 			default-state = "off";
 			retain-state-shutdown;
 		};
-
 
 		// BMC_WORK_LED_G {
 		// 	label = "BMC_WORK_LED_G";
@@ -137,7 +135,6 @@
 			retain-state-shutdown;
 		};
 
-
 		SATA_LED {
 			label = "SATA_LED";
 			gpios = <&gpio1 RK_PA0 GPIO_ACTIVE_HIGH>;	//GPIO1_A0
@@ -147,11 +144,9 @@
 
 		POWER_ON {
 			label = "POWER_ON";
-			gpios = <&xl9555_1 PCA_IO0_5 GPIO_ACTIVE_HIGH>;	//GPIO1_C4
+			gpios = <&xl9555_1 PCA_IO0_5 GPIO_ACTIVE_HIGH>;	//PCA9555_1 PCA_IO0_5
 			default-state = "off";
 			retain-state-shutdown;
-			pinctrl-names = "default";
-			pinctrl-0 = <&POWER_ON_GPIO>;
 		};
 
 		SWITCH_PWR_EN {
@@ -541,17 +536,14 @@
 			rockchip,pins = <4 RK_PB3 RK_FUNC_GPIO &pcfg_pull_none>;  //GPIO4_B3
 		};
 	};
-    leds {
-		POWER_ON_GPIO: POWER-ON-GPIO {
-			/* led_power */
-			rockchip,pins = <1 RK_PC4 RK_FUNC_GPIO &pcfg_pull_none>;
-		};
 
+    leds {
 		BMC_WORK_LED_B_GPIO: BMC-WORK-LED-B-GPIO {
 			/* led_power */
 			rockchip,pins = <1 RK_PC2 RK_FUNC_GPIO &pcfg_pull_up>;
 		};
  	};
+
 	wk2xxx-irq-gpios {
 		wk2xxx_1_irq_gpios: wk2xxx-1-irq-gpios{
 			rockchip,pins = <3 RK_PD4 RK_FUNC_GPIO &pcfg_pull_none>; // GPIO3_D4
