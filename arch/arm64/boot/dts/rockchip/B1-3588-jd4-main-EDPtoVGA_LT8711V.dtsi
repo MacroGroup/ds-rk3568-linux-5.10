@@ -101,7 +101,9 @@
 
 &edp0{
     force-hpd;
-    // hpd-gpios = <&gpio1 RK_PA5 GPIO_ACTIVE_HIGH>;
+    hpd-gpios = <&gpio1 RK_PA5 GPIO_ACTIVE_HIGH>;
+    pinctrl-names = "default";
+    pinctrl-0 = <&edp_hpd>;
     status = "okay";
     ports {
         port@1 {
@@ -124,4 +126,13 @@
 &route_edp0 {
     status = "okay";
     connect = <&vp2_out_edp0>;
+};
+
+&pinctrl {
+        edp{
+            edp_hpd: edp-hpd{
+            // rockchip,pins = <1 RK_PA5 RK_FUNC_GPIO &pcfg_pull_down_drv_level_6>;
+            rockchip,pins = <1 RK_PA5 RK_FUNC_GPIO &pcfg_pull_down>;
+        };
+    };
 };

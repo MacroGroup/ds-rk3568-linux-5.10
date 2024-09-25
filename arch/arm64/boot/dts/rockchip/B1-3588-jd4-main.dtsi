@@ -11,7 +11,7 @@
 /* led */
 	firefly_leds: leds {
 		power_led: power {
-			gpios = <&gpio1 RK_PA5 GPIO_ACTIVE_LOW>;//green led
+			gpios = <&gpio4 RK_PB4 GPIO_ACTIVE_LOW>;//green led
             default-state = "on";
 		};
 
