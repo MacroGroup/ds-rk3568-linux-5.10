@@ -152,14 +152,14 @@
 		POWER_ON {
 			label = "POWER_ON";
 			gpios = <&xl9555_1 PCA_IO0_5 GPIO_ACTIVE_HIGH>;	//PCA9555_1 PCA_IO0_5
-			default-state = "off";
+			default-state = "keep";
 			retain-state-shutdown;
 		};
 
 		SWITCH_PWR_EN {
 			label = "SWITCH_PWR_EN";
 			gpios = <&gpio2 RK_PC3 GPIO_ACTIVE_LOW>;	//GPIO2_C3
-			default-state = "on";
+			default-state = "keep";
 			retain-state-shutdown;
 		};
 
@@ -187,70 +187,70 @@
 		CORE1_SYS_EN {
 			label = "CORE1_SYS_EN";
 			gpios = <&xl9555_1 PCA_IO0_0 GPIO_ACTIVE_HIGH>;
-			default-state = "off";
+			default-state = "keep";
 			retain-state-shutdown;
 		};
 
 		CORE2_SYS_EN {
 			label = "CORE2_SYS_EN";
 			gpios = <&xl9555_1 PCA_IO0_1 GPIO_ACTIVE_HIGH>;
-			default-state = "off";
+			default-state = "keep";
 			retain-state-shutdown;
 		};
 
 		CORE3_SYS_EN {
 			label = "CORE3_SYS_EN";
 			gpios = <&xl9555_1 PCA_IO0_2 GPIO_ACTIVE_HIGH>;
-			default-state = "off";
+			default-state = "keep";
 			retain-state-shutdown;
 		};
 
 		CORE4_SYS_EN {
 			label = "CORE4_SYS_EN";
 			gpios = <&xl9555_1 PCA_IO0_3 GPIO_ACTIVE_HIGH>;
-			default-state = "off";
+			default-state = "keep";
 			retain-state-shutdown;
 		};
 
 		CORE5_SYS_EN {
 			label = "CORE5_SYS_EN";
 			gpios = <&xl9555_1 PCA_IO0_4 GPIO_ACTIVE_HIGH>;
-			default-state = "off";
+			default-state = "keep";
 			retain-state-shutdown;
 		};
 
 		CORE6_SYS_EN {
 			label = "CORE6_SYS_EN";
 			gpios = <&xl9555_2 PCA_IO0_0 GPIO_ACTIVE_HIGH>;
-			default-state = "off";
+			default-state = "keep";
 			retain-state-shutdown;
 		};
 
 		CORE7_SYS_EN {
 			label = "CORE7_SYS_EN";
 			gpios = <&xl9555_2 PCA_IO0_1 GPIO_ACTIVE_HIGH>;
-			default-state = "off";
+			default-state = "keep";
 			retain-state-shutdown;
 		};
 
 		CORE8_SYS_EN {
 			label = "CORE8_SYS_EN";
 			gpios = <&xl9555_2 PCA_IO0_2 GPIO_ACTIVE_HIGH>;
-			default-state = "off";
+			default-state = "keep";
 			retain-state-shutdown;
 		};
 
 		CORE9_SYS_EN {
 			label = "CORE9_SYS_EN";
 			gpios = <&xl9555_2 PCA_IO0_3 GPIO_ACTIVE_HIGH>;
-			default-state = "off";
+			default-state = "keep";
 			retain-state-shutdown;
 		};
 
 		CORE10_SYS_EN {
 			label = "CORE10_SYS_EN";
 			gpios = <&xl9555_2 PCA_IO0_4 GPIO_ACTIVE_HIGH>;
-			default-state = "off";
+			default-state = "keep";
 			retain-state-shutdown;
 		};
 
