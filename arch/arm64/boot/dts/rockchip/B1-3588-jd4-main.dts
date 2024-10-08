@@ -599,3 +599,20 @@
 	pinctrl-names = "default";
 	pinctrl-0 = <&i2c4m1_xfer>;
 };
+
+// spi flash
+&spi1 {
+	status = "okay";
+	// max-freq = <48000000>;
+	pinctrl-names = "default";
+	pinctrl-0 = <&spi1m2_cs0 &spi1m2_cs1 &spi1m2_pins>;
+
+	spi_dev@0 {
+		compatible = "jedec,spi-nor";
+		reg = <0>;
+		spi-max-frequency = <45000000>;
+		spi-msb-first;
+		// spi-cpol;
+		// spi-cpha;
+	};
+};
