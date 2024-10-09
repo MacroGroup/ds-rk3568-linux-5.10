@@ -41,12 +41,12 @@
 		status = "okay";
 		/delete-node/ user;
 
-		PW_OK {
-			label = "PW_OK";
-			gpios = <&gpio0 RK_PC7 GPIO_ACTIVE_HIGH>;	//GPIO0_C7
-			default-state = "on";
-			retain-state-shutdown;
-		};
+		// PW_OK {
+		// 	label = "PW_OK";
+		// 	gpios = <&gpio0 RK_PC7 GPIO_ACTIVE_HIGH>;	//GPIO0_C7
+		// 	default-state = "on";
+		// 	retain-state-shutdown;
+		// };
 
 		MCU_RESET {
 			label = "MCU_RESET";
@@ -97,28 +97,29 @@
 			retain-state-shutdown;
 		};
 
-		BMC_WORK_LED_B {
-			label = "BMC_WORK_LED_B";
-			gpios = <&gpio1 RK_PC2 GPIO_ACTIVE_HIGH>;	//GPIO1_C2
-			default-state = "on";
-			retain-state-shutdown;
-			pinctrl-names = "default";
-			pinctrl-0 = <&BMC_WORK_LED_B_GPIO>;
-		};
-
 		BMC_WORK_LED_R {
 			label = "BMC_WORK_LED_R";
+			gpios = <&gpio1 RK_PC2 GPIO_ACTIVE_HIGH>;	//GPIO1_C2
+			default-state = "off";
+			retain-state-shutdown;
+			pinctrl-names = "default";
+			// pinctrl-0 = <&BMC_WORK_LED_B_GPIO>;
+		};
+
+		BMC_WORK_LED_Y {
+			label = "BMC_WORK_LED_Y";
+			linux,default-trigger = "heartbeat";
 			gpios = <&gpio3 RK_PA6 GPIO_ACTIVE_HIGH>;	//GPIO3_A6
+			default-state = "on";
+			retain-state-shutdown;
+		};
+
+		BMC_WORK_LED_G {
+			label = "BMC_WORK_LED_G";
+			gpios = <&gpio1 RK_PA6 GPIO_ACTIVE_HIGH>;	//GPIO1_A5
 			default-state = "off";
 			retain-state-shutdown;
 		};
-
-		// BMC_WORK_LED_G {
-		// 	label = "BMC_WORK_LED_G";
-		// 	gpios = <&gpio1 RK_PA5 GPIO_ACTIVE_HIGH>;	//GPIO1_A5
-		// 	default-state = "off";
-		// 	retain-state-shutdown;
-		// };
 
 
 		VGA_PWR_EN {
@@ -131,7 +132,7 @@
 		UID_LED {
 			label = "UID_LED";
 			gpios = <&gpio1 RK_PD5 GPIO_ACTIVE_HIGH>;	//GPIO1_D5
-			default-state = "on";
+			default-state = "off";
 			retain-state-shutdown;
 		};
 
