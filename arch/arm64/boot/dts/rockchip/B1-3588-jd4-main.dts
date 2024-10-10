@@ -448,14 +448,14 @@
 		// };
 
 
-		button@RESET {
-			gpios = <&gpio0 RK_PC6 GPIO_ACTIVE_LOW>;            //power_key       GPIO0_C6
-			linux,code = <10000>;
-			label = "P2_ACT_DET KEY";
-			linux,input-type = <EV_KEY>;
-			// gpio-key,wakeup = <1>;
-			debounce-interval = <100>;
-		};
+		// button@RESET {
+		// 	gpios = <&gpio0 RK_PC6 GPIO_ACTIVE_LOW>;            //power_key       GPIO0_C6
+		// 	linux,code = <766>;
+		// 	label = "P2_ACT_DET KEY";
+		// 	linux,input-type = <EV_KEY>;
+		// 	// gpio-key,wakeup = <1>;
+		// 	debounce-interval = <100>;
+		// };
 
 		// 错了！！！
 		// button@SFP3_ACT_DET {
