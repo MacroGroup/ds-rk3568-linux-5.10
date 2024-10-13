@@ -97,6 +97,15 @@
 			retain-state-shutdown;
 		};
 
+		BMC_BS_LED {
+			label = "BMC_BS_LED";
+			gpios = <&gpio1 RK_PA4 GPIO_ACTIVE_LOW>;	//GPIO1_A4
+			default-state = "on";
+			// retain-state-shutdown;
+			pinctrl-names = "default";
+			// pinctrl-0 = <&BMC_WORK_LED_B_GPIO>;
+		};
+
 		BMC_WORK_LED_R {
 			label = "BMC_WORK_LED_R";
 			gpios = <&gpio1 RK_PC2 GPIO_ACTIVE_HIGH>;	//GPIO1_C2
