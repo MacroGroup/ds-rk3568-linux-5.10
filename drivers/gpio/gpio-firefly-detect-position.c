@@ -209,7 +209,7 @@ static ssize_t value_show(struct device *dev, struct device_attribute *attr, cha
     }
 
     value = info->position[0] + info->position[1] * 2 + info->position[2] * 4 + info->position[3] * 8 + info->position[4] * 16 + info->position[5] * 32 + info->position[6] * 64;
-    return sprintf(buf, "sub%02d",value);
+    return sprintf(buf, "sub%02d",value+1);
 }
 static DEVICE_ATTR(value, S_IRUGO, value_show, NULL);
 
