@@ -39,9 +39,9 @@
 
 &i2c0 {
 	pinctrl-0 = <&i2c0m2_xfer>;
-	status = "disable";
+	status = "okay";
 	core_pc9202: pc9202@3c {
-		status = "disable";
+		status = "okay";
 		compatible = "firefly,pc9202";
 		reg = <0x3c>;
 		pinctrl-names = "default";
@@ -60,7 +60,7 @@
 		reg = <0x3c>;
 		pinctrl-names = "default";
 		pinctrl-0 = <&base_pc9202_en_pin>;
-		wd-en-gpio = <&gpio3 RK_PC4 GPIO_ACTIVE_LOW>;
+		wd-en-gpio = <&gpio3 RK_PC4 GPIO_ACTIVE_HIGH>;
 	};
 };
 
@@ -147,6 +147,8 @@
 };
 
 &pcie3x4 {
+        num-lanes = <2>;
+        reset-gpios = <&gpio4 RK_PB6 GPIO_ACTIVE_HIGH>;
         vpcie3v3-supply = <&vcc3v3_pcie30>;
         status = "okay";
 };
