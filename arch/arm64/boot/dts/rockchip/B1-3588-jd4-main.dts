@@ -391,14 +391,14 @@
 		};
 
 		CORE9_MASKROM {
-			label = "CORE10_RESET";
+			label = "CORE9_MASKROM";
 			gpios = <&xl9555_2 PCA_IO1_6 GPIO_ACTIVE_HIGH>;
 			default-state = "off";
 			retain-state-shutdown;
 		};
 
 		CORE10_MASKROM {
-			label = "CORE10_RESET";
+			label = "CORE10_MASKROM";
 			gpios = <&xl9555_2 PCA_IO1_7 GPIO_ACTIVE_HIGH>;
 			default-state = "off";
 			retain-state-shutdown;
