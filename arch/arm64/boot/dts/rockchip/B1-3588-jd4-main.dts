@@ -488,7 +488,7 @@
 		// };
 	};
 
-	sensor_9311: sensor-9311 {
+	switch_sensor: switch-sensor {
         compatible = "generic-adc-thermal";
         #thermal-sensor-cells = <0>;
         io-channels = <&saradc 6>;
@@ -514,10 +514,10 @@
 };
 
 &thermal_zones {
-	thermal_9311: thermal-9311 {
+	switch_thermal: switch-thermal {
 		polling-delay = <1000>; /* milliseconds */
 		polling-delay-passive = <1000>; /* milliseconds */
-		thermal-sensors = <&sensor_9311>;
+		thermal-sensors = <&switch_sensor>;
 
 		trips {
 			therm_est_trip: therm_est_trip {
