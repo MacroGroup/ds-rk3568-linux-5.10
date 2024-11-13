@@ -511,6 +511,14 @@
         compatible = "dummy-cooling-dev";
         #cooling-cells = <2>; /* min followed by max */
 	};
+
+	//uid key to recovery
+	firefly_cluster_uid_key:cluster_uid_key {
+		label = "cluster_uid_key";
+		compatible = "cluster-uid-key";
+		cluster_uid_gpio = <&gpio4 RK_PD2 GPIO_ACTIVE_HIGH>;
+		status = "okay";
+	};
 };
 
 &thermal_zones {
