@@ -48,6 +48,7 @@ obj-$(CONFIG_TOUCHSCREEN_GSLX680_FIREFLY)	+= gslx680_firefly.o gsl_point_id.o
 obj-$(CONFIG_TOUCHSCREEN_GSL3673)	+= gsl3673.o gsl_point_id.o
 obj-$(CONFIG_TOUCHSCREEN_GSL3673_800X1280)	+= gsl3673_800x1280.o gsl_point_id.o
 obj-$(CONFIG_TOUCHSCREEN_GT9XX)		+= gt9xx/
+obj-$(CONFIG_TOUCHSCREEN_GT9XXX_FIREFLY)		+= gt9xxx_firefly/
 obj-$(CONFIG_TOUCHSCREEN_ILI210X)	+= ili210x.o
 obj-$(CONFIG_TOUCHSCREEN_IMX6UL_TSC)	+= imx6ul_tsc.o
 obj-$(CONFIG_TOUCHSCREEN_INEXIO)	+= inexio.o
