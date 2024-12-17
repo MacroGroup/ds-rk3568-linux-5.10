@@ -435,6 +435,15 @@ config TOUCHSCREEN_GSLX680_FIREFLY
 config TOUCHSCREEN_GT1X
 	tristate "GT1X touchscreens support"
 
+config TOUCHSCREEN_GT9XXX_FIREFLY
+	tristate "Firefly Goodix touchpanel GT9xx series"
+	depends on I2C
+	help
+      Say Y here if you have a Goodix GT9xx touchscreen
+      controller.
+      If build module, say M.
+      If unsure, say N.
+
 config TOUCHSCREEN_GT9XXX
     tristate "Firefly Goodix gt9xx support for rockchip platform"
     depends on I2C && ARCH_ROCKCHIP
