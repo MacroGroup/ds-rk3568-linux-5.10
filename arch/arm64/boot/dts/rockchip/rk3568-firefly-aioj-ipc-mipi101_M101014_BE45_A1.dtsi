@@ -6,15 +6,7 @@
 
 /dts-v1/;
 
-#include "rk3568-firefly-aioj.dtsi"
-#include "rk3568-firefly-aioj-cam-2ms2m.dtsi"
-// #include "rk3568-firefly-aioj-ipc-mipi101_M101014_BE45_A1.dtsi"
-#include "rk3568-firefly-aioj-ipc-mipi101-BSD1218-A101KL68.dtsi"
-
 / {
-    model = "Firefly IPC-M10R800-A3568J MIPI(Linux)";
-    compatible = "rockchip,rk3568-firefly-aioj", "rockchip,rk3568";
-
     vcc1v8_lcd1_power: vcc1v8-lcd1-power-regulator {
         compatible = "regulator-fixed";
         enable-active-high;
@@ -69,6 +61,7 @@
         >;
         default-brightness-level = <200>;
     };
+
 };
 
 &pwm5 {
@@ -95,21 +88,18 @@
 };
 
 /*
- * mipi_dphy1 needs to be enabled
+ * video_phy1 needs to be enabled
  * when dsi1 is enabled
  */
 &dsi1 {
-    status = "okay";
+    status = "disabled";
     //rockchip,lane-rate = <1000>;
     dsi1_panel: panel@0 {
-        status = "okay";
+        status = "disabled";
         compatible = "simple-panel-dsi";
         reg = <0>;
-        backlight = <&backlight>;
+        backlight = <&backlight_1>;
 		power-supply = <&vcc1v8_lcd1_power>;
-
-		ddc-i2c-bus = <&i2c4>;
-		det-addr = <0x48>;
 
         enable-gpios = <&pca9555 PCA_IO0_7 GPIO_ACTIVE_HIGH>;
 	    reset-gpios = <&gpio4 RK_PC6 GPIO_ACTIVE_LOW>;
@@ -226,6 +216,3 @@
         };
 	};
 };
-
-/delete-node/ &vcc3v3_lcd0_n;
-/delete-node/ &vcc3v3_lcd1_n;
