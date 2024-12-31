@@ -1672,4 +1672,10 @@ config GPIO_FIREFLY_DETECT_POSITION
 	help
 	  Sample code of Cluster_Server(All Model) sub position .
 
+config GPIO_FIREFLY_PCA953X_HPD
+	tristate "Firefly PCA953X Hot Plug GPIO Detect driver support"
+	default y
+	help
+	  Sample code of Cluster_Server(All Model) sub Hot Plug .
+
 endif

@@ -86,6 +86,13 @@
 			retain-state-shutdown;
 		};
 
+		NETWORK_SW_PWR_RST {
+			label = "NETWORK_SW_PWR_RST";
+			gpios = <&gpio3 RK_PD4 GPIO_ACTIVE_HIGH>;   //GPIO3_D2
+			default-state = "off";
+			retain-state-shutdown;
+		};
+
 		NETWORK_INTERNAL_PWR_EN {
 			label = "NETWORK_INTERNAL_PWR_EN";
 			gpios = <&gpio3 RK_PC1 GPIO_ACTIVE_LOW>;   // GPIO3_C1

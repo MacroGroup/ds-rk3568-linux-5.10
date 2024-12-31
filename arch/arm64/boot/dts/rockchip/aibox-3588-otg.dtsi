@@ -9,7 +9,7 @@
  #include "rk3588-diff.dtsi"
 
 #define M2_SATA_OR_PCIE 0 /*1 = SATA , 0 = PCIe */
-#define TYPEC_OTG_20 0 /*1 = OTG , 0 = HOST */
+#define TYPEC_OTG_20 1 /*1 = OTG , 0 = HOST */
 
  / {
 

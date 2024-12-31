@@ -18,7 +18,7 @@
                gpios = <&gpio3 RK_PB7 GPIO_ACTIVE_HIGH>;
                startup-delay-us = <5000>;
                vin-supply = <&vcc12v_dcin>;
-               status = "okay";
+               status = "disabled";
        };
 
 	   pcie_clk1: pcie-clk1 {
@@ -53,7 +53,7 @@
 
 
 &pcie3x2 {
-       status = "okay";
+       status = "disabled";
        num-lanes = <2>;
        reset-gpios = <&gpio4 RK_PB0 GPIO_ACTIVE_HIGH>;
        vpcie3v3-supply = <&pcie_essd>;

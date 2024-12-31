@@ -11,6 +11,15 @@
 
 
  / {
+	position: position {
+	        status = "okay";
+	        compatible = "firefly,detect-position-gpio";
+	        firefly-used-num = <4>;
+	        firefly-bit0-gpio = <&gpio1 RK_PD3 GPIO_ACTIVE_HIGH>;
+	        firefly-bit1-gpio = <&gpio1 RK_PD0 GPIO_ACTIVE_HIGH>;
+	        firefly-bit2-gpio = <&gpio1 RK_PD2 GPIO_ACTIVE_HIGH>;
+	        firefly-bit3-gpio = <&gpio1 RK_PD1 GPIO_ACTIVE_HIGH>;
+	};
 /* led */
 	firefly_leds: leds {
 		compatible = "gpio-leds";

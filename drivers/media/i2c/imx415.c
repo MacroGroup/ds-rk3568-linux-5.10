@@ -61,7 +61,6 @@
 #endif
 
 
-#define MIPI_FREQ_1782M			1782000000
 #define MIPI_FREQ_1188M			1188000000
 #define MIPI_FREQ_891M			891000000
 #define MIPI_FREQ_446M			446000000
@@ -71,7 +70,7 @@
 #define IMX415_4LANES			4
 #define IMX415_2LANES			2
 
-#define IMX415_MAX_PIXEL_RATE		(MIPI_FREQ_1782M / 10 * 2 * IMX415_4LANES)
+#define IMX415_MAX_PIXEL_RATE		(MIPI_FREQ_891M / 10 * 2 * IMX415_4LANES)
 #define OF_CAMERA_HDR_MODE		"rockchip,camera-hdr-mode"
 
 #define IMX415_XVCLK_FREQ_37M		37125000
@@ -679,7 +678,7 @@ static __maybe_unused const struct regval imx415_linear_10bit_3864x2192_891M_reg
 	{REG_NULL, 0x00},
 };
 
-static __maybe_unused const struct regval imx415_linear_10bit_3864x2192_1782M_regs[] = {
+static __maybe_unused const struct regval imx415_linear_10bit_3864x2192_1485M_regs[] = {
 	{0x3020, 0x00},
 	{0x3021, 0x00},
 	{0x3022, 0x00},
@@ -689,7 +688,8 @@ static __maybe_unused const struct regval imx415_linear_10bit_3864x2192_1782M_re
 	{0x3029, 0x02},
 	{0x302C, 0x00},
 	{0x302D, 0x00},
-	{0x3033, 0x04},
+	{0x3033, 0x08},
+	{0x3034, 0x08},
 	{0x3050, 0x08},
 	{0x3051, 0x00},
 	{0x3054, 0x19},
@@ -697,19 +697,19 @@ static __maybe_unused const struct regval imx415_linear_10bit_3864x2192_1782M_re
 	{0x3060, 0x25},
 	{0x3064, 0x4a},
 	{0x30CF, 0x00},
-	{0x3118, 0xC0},
+	{0x3118, 0xA0},
 	{0x3260, 0x01},
-	{0x400C, 0x00},
-	{0x4018, 0xB7},
-	{0x401A, 0x67},
-	{0x401C, 0x67},
-	{0x401E, 0xDF},
+	{0x400C, 0x01},
+	{0x4018, 0xA7},
+	{0x401A, 0x57},
+	{0x401C, 0x5F},
+	{0x401E, 0x97},
 	{0x401F, 0x01},
-	{0x4020, 0x6F},
-	{0x4022, 0xCF},
-	{0x4024, 0x6F},
-	{0x4026, 0xB7},
-	{0x4028, 0x5F},
+	{0x4020, 0x5F},
+	{0x4022, 0xAF},
+	{0x4024, 0x5F},
+	{0x4026, 0x9F},
+	{0x4028, 0x4F},
 	{0x4074, 0x00},
 	{REG_NULL, 0x00},
 };
@@ -1123,12 +1123,12 @@ static const struct imx415_mode supported_modes[] = {
 			.denominator = 600000,
 		},
 		.exp_def = 0x08ca - 0x08,
-		.hts_def = 0x044c * IMX415_4LANES * 2,
+		.hts_def = 0x0226 * IMX415_4LANES * 2,
 		.vts_def = 0x08ca,
 		.global_reg_list = imx415_global_10bit_3864x2192_regs,
-		.reg_list = imx415_linear_10bit_3864x2192_1782M_regs,
+		.reg_list = imx415_linear_10bit_3864x2192_1485M_regs,
 		.hdr_mode = NO_HDR,
-		.mipi_freq_idx = 1,
+		.mipi_freq_idx = 2,
 		.bpp = 10,
 		.vc[PAD0] = V4L2_MBUS_CSI2_CHANNEL_0,
 		.xvclk = IMX415_XVCLK_FREQ_37M,
@@ -1398,7 +1398,6 @@ static const s64 link_freq_items[] = {
 	MIPI_FREQ_743M,
 	MIPI_FREQ_891M,
 	MIPI_FREQ_1188M,
-	MIPI_FREQ_1782M,
 };
 
 /* Write registers up to 4 at a time */

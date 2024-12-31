@@ -7,3 +7,9 @@
 /dts-v1/;
 
 #include "aio-3588jd4-host.dtsi"
+
+//down
+&usbdrd_dwc3_0{
+	dr_mode = "peripheral";
+    status = "okay";
+};

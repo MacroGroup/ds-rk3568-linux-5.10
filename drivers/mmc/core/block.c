@@ -2977,8 +2977,12 @@ static int mmc_blk_probe(struct mmc_card *card)
 	dev_set_drvdata(&card->dev, md);
 
 #if defined(CONFIG_MMC_DW_ROCKCHIP) || defined(CONFIG_MMC_SDHCI_OF_ARASAN)
-	if (card->type == MMC_TYPE_MMC)
+	if (card->type == MMC_TYPE_MMC) {
+		if (!(card->host->caps2 & MMC_CAP2_NO_MMC)) {
+			mmc_blk_data_init(md);
+		}
 		this_card = card;
+	}
 #endif
 
 	if (mmc_add_disk(md))
@@ -2987,10 +2991,6 @@ static int mmc_blk_probe(struct mmc_card *card)
 	list_for_each_entry(part_md, &md->part, part) {
 		if (mmc_add_disk(part_md))
 			goto out;
-	}
-
-	if (!(card->host->caps2 & MMC_CAP2_NO_MMC)) {
-		mmc_blk_data_init(md);
 	}
 
 	/* Add two debugfs entries */

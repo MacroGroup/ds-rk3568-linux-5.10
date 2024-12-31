@@ -121,7 +121,7 @@
 
 /* gmac1 */
 &gmac1 {
-	snps,reset-gpio = <&gpio4 RK_PB5 GPIO_ACTIVE_LOW>;
+	snps,reset-gpio = <&gpio4 RK_PB0 GPIO_ACTIVE_LOW>;
 	tx_delay = <0x45>;
 	status = "okay";
 };

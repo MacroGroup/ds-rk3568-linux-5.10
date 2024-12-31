@@ -73,6 +73,7 @@ struct mmc_rpmb_blk_data {
     struct mmc_blk_data *md;
     struct mmc_rpmb_data *rpmb;
     char dev_name[32];
+    u8* frame0_rawdata;
 };
 
 int mmc_blk_data_init(struct mmc_blk_data *md);
