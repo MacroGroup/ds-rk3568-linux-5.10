@@ -2989,9 +2989,11 @@ static int mmc_blk_probe(struct mmc_card *card)
 			goto out;
 	}
 
+	/*
 	if (!(card->host->caps2 & MMC_CAP2_NO_MMC)) {
 		mmc_blk_data_init(md);
 	}
+	*/
 
 	/* Add two debugfs entries */
 	mmc_blk_add_debugfs(card, md);

@@ -270,3 +270,5 @@ dtb-$(CONFIG_ARCH_ROCKCHIP) += rk3588s-tablet-rk806-single-v10.dtb
 dtb-$(CONFIG_ARCH_ROCKCHIP) += rk3588s-tablet-v10.dtb
 dtb-$(CONFIG_ARCH_ROCKCHIP) += rk3588s-tablet-v11.dtb
 dtb-$(CONFIG_ARCH_ROCKCHIP) += rk3568-firefly-aioj.dtb
+dtb-$(CONFIG_ARCH_ROCKCHIP) += rk3568-diasom-som-evb-ver1-1-0.dtb
+dtb-$(CONFIG_ARCH_ROCKCHIP) += rk3568-diasom-som-evb-ver1-2-1.dtb
