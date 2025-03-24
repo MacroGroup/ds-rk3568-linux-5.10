@@ -6,6 +6,7 @@
 #include <dt-bindings/input/rk-input.h>
 #include <dt-bindings/display/drm_mipi_dsi.h>
 #include <dt-bindings/sensor-dev.h>
+#include "dt-bindings/usb/pd.h"
 #include "rk3568.dtsi"
 
 / {
@@ -20,6 +21,22 @@
         ethernet0 = &gmac0;
         ethernet1 = &gmac1;
     };
+
+	usb {
+		pinctrl-names = "default";
+		pinctrl-0 = <&usbmux_pins>;
+		compatible = "genesys,gl9962", "gpio-sbu-mux";
+		enable-gpios = <&gpio3 RK_PA2 GPIO_ACTIVE_HIGH>;
+		select-gpios = <&gpio4 RK_PD2 GPIO_ACTIVE_LOW>;
+		orientation-switch;
+        status = "okay";
+
+		port {
+			typec_sbu: endpoint {
+				remote-endpoint = <&fusb_sbu>;
+			};
+		};
+	};
 
     vcc0v9_cpu: vcc0v9-cpu-regulator {
         compatible = "regulator-fixed";
@@ -111,6 +128,16 @@
         regulator-max-microvolt = <5000000>;
         startup-delay-us = <20000>;
         vin-supply = <&vcc5v0_sys>;
+    };
+
+    vcc5v0_usb3_otg0: vcc5v0-usb3-otg0-regulator {
+        compatible = "regulator-fixed";
+        regulator-name = "vcc5v0_usb3_otg0";
+        regulator-min-microvolt = <5000000>;
+        regulator-max-microvolt = <5000000>;
+        startup-delay-us = <20000>;
+        vin-supply = <&vcc5v0_sys>;
+        status = "disabled";
     };
 
     vcc_cam0: vcc-cam0-regulator {
@@ -655,6 +682,67 @@
     };
 };
 
+&i2c1 {
+    /* FUSB302 is not detected at 1MHz, so lets reduce frequency to 400KHz */
+    clock-frequency = <400000>;
+    status = "okay";
+
+    typec: usb@22 {
+        compatible = "fcs,fusb302";
+        reg = <0x22>;
+        vbus-supply = <&vcc5v0_usb3_otg0>;
+        status = "disabled";
+
+        connector {
+            compatible = "usb-c-connector";
+            data-role = "host";
+            label = "USB-C";
+            pd-disable;
+            power-role = "source";
+            typec-power-opmode = "default";
+
+            source-pdos =
+                <PDO_FIXED(5000, 1500, PDO_FIXED_USB_COMM)>;
+
+            ports {
+                #address-cells = <1>;
+                #size-cells = <0>;
+
+                port@0 {
+                    /* HS */
+                    reg = <0>;
+                    fusb_hs: endpoint {
+                        remote-endpoint = <&typec_hs>;
+                    };
+                };
+
+                port@1 {
+                    /* SS */
+                    reg = <1>;
+                    fusb_ss: endpoint {
+                        remote-endpoint = <&typec_ss>;
+                    };
+                };
+
+                port@2 {
+                    /* Orientation Switch */
+                    reg = <2>;
+                    fusb_sbu: endpoint {
+                        remote-endpoint = <&typec_sbu>;
+                    };
+                };
+            };
+        };
+
+        port {
+            /* Role switch */
+            fusb_role_sw: endpoint {
+                remote-endpoint = <&typec_role_sw>;
+            };
+        };
+    };
+};
+
 &i2c4 {
     clock-frequency = <400000>;
     status = "okay";
@@ -736,6 +824,33 @@
 &usbdrd_dwc3 {
     status = "okay";
     dr_mode = "host";
+    
+    port {
+        typec_role_sw: endpoint {
+            remote-endpoint = <&fusb_role_sw>;
+        };
+    };
+
+    ports {
+        #address-cells = <1>;
+        #size-cells = <0>;
+
+        port@0 {
+            /* HS */
+            reg = <0>;
+            typec_hs: endpoint {
+                remote-endpoint = <&fusb_hs>;
+            };
+        };
+
+        port@1 {
+            /* SS */
+            reg = <1>;
+            typec_ss: endpoint {
+                remote-endpoint = <&fusb_ss>;
+            };
+        };
+    };
 };
 
 &usbhost30 {
@@ -937,4 +1052,12 @@
                 <1 RK_PA5 RK_FUNC_GPIO &pcfg_pull_none>;	/* USB3_OTG0_EN */
         };
     };
+
+	usbmux {
+		usbmux_pins: usbmux-pins {
+			rockchip,pins =
+				<4 RK_PD2 RK_FUNC_GPIO &pcfg_pull_up>,		/* USB3_OTG0_SEL */
+				<3 RK_PA2 RK_FUNC_GPIO &pcfg_pull_none>;	/* Unused */
+		};
+	};    
 };

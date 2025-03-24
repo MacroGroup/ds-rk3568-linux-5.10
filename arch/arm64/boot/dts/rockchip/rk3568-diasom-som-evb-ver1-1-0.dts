@@ -20,7 +20,7 @@
 	clock-frequency = <400000>;
 };
 
-/*
+
 &typec {
 	pinctrl-names = "default";
 	pinctrl-0 = <&fusb302_pins>;
@@ -28,7 +28,6 @@
 	interrupts = <RK_PC1 IRQ_TYPE_LEVEL_LOW>;
 	status = "okay";
 };
-*/
 
 &vcc_cam0 {
 	regulator-min-microvolt = <5000000>;
@@ -63,14 +62,12 @@
 	status = "okay";
 };
 
-/*
 &vcc5v0_usb3_otg0 {
 	pinctrl-names = "default";
 	pinctrl-0 = <&usb3_otg0_en_pins>;
 	gpio = <&gpio1 RK_PA5 GPIO_ACTIVE_LOW>;
 	status = "okay";
 };
-*/
 
 &pinctrl {
 	csi {

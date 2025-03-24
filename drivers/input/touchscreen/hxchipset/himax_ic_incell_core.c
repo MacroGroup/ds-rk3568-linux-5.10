@@ -449,7 +449,7 @@ static void himax_mcu_sense_on(uint8_t FlashMode)
 			if (ret < 0)
 				E("%s: i2c access fail!\n", __func__);
 
-				ret = himax_bus_write(pic_op->adr_i2c_psw_ub[0],
+			ret = himax_bus_write(pic_op->adr_i2c_psw_ub[0],
 					tmp_data, 1, HIMAX_I2C_RETRY_TIMES);
 			if (ret < 0)
 				E("%s: i2c access fail!\n", __func__);
