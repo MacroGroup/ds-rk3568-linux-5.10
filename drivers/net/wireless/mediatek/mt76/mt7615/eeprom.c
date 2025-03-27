@@ -123,12 +123,12 @@ mt7615_eeprom_parse_hw_band_cap(struct mt7615_dev *dev)
 	case MT_EE_5GHZ:
 		dev->mphy.cap.has_5ghz = true;
 		break;
-	case MT_EE_DBDC:
-		dev->dbdc_support = true;
-		fallthrough;
 	case MT_EE_2GHZ:
 		dev->mphy.cap.has_2ghz = true;
 		break;
+	case MT_EE_DBDC:
+		dev->dbdc_support = true;
+		fallthrough;
 	default:
 		dev->mphy.cap.has_2ghz = true;
 		dev->mphy.cap.has_5ghz = true;
@@ -162,7 +162,7 @@ static void mt7615_eeprom_parse_hw_cap(struct mt7615_dev *dev)
 
 	dev->chainmask = BIT(tx_mask) - 1;
 	dev->mphy.antenna_mask = dev->chainmask;
-	dev->phy.chainmask = dev->chainmask;
+	dev->mphy.chainmask = dev->chainmask;
 }
 
 static int mt7663_eeprom_get_target_power_index(struct mt7615_dev *dev,
@@ -343,10 +343,10 @@ int mt7615_eeprom_init(struct mt7615_dev *dev, u32 addr)
 	}
 
 	mt7615_eeprom_parse_hw_cap(dev);
-	memcpy(dev->mt76.macaddr, dev->mt76.eeprom.data + MT_EE_MAC_ADDR,
+	memcpy(dev->mphy.macaddr, dev->mt76.eeprom.data + MT_EE_MAC_ADDR,
 	       ETH_ALEN);
 
-	mt76_eeprom_override(&dev->mt76);
+	mt76_eeprom_override(&dev->mphy);
 
 	return 0;
 }
