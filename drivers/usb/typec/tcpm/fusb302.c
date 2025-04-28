@@ -1538,9 +1538,13 @@ static void fusb302_irq_work(struct kthread_work *work)
 	ret = fusb302_i2c_read(chip, FUSB_REG_STATUS0, &status0);
 	if (ret < 0)
 		goto done;
+	/*
 	fusb302_log(chip,
 		    "IRQ: 0x%02x, a: 0x%02x, b: 0x%02x, status0: 0x%02x",
 		    interrupt, interrupta, interruptb, status0);
+	*/
+
+	/*dev_info(chip->dev, "IRQ: 0x%02x, a: 0x%02x, b: 0x%02x, status0: 0x%02x", interrupt, interrupta, interruptb, status0);*/
 
 	if (interrupt & FUSB_REG_INTERRUPT_VBUSOK) {
 		vbus_present = !!(status0 & FUSB_REG_STATUS0_VBUSOK);
@@ -1711,6 +1715,7 @@ static int fusb302_probe(struct i2c_client *client,
 			"I2C/SMBus block functionality not supported!\n");
 		return -ENODEV;
 	}
+
 	chip = devm_kzalloc(&client->dev, sizeof(*chip), GFP_KERNEL);
 	if (!chip)
 		return -ENOMEM;
@@ -1783,6 +1788,8 @@ static int fusb302_probe(struct i2c_client *client,
 	}
 	enable_irq_wake(chip->gpio_int_n_irq);
 	i2c_set_clientdata(client, chip);
+
+	dev_info(dev, "fusb302_probe ret: %d\n", ret);
 
 	return ret;
 

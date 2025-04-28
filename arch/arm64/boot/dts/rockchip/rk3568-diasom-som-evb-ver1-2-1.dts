@@ -74,15 +74,14 @@
 };
 */
 
-/*
 &typec {
 	pinctrl-names = "default";
 	pinctrl-0 = <&fusb302_pins>;
-	interrupt-parent = <&gpio1>;
-	interrupts = <RK_PA5 IRQ_TYPE_LEVEL_LOW>;
+	/*interrupt-parent = <&gpio1>;*/
+	/*interrupts = <RK_PA5 IRQ_TYPE_LEVEL_LOW>;*/
+	fcs,int_n = <&gpio1 RK_PA5 IRQ_TYPE_LEVEL_LOW>;
 	status = "okay";
 };
-*/
 
 &vcc3v3_pcie20 {
 	pinctrl-names = "default";
@@ -98,7 +97,6 @@
 	status = "okay";
 };
 
-/*
 &vcc5v0_usb3_otg0 {
 	pinctrl-names = "default";
 	pinctrl-0 = <&usb3_otg0_en_pins>;
@@ -106,7 +104,6 @@
 	enable-active-high;
 	status = "okay";
 };
-*/
 
 &pinctrl {
 	csi {
@@ -138,7 +135,10 @@
 
 		usb3_otg0_en_pins: usb3-otg0-en-pins {
 			rockchip,pins =
-				<0 RK_PC1 RK_FUNC_GPIO &pcfg_pull_none>;	/* USB3_OTG0_EN */
+				<0 RK_PC1 RK_FUNC_GPIO &pcfg_pull_none>,	/* USB3_OTG0_EN */
+				<4 RK_PD2 RK_FUNC_GPIO &pcfg_pull_up>,		/* USB3_OTG0_SEL */
+				<3 RK_PA2 RK_FUNC_GPIO &pcfg_pull_none>;	/* Unused */
+
 		};
 	};
 };

@@ -22,22 +22,6 @@
         ethernet1 = &gmac1;
     };
 
-	usb {
-		pinctrl-names = "default";
-		pinctrl-0 = <&usbmux_pins>;
-		compatible = "genesys,gl9962", "gpio-sbu-mux";
-		enable-gpios = <&gpio3 RK_PA2 GPIO_ACTIVE_HIGH>;
-		select-gpios = <&gpio4 RK_PD2 GPIO_ACTIVE_LOW>;
-		orientation-switch;
-        status = "okay";
-
-		port {
-			typec_sbu: endpoint {
-				remote-endpoint = <&fusb_sbu>;
-			};
-		};
-	};
-
     vcc0v9_cpu: vcc0v9-cpu-regulator {
         compatible = "regulator-fixed";
         regulator-name = "0v9_cpu";
@@ -688,59 +672,53 @@
     status = "okay";
 
     typec: usb@22 {
-        compatible = "fcs,fusb302";
-        reg = <0x22>;
-        vbus-supply = <&vcc5v0_usb3_otg0>;
-        status = "disabled";
+			compatible = "fcs,fusb302";
+			reg = <0x22>;
+			interrupt-parent = <&gpio0>; /*修改 */
+			//根据 FUSB302 INT 实际连接的 GPIO 进行
+			// interrupts = <&gpio0 RK_PC1 IRQ_TYPE_LEVEL_LOW>;
+			fusb340-switch-gpios = <&gpio4 RK_PD2 GPIO_ACTIVE_HIGH>;
+			vbus-supply = <&vcc5v0_usb3_otg0>;
+			// vbus-supply = <&vbus_typec>;
+			status = "okay";
 
-        connector {
-            compatible = "usb-c-connector";
-            data-role = "host";
-            label = "USB-C";
-            pd-disable;
-            power-role = "source";
-            typec-power-opmode = "default";
+			ports {
+				#address-cells = <1>;
+				#size-cells = <0>;
+				/*用于关联 USB 控制器,实现 USB 角色切换的功能 */
+				port@0 {
+					reg = <0>;
+					usbc0_role_sw: endpoint@0 {
+					remote-endpoint = <&dwc3_role_switch>;
+					};
+				};
+			};
 
-            source-pdos =
-                <PDO_FIXED(5000, 1500, PDO_FIXED_USB_COMM)>;
+            usb_con: connector { /*用于描述 PD 协议相关信息 */
+				compatible = "usb-c-connector";
+				label = "USB-C";
+				data-role = "host";
+				power-role = "source";
+				try-power-role = "source";
+				op-sink-microwatt = <1000000>;
+				sink-pdos =
+					<PDO_FIXED(5000, 2500, PDO_FIXED_USB_COMM)>;
+				source-pdos =
+					<PDO_FIXED(5000, 1500, PDO_FIXED_USB_COMM)>;
 
-            ports {
-                #address-cells = <1>;
-                #size-cells = <0>;
+                ports {
+                    #address-cells = <1>;
+                    #size-cells = <0>;
 
-                port@0 {
-                    /* HS */
-                    reg = <0>;
-                    fusb_hs: endpoint {
-                        remote-endpoint = <&typec_hs>;
+                    port@0 {
+                        reg = <0>;
+                        usbc_ss: endpoint {
+                            remote-endpoint = <&dwc3_drd_phy>;
+                        };
                     };
                 };
-
-                port@1 {
-                    /* SS */
-                    reg = <1>;
-                    fusb_ss: endpoint {
-                        remote-endpoint = <&typec_ss>;
-                    };
-                };
-
-                port@2 {
-                    /* Orientation Switch */
-                    reg = <2>;
-                    fusb_sbu: endpoint {
-                        remote-endpoint = <&typec_sbu>;
-                    };
-                };
-            };
-        };
-
-        port {
-            /* Role switch */
-            fusb_role_sw: endpoint {
-                remote-endpoint = <&typec_role_sw>;
-            };
-        };
-    };
+			};
+		};
 };
 
 &i2c4 {
@@ -819,38 +797,32 @@
 
 &usbdrd30 {
     status = "okay";
+
+    port {
+        #address-cells = <1>;
+        #size-cells = <0>;
+
+        dwc3_drd_phy: endpoint@0 {
+            reg = <0>;
+            remote-endpoint = <&usbc_ss>;
+        };
+    };
 };
 
 &usbdrd_dwc3 {
     status = "okay";
+    /*usb-role-switch;*/
     dr_mode = "host";
-    
-    port {
-        typec_role_sw: endpoint {
-            remote-endpoint = <&fusb_role_sw>;
-        };
-    };
 
-    ports {
-        #address-cells = <1>;
-        #size-cells = <0>;
-
-        port@0 {
-            /* HS */
-            reg = <0>;
-            typec_hs: endpoint {
-                remote-endpoint = <&fusb_hs>;
-            };
-        };
-
-        port@1 {
-            /* SS */
-            reg = <1>;
-            typec_ss: endpoint {
-                remote-endpoint = <&fusb_ss>;
-            };
-        };
-    };
+	port {
+		#address-cells = <1>;
+		#size-cells = <0>;
+		dwc3_role_switch: endpoint@0 {
+			reg = <0>;
+			/*关联 FUSB302 ,实现USB角色切换的功能 */
+			remote-endpoint = <&usbc0_role_sw>; 
+		};
+	};
 };
 
 &usbhost30 {
@@ -868,6 +840,10 @@
 &u2phy0_host {
     status = "okay";
     phy-supply = <&vcc5v0_usb3_host1>;
+};
+
+&u2phy0_otg {
+    status = "okay";
 };
 
 &combphy0_us {
@@ -938,6 +914,24 @@
         reg = <1>;
     };
 };
+
+/*
+&rknpu {
+	rknpu-supply = <&vdd_npu>;
+	status = "okay";
+};
+
+&rknpu_mmu {
+	status = "okay";
+};
+*/
+
+&bus_npu {
+	bus-supply = <&vdd_logic>;
+	pvtm-supply = <&vdd_npu>;
+	status = "okay";
+};
+
 
 &pinctrl {
     pinctrl-0 = <&board_pins>;
@@ -1052,12 +1046,4 @@
                 <1 RK_PA5 RK_FUNC_GPIO &pcfg_pull_none>;	/* USB3_OTG0_EN */
         };
     };
-
-	usbmux {
-		usbmux_pins: usbmux-pins {
-			rockchip,pins =
-				<4 RK_PD2 RK_FUNC_GPIO &pcfg_pull_up>,		/* USB3_OTG0_SEL */
-				<3 RK_PA2 RK_FUNC_GPIO &pcfg_pull_none>;	/* Unused */
-		};
-	};    
 };
