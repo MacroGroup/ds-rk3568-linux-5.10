@@ -1346,6 +1346,8 @@ static int rknpu_probe(struct platform_device *pdev)
 	rknpu_debugger_init(rknpu_dev);
 	rknpu_init_timer(rknpu_dev);
 
+	LOG_DEV_INFO(dev, "probe success");
+
 	return 0;
 
 err_remove_wq:

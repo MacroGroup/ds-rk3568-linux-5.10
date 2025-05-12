@@ -9,14 +9,10 @@
 #include "rk3568-diasom-som-evb.dtsi"
 
 &gmac0 {
-	nvmem-cells = <&mac0>;
-	nvmem-cell-names = "mac-address";
 	status = "okay";
 };
 
 &gmac1 {
-	nvmem-cells = <&mac1>;
-	nvmem-cell-names = "mac-address";
 	status = "okay";
 };
 

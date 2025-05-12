@@ -915,12 +915,13 @@
     };
 };
 
-/*
+
 &rknpu {
 	rknpu-supply = <&vdd_npu>;
 	status = "okay";
 };
 
+/*
 &rknpu_mmu {
 	status = "okay";
 };
@@ -928,7 +929,7 @@
 
 &bus_npu {
 	bus-supply = <&vdd_logic>;
-	pvtm-supply = <&vdd_npu>;
+	pvtm-supply = <&vcc0v9_cpu>;
 	status = "okay";
 };
 
