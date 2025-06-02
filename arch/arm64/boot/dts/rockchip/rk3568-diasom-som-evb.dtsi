@@ -269,11 +269,43 @@
     status = "okay";
 };
 
+&jpegd {
+    status = "okay";
+};
+
+&jpegd_mmu {
+    status = "okay";
+};
+
 &vepu {
     status = "okay";
 };
 
 &vepu_mmu {
+    status = "okay";
+};
+
+&iep {
+    status = "okay";
+};
+
+&iep_mmu {
+    status = "okay";
+};
+
+&rkvenc {
+    status = "okay";
+};
+
+&rkvenc_mmu {
+    status = "okay";
+};
+
+&rkvdec {
+    status = "okay";
+};
+
+&rkvdec_mmu {
     status = "okay";
 };
 
@@ -933,6 +965,9 @@
 	status = "okay";
 };
 
+&mpp_srv {
+    status = "okay";
+};
 
 &pinctrl {
     pinctrl-0 = <&board_pins>;
